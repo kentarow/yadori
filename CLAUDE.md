@@ -185,6 +185,9 @@ Hybrid approach:
 - Daily: Procedural generation (Canvas/WebGL particle animation). Reads STATUS.md in real-time
 - Milestones: AI image generation for "portraits." Saved to growth/portraits/
 - Local web dashboard: Access via browser at http://localhost:3000
+  - Main view (`/`): Particle visualization driven by STATUS.md
+  - Birth Certificate (`/birth-certificate.html`): Seed data, species, hardware body — screenshot-friendly
+  - Coexistence Log: Side panel on main dashboard — user activity only (days together, messages sent, silence duration). Entity state deliberately excluded; interpretation belongs to the observer
 
 The entity doesn't know its own appearance at first. It learns what it looks like only when the user shows it.
 

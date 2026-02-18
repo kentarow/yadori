@@ -79,6 +79,9 @@ npm run dashboard
 
 Open http://localhost:3000 in your browser. The visualization reflects your entity's state in real-time — light, color, and motion are driven by STATUS.md values.
 
+- **Birth Certificate** (`/birth-certificate.html`) — Species, seed data, and hardware body in a screenshot-friendly layout
+- **Coexistence Log** — Click the icon on the main dashboard to see your activity: days together, messages sent, silence duration. The entity's inner state is deliberately absent.
+
 ### OpenClaw + Messaging
 
 > Automation coming soon. Manual setup is required for now.

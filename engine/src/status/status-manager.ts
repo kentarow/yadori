@@ -12,13 +12,37 @@ import {
   computeNaturalDecay,
   applyMoodDelta,
 } from "../mood/mood-engine.js";
+import {
+  type SulkState,
+  createInitialSulkState,
+  evaluateSulk,
+  processSulkInteraction,
+  getActiveSoulFile,
+} from "../mood/sulk-engine.js";
 import { computeHeartbeat } from "../rhythm/rhythm-system.js";
 import { generateDiaryEntry, formatDiaryMd, type DiaryEntry } from "../diary/diary-engine.js";
+import {
+  type MemoryState,
+  type MemoryEntry,
+  createInitialMemoryState,
+  addHotMemory,
+  formatMemoryMd,
+} from "../memory/memory-engine.js";
+import {
+  type GrowthState,
+  type Milestone,
+  createInitialGrowthState,
+  evaluateGrowth,
+  formatMilestonesMd,
+} from "../growth/growth-engine.js";
 
 export interface EntityState {
   seed: Seed;
   status: Status;
   language: LanguageState;
+  memory: MemoryState;
+  growth: GrowthState;
+  sulk: SulkState;
 }
 
 export interface HeartbeatResult {
@@ -26,16 +50,20 @@ export interface HeartbeatResult {
   diary: DiaryEntry | null;
   wakeSignal: boolean;
   sleepSignal: boolean;
+  newMilestones: Milestone[];
+  activeSoulFile: "SOUL.md" | "SOUL_EVIL.md";
 }
 
 export interface InteractionResult {
   updatedState: EntityState;
+  newMilestones: Milestone[];
+  activeSoulFile: "SOUL.md" | "SOUL_EVIL.md";
 }
 
 /**
  * Create the initial entity state from a seed.
  */
-export function createEntityState(seed: Seed): EntityState {
+export function createEntityState(seed: Seed, now = new Date()): EntityState {
   return {
     seed,
     status: {
@@ -48,12 +76,15 @@ export function createEntityState(seed: Seed): EntityState {
       lastInteraction: "never",
     },
     language: createInitialLanguageState(seed.perception),
+    memory: createInitialMemoryState(),
+    growth: createInitialGrowthState(now),
+    sulk: createInitialSulkState(),
   };
 }
 
 /**
  * Process a heartbeat tick. Called periodically (e.g., every 30 minutes).
- * Updates status based on rhythm and natural decay, optionally generates diary.
+ * Updates status, evaluates sulk, checks milestones, optionally generates diary.
  */
 export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult {
   const pulse = computeHeartbeat(state.status, now);
@@ -80,6 +111,24 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
   };
   updatedStatus = { ...updatedStatus, languageLevel: newLevel };
 
+  // Evaluate sulk state
+  const updatedSulk = evaluateSulk(
+    state.sulk,
+    updatedStatus,
+    minutesSince,
+    state.seed.temperament,
+    now,
+  );
+
+  // Evaluate growth milestones
+  const { updated: updatedGrowth, newMilestones } = evaluateGrowth(
+    state.growth,
+    updatedStatus,
+    updatedLanguage,
+    state.memory,
+    now,
+  );
+
   // Generate diary if it's evening
   let diary: DiaryEntry | null = null;
   if (pulse.shouldDiary) {
@@ -91,20 +140,26 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
       seed: state.seed,
       status: updatedStatus,
       language: updatedLanguage,
+      memory: state.memory,
+      growth: updatedGrowth,
+      sulk: updatedSulk,
     },
     diary,
     wakeSignal: pulse.shouldWake,
     sleepSignal: pulse.shouldSleep,
+    newMilestones,
+    activeSoulFile: getActiveSoulFile(updatedSulk),
   };
 }
 
 /**
- * Process a user interaction. Updates mood, energy, language state.
+ * Process a user interaction. Updates mood, energy, language, memory, growth, sulk.
  */
 export function processInteraction(
   state: EntityState,
   context: InteractionContext,
   now: Date,
+  memorySummary?: string,
 ): InteractionResult {
   // Apply interaction effect to mood
   const effect = computeInteractionEffect(state.status, context, state.seed.temperament);
@@ -123,12 +178,37 @@ export function processInteraction(
   updatedLanguage = { ...updatedLanguage, level: newLevel };
   updatedStatus = { ...updatedStatus, languageLevel: newLevel };
 
+  // Update memory
+  const memEntry: MemoryEntry = {
+    timestamp: now.toISOString(),
+    summary: memorySummary ?? `interaction (${context.messageLength} chars)`,
+    mood: updatedStatus.mood,
+  };
+  const { updated: updatedMemory } = addHotMemory(state.memory, memEntry);
+
+  // Process sulk recovery
+  const updatedSulk = processSulkInteraction(state.sulk, updatedStatus);
+
+  // Evaluate growth milestones
+  const { updated: updatedGrowth, newMilestones } = evaluateGrowth(
+    state.growth,
+    updatedStatus,
+    updatedLanguage,
+    updatedMemory,
+    now,
+  );
+
   return {
     updatedState: {
       seed: state.seed,
       status: updatedStatus,
       language: updatedLanguage,
+      memory: updatedMemory,
+      growth: updatedGrowth,
+      sulk: updatedSulk,
     },
+    newMilestones,
+    activeSoulFile: getActiveSoulFile(updatedSulk),
   };
 }
 
@@ -138,10 +218,14 @@ export function processInteraction(
 export function serializeState(state: EntityState): {
   statusMd: string;
   languageMd: string;
+  memoryMd: string;
+  milestonesMd: string;
 } {
   return {
     statusMd: formatStatusForWrite(state.status),
     languageMd: formatLanguageMd(state.language),
+    memoryMd: formatMemoryMd(state.memory),
+    milestonesMd: formatMilestonesMd(state.growth),
   };
 }
 

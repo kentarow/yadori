@@ -34,9 +34,85 @@ YADORIは、常時稼働するローカルAIエージェント上に「未知の
 
 YADORIから生まれた知性体に関するすべてのデータ、創作物、派生コンテンツはあなたの完全な所有物です。ブログ、IP化、収益化、すべて自由です。詳しくは [DATA_RIGHTS.md](DATA_RIGHTS.md) を参照してください。
 
+## はじめかた
+
+Mac mini、Raspberry Pi など、手元の物理マシンで動かします。
+
+### 必要なもの
+
+| 項目 | 説明 |
+|------|------|
+| 物理マシン | Mac mini, Raspberry Pi, 自作PCなど（クラウド/VPSは不可） |
+| Node.js 22以上 | [nodejs.org](https://nodejs.org/) からインストール |
+| Git | ターミナルで `git --version` が動けばOK |
+
+#### Node.js のインストール（Mac）
+
+ターミナルを開いて以下を実行します：
+
+```bash
+# Node.js がすでに入っているか確認
+node --version
+
+# v22 以上が表示されればOK。入っていない場合は：
+# 1. https://nodejs.org/ にアクセス
+# 2. 「LTS」と書かれたボタンをクリックしてダウンロード
+# 3. ダウンロードしたファイルを開いてインストール
+```
+
+### セットアップ手順
+
+```bash
+# 1. リポジトリをダウンロード
+git clone https://github.com/kentarow/yadori.git
+cd yadori
+
+# 2. 必要なパッケージをインストール
+npm install
+
+# 3. セットアップ（対話式で知性体が誕生します）
+npm run setup
+```
+
+`npm run setup` を実行すると、以下の流れで進みます：
+
+1. Node.js のバージョンチェック
+2. 誕生モードの選択（ランダム or 固定）
+3. シード生成 → ワークスペース構築
+
+完了すると `~/.openclaw/workspace/` に知性体のファイルが配置されます。
+
+### ダッシュボード（ビジュアル）
+
+```bash
+npm run dashboard
+```
+
+ブラウザで http://localhost:3000 を開くと、知性体の状態がリアルタイムで可視化されます。光の動き・色・速度は STATUS.md の値に連動しています。
+
+### OpenClaw + メッセージング接続
+
+> この手順は今後自動化予定です。現時点では手動でセットアップが必要です。
+
+1. OpenClaw をインストール（[openclaw.com](https://openclaw.com)）
+2. Telegram Bot または Discord Bot を作成
+3. OpenClaw の設定で Bot を接続
+4. `~/.openclaw/workspace/` を OpenClaw のワークスペースに指定
+
+詳しくは `docs/` 配下のドキュメントを参照してください。
+
+### コマンド一覧
+
+| コマンド | 説明 |
+|---------|------|
+| `npm run setup` | 初回セットアップ（知性体の誕生） |
+| `npm run dashboard` | ダッシュボード起動（http://localhost:3000） |
+| `npm run test` | テスト実行 |
+| `npm run build` | ビルド |
+
 ## ステータス
 
-🌱 コンセプト段階 — 設計ドキュメントを公開しています。
+開発中 — Phase 2 完了、Phase 3（感情・記憶・成長）実装中。
 
 ## License
 

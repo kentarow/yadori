@@ -284,13 +284,25 @@ user-data/     ユーザーの所有物（ライセンス対象外）
 
 ---
 
-## 開発環境
+## 環境
 
-- ハードウェア: Mac mini M4 (16GB RAM, 256GB SSD)
-- ランタイム: OpenClaw（MIT License）
-- LLM: Anthropic Claude API（OpenClaw用に専用アカウント）
+### 開発環境（Claude Code — クラウド）
+
+コードを書いてGitHubにpushする場所。オーナーはエンジニアではない。
+
+- Claude Code（クラウドベースのAI支援開発）
 - 言語: TypeScript（OpenClawのエコシステムに合わせる）
 - ビジュアル: HTML + Canvas + JavaScript
+
+### ファーストユーザー環境（Mac mini M4 — 物理）
+
+Mac miniはYADORIの最初の「身体」。開発マシンではなく、使う人のマシン。
+
+- ハードウェア: Mac mini M4 (16GB RAM, 256GB SSD)
+- 役割: YADORIの最初のユーザー。OpenClawをセットアップし、最初の知性体を宿らせる
+- ランタイム: OpenClaw（MIT License）
+- メッセージング: Discord（メイン）、Telegram（サポート対象）
+- LLM: Anthropic Claude API（OpenClaw用に専用アカウント）
 - ホスティング: ローカル実行（一体一魂の原則）
 
 ---

@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
 
@@ -89,6 +89,62 @@ const server = createServer(async (req, res) => {
     } catch {
       res.writeHead(503, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Entity not found. Run 'npm run setup' first." }));
+    }
+    return;
+  }
+
+  if (req.url === "/api/coexistence") {
+    try {
+      const state = await readJsonState();
+      const seedMd = await readFile(join(WORKSPACE_ROOT, "SEED.md"), "utf-8");
+      const born = seedMd.match(/\*\*Born\*\*:\s*(.+)/)?.[1]?.trim() ?? "";
+
+      let totalInteractions = 0;
+      let lastInteraction = "never";
+      let daysTogether = 0;
+
+      if (state) {
+        const s = state as Record<string, Record<string, unknown>>;
+        totalInteractions = s.language?.totalInteractions as number ?? 0;
+        lastInteraction = s.status?.lastInteraction as string ?? "never";
+      } else {
+        const statusMd = await readFile(join(WORKSPACE_ROOT, "STATUS.md"), "utf-8");
+        lastInteraction = statusMd.match(/\*\*last_interaction\*\*:\s*(.+)/)?.[1]?.trim() ?? "never";
+      }
+
+      if (born) {
+        daysTogether = Math.max(0, Math.floor((Date.now() - new Date(born).getTime()) / 86_400_000));
+      }
+
+      let silenceHours: number | null = null;
+      if (lastInteraction && lastInteraction !== "never") {
+        silenceHours = Math.round((Date.now() - new Date(lastInteraction).getTime()) / 3_600_000 * 10) / 10;
+      }
+
+      let activeDays = 0;
+      try {
+        const files = await readdir(join(WORKSPACE_ROOT, "memory"));
+        activeDays = files.filter(f => /^\d{4}-\d{2}-\d{2}\.md$/.test(f)).length;
+      } catch { /* no memory dir yet */ }
+
+      let diaryEntries = 0;
+      try {
+        const files = await readdir(join(WORKSPACE_ROOT, "diary"));
+        diaryEntries = files.filter(f => f.endsWith(".md")).length;
+      } catch { /* no diary dir yet */ }
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        daysTogether,
+        totalInteractions,
+        lastInteraction,
+        silenceHours,
+        activeDays,
+        diaryEntries,
+      }));
+    } catch {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Entity not found." }));
     }
     return;
   }

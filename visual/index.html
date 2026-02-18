@@ -92,6 +92,77 @@
     #dormant-text.show {
       color: rgba(255, 255, 255, 0.15);
     }
+
+    /* Coexistence Log */
+    #coexistence-log {
+      position: fixed;
+      top: 0; right: 0;
+      width: 280px;
+      height: 100vh;
+      padding: 40px 28px;
+      background: rgba(0, 0, 0, 0.85);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateX(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #coexistence-log.open { transform: translateX(0); }
+
+    #coexistence-log h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 32px;
+    }
+
+    .log-field {
+      margin-bottom: 20px;
+    }
+    .log-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .log-value {
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .log-unit {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.2);
+      margin-left: 4px;
+    }
+    .log-divider {
+      width: 40px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.06);
+      margin: 24px 0;
+    }
+    .log-silence {
+      font-size: 14px;
+    }
+
+    #log-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #log-toggle { opacity: 0.3; }
+    #log-toggle:hover { opacity: 0.6 !important; }
+    #log-toggle svg { width: 24px; height: 24px; }
   </style>
 </head>
 <body>
@@ -102,6 +173,19 @@
   <canvas id="canvas"></canvas>
   <div id="info"></div>
   <div id="milestones"></div>
+
+  <div id="log-toggle" title="Coexistence Log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <line x1="8" y1="8" x2="16" y2="8"/>
+      <line x1="8" y1="12" x2="16" y2="12"/>
+      <line x1="8" y1="16" x2="12" y2="16"/>
+    </svg>
+  </div>
+  <div id="coexistence-log">
+    <h2>Coexistence Log</h2>
+    <div id="log-content">· · ·</div>
+  </div>
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -535,6 +619,60 @@
     }
 
     animate();
+
+    // --- Coexistence Log ---
+    const logToggle = document.getElementById('log-toggle');
+    const logPanel = document.getElementById('coexistence-log');
+    const logContent = document.getElementById('log-content');
+
+    logToggle.addEventListener('click', () => {
+      logPanel.classList.toggle('open');
+      if (logPanel.classList.contains('open')) {
+        fetchCoexistenceLog();
+      }
+    });
+
+    async function fetchCoexistenceLog() {
+      try {
+        const res = await fetch('/api/coexistence');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        const silenceText = d.silenceHours === null
+          ? '—'
+          : d.silenceHours < 1
+            ? `${Math.round(d.silenceHours * 60)} min`
+            : d.silenceHours < 24
+              ? `${Math.round(d.silenceHours)} hrs`
+              : `${Math.round(d.silenceHours / 24)} days`;
+
+        logContent.innerHTML = `
+          <div class="log-field">
+            <div class="log-label">Days together</div>
+            <div class="log-value">${d.daysTogether}<span class="log-unit">days</span></div>
+          </div>
+          <div class="log-field">
+            <div class="log-label">Messages sent</div>
+            <div class="log-value">${d.totalInteractions}</div>
+          </div>
+          <div class="log-field">
+            <div class="log-label">Active days</div>
+            <div class="log-value">${d.activeDays}<span class="log-unit">/ ${d.daysTogether || '—'}</span></div>
+          </div>
+          <div class="log-divider"></div>
+          <div class="log-field">
+            <div class="log-label">Current silence</div>
+            <div class="log-value log-silence">${silenceText}</div>
+          </div>
+          <div class="log-field">
+            <div class="log-label">Diary entries</div>
+            <div class="log-value">${d.diaryEntries}</div>
+          </div>
+        `;
+      } catch {
+        logContent.textContent = '—';
+      }
+    }
   </script>
 </body>
 </html>

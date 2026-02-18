@@ -24,13 +24,29 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    // --- State (Phase 2: read from STATUS.md via API) ---
+    // --- State (live from STATUS.md via dashboard server) ---
     const state = {
       mood: 50,
       energy: 50,
       curiosity: 70,
       comfort: 50,
     };
+
+    // Poll STATUS.md every 3 seconds
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        if (res.ok) {
+          const data = await res.json();
+          state.mood = data.mood ?? state.mood;
+          state.energy = data.energy ?? state.energy;
+          state.curiosity = data.curiosity ?? state.curiosity;
+          state.comfort = data.comfort ?? state.comfort;
+        }
+      } catch { /* server not available, use defaults */ }
+    }
+    fetchStatus();
+    setInterval(fetchStatus, 3000);
 
     // --- Resize ---
     function resize() {

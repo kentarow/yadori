@@ -11,7 +11,9 @@
     "dev": "tsc --watch --project tsconfig.build.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "setup": "node --import tsx scripts/setup.ts",
+    "dashboard": "node --import tsx visual/server.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

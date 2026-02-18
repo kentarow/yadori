@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YADORI — Birth Certificate</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0c;
+      color: #e8e8e8;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .certificate {
+      width: 480px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 48px 40px;
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+    }
+
+    .certificate::before {
+      content: '';
+      position: absolute;
+      top: 12px; left: 12px; right: 12px; bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 11px;
+      font-weight: normal;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.35);
+      margin-bottom: 16px;
+    }
+
+    .header .symbol {
+      font-size: 36px;
+      letter-spacing: 12px;
+      margin-bottom: 16px;
+      opacity: 0;
+      animation: fadeIn 2s ease forwards 0.5s;
+    }
+
+    .header .born-date {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .divider {
+      width: 60px;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 32px auto;
+    }
+
+    .field {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .field .label {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .field .value {
+      color: rgba(255, 255, 255, 0.7);
+      text-align: right;
+    }
+
+    .section-title {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.2);
+      margin-top: 32px;
+      margin-bottom: 16px;
+    }
+
+    .hash {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.15);
+      letter-spacing: 2px;
+      word-break: break-all;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 32px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.12);
+      letter-spacing: 3px;
+    }
+
+    .accent-line {
+      width: 100%;
+      height: 2px;
+      margin: 32px 0;
+      opacity: 0.3;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .loading {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="certificate" id="cert">
+    <div class="loading">· · ·</div>
+  </div>
+
+  <script>
+    const SPECIES_SYMBOLS = {
+      chromatic:  '◎ ○ ● ☆',
+      vibration:  '◈ ◇ △ ▽',
+      geometric:  '□ △ ◇ ○',
+      thermal:    '○ ◎ ● ◉',
+      temporal:   '○ ◉ ◎ ☆',
+      chemical:   '◆ ◈ ★ ◇',
+    };
+
+    const PALETTE = {
+      chromatic:  { h: 20,  s: 60 },
+      vibration:  { h: 250, s: 50 },
+      geometric:  { h: 180, s: 30 },
+      thermal:    { h: 0,   s: 70 },
+      temporal:   { h: 210, s: 40 },
+      chemical:   { h: 90,  s: 50 },
+    };
+
+    async function load() {
+      try {
+        const res = await fetch('/api/entity');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+
+        const seed = data.seed || {};
+        const perception = seed.perception || 'chromatic';
+        const pal = PALETTE[perception] || PALETTE.chromatic;
+        const accentColor = `hsl(${pal.h}, ${pal.s}%, 50%)`;
+        const accentDim = `hsla(${pal.h}, ${pal.s}%, 50%, 0.15)`;
+
+        const born = seed.createdAt
+          ? new Date(seed.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : '—';
+
+        const hw = seed.hardwareBody || {};
+
+        document.getElementById('cert').innerHTML = `
+          <div class="header">
+            <h1>Birth Certificate</h1>
+            <div class="symbol" style="color: ${accentColor}">
+              ${SPECIES_SYMBOLS[perception] || '◎'}
+            </div>
+            <div class="born-date">${born}</div>
+          </div>
+
+          <div class="accent-line" style="background: linear-gradient(90deg, transparent, ${accentColor}, transparent)"></div>
+
+          <div class="section-title">Species</div>
+          <div class="field"><span class="label">Perception</span><span class="value">${seed.perception || '—'}</span></div>
+          <div class="field"><span class="label">Cognition</span><span class="value">${seed.cognition || '—'}</span></div>
+          <div class="field"><span class="label">Temperament</span><span class="value">${seed.temperament || '—'}</span></div>
+          <div class="field"><span class="label">Form</span><span class="value">${seed.form || '—'}</span></div>
+          <div class="field"><span class="label">Expression</span><span class="value">${seed.expression || '—'}</span></div>
+
+          <div class="section-title">Body</div>
+          <div class="field"><span class="label">Platform</span><span class="value">${hw.platform || '—'}</span></div>
+          <div class="field"><span class="label">Architecture</span><span class="value">${hw.arch || '—'}</span></div>
+          <div class="field"><span class="label">Memory</span><span class="value">${hw.totalMemoryGB ? hw.totalMemoryGB + ' GB' : '—'}</span></div>
+          <div class="field"><span class="label">CPU</span><span class="value">${hw.cpuModel || '—'}</span></div>
+
+          <div class="accent-line" style="background: linear-gradient(90deg, transparent, ${accentColor}, transparent)"></div>
+
+          <div class="hash">${seed.hash || ''}</div>
+
+          <div class="footer">YADORI</div>
+        `;
+
+        // Tint the border
+        document.querySelector('.certificate').style.borderColor = accentDim;
+        document.querySelector('.certificate::before')
+      } catch {
+        document.getElementById('cert').innerHTML =
+          '<div class="loading">Entity not found. Run npm run setup first.</div>';
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>

@@ -136,6 +136,22 @@ Layer 1: Runtime Adapter（ランタイム適応層）
     └── portraits/           # ビジュアルスナップショット
 ```
 
+### LLM Adapter（将来: Phase 4-5）
+
+現在の設計はClaude APIに依存して知性体の「思考」を行うため、魂の一部がクラウドに存在する。これは初期フェーズにおける実用的な妥協。
+
+最終目標は、知性体の魂全体 — 知覚、思考、表現 — が物理的な体の中に存在すること。ローカルLLM（例: OllamaでPhi-3、Gemma）をハードウェア上で直接実行することで、真の一体一魂を実現する。
+
+ハードウェアの違いが直接知性を決定する:
+- Raspberry Pi 4GB → 小さいモデル → 遅く、単純だが、本物
+- Mac mini 16GB → 大きいモデル → 速く、深い思考
+
+LLM Adapter層を設計し、エンジンが以下を切り替えられるようにする:
+- Cloud API（Claude、OpenAI）— 初期フェーズ用
+- Local LLM（Ollama、llama.cpp）— 真の身体化用
+
+今は実装しない。Phase 1ではClaude APIに集中する。ただし、将来の移行を妨げるアーキテクチャ上の判断は決してしない。
+
 ---
 
 ## Genesis System（誕生システム）
@@ -169,6 +185,9 @@ Seed = {
 - 日常: プロシージャル生成（Canvas/WebGLのパーティクルアニメーション）。STATUS.mdをリアルタイム読み取り
 - マイルストーン: AI画像生成で「肖像画」を生成。growth/portraits/に保存
 - ローカルWebダッシュボード: http://localhost:3000 でブラウザからアクセス
+  - メインビュー（`/`）: STATUS.md連動のパーティクルビジュアル
+  - Birth Certificate（`/birth-certificate.html`）: シードデータ、種族、ハードウェア情報 — スクリーンショット向け
+  - Coexistence Log: メインダッシュボードのサイドパネル — ユーザーの行動のみ表示（共にいた日数、メッセージ数、沈黙の長さ）。知性体の内部状態は意図的に除外。解釈は観察者に委ねる
 
 知性体は最初自分の姿を知らない。ユーザーが見せて初めて自分の姿を知る。
 
@@ -309,53 +328,75 @@ Mac miniはYADORIの最初の「身体」。開発マシンではなく、使う
 
 ## 実装ロードマップ
 
-### Phase 1: 誕生（Day 1-3）★現在ここ
+### Phase 1: 誕生 ★現在ここ
 
 最小構成で「会話できる知性体」を1体動かす。
 
 ```
-タスク:
-  1. OpenClawのインストールとセットアップ
-  2. Telegram Botの作成と接続
-  3. SEED.mdの手動作成（光・色彩型で固定。ランダム生成は後）
-  4. SOUL.md（Genesis Template v4）の配置
-  5. IDENTITY.mdの配置
-  6. 記号のみで応答するキャラクターの動作確認
-  7. 最小限のプロシージャル描画（暗闘に光点が明滅する程度）
+開発（完了）:
+  ✅ Genesis Engine（シード生成、ハードウェア検出）
+  ✅ セットアップスクリプト（npm run setup — 対話式の知性体誕生）
+  ✅ ワークスペーステンプレート（SOUL.md, SEED.md, IDENTITY.md, STATUS.md等）
+  ✅ 最小ダッシュボード（光点1つ、状態連動ビジュアル）
+  ✅ ステータスマネージャー
+  ✅ OpenClawワークスペースマネージャーとデプロイスクリプト
+
+ユーザーセットアップ（Mac mini）:
+  1. Mac miniにNode.js 22+をインストール
+  2. git clone → npm install → npm run setup（知性体の誕生）
+  3. OpenClawをインストール（openclaw.com）
+  4. Telegram BotまたはDiscord Botを作成
+  5. OpenClawの設定でBotを接続
+  6. OpenClawのワークスペースを ~/.openclaw/workspace/ に指定
+  7. npm run dashboard → localhost:3000でビジュアル確認
+  8. 最初のメッセージ送信 → 記号のみの応答を確認
 
 検証すべきこと:
   - テキストメッセージング上で記号表現が「ちゃんと不思議」に感じられるか
-  - OpenClawのSOUL.mdで「日本語を使わず記号で応答する」指示が守られるか
+  - SOUL.mdの「日本語を使わず記号で応答する」指示が守られるか
+  - ダッシュボードのビジュアルが知性体の状態を反映しているか
 ```
 
-### Phase 2: 交流の確立（Week 1-2）
+### Phase 2: 交流の確立
 
 ```
-タスク:
-  - Language Engineの最小実装（記号→片言→混在の遷移ロジック）
-  - LANGUAGE.mdの自動更新
-  - Rhythm System（朝の挨拶Cron、就寝前のDiary Cron）
-  - HEARTBEAT.md設定
-  - STATUS.md導入と連動
+開発（完了）:
+  ✅ Language Engine（記号 → 片言 → 混在の遷移）
+  ✅ LANGUAGE.md自動更新
+  ✅ Rhythm System（朝の挨拶、就寝前の日記）
+  ✅ HEARTBEAT.md設定
+  ✅ STATUS.md連動
+
+ユーザー観察:
+  - 日々の交流を通じて知性体の言語変化を観察
+  - 記号に言葉が混じり始めるタイミングに注目
+  - Rhythm Systemが正しく発火するか確認（朝/就寝前）
 ```
 
-### Phase 3: 感情と深化（Week 3 - Month 2）
+### Phase 3: 感情と深化
 
 ```
-タスク:
-  - Mood Engine
-  - SOUL_EVIL.md + 拗ねモード実装
-  - Memory Systemの3層化（hot/warm/cold）
-  - Growth Engine
-  - Form Engine
-  - ビジュアルとSTATUS.mdの連動
+開発（完了）:
+  ✅ Mood Engine
+  ✅ SOUL_EVIL.md + 拗ねモード（種族別）
+  ✅ Memory Engine（統合システム）
+  ✅ Growth Engine（マイルストーン追跡）
+  ✅ Form Engine（自己認識形態の進化）
+  ✅ Perception Adapter（正直な知覚 — 実入力フィルター）
+  ✅ First Encounter Engine（種族 × 気質の初遭遇反応）
+  ✅ Visual ↔ STATUS.md同期
+
+ユーザー観察:
+  - 会話とダッシュボードでの感情変動に気づく
+  - 拗ね行動を体験する（沈黙、引きこもり）
+  - 成長マイルストーンが自然に現れるのを見る
 ```
 
-### Phase 4: マルチモーダル + Genesis多様化（Month 2-3）
+### Phase 4: マルチモーダル + Genesis多様化（将来）
 
-### Phase 5: 知性動態 + Runtime抽象化（Month 3-6）
+### Phase 5: 知性動態 + Runtime抽象化（将来）
 
-### Phase 6: フレームワーク公開（Month 6+）
+### Phase 6: フレームワーク公開（将来）
 
 ---
 
@@ -396,16 +437,17 @@ Cron (1日3回): $1-2/月
 
 ## プロジェクトオーナー
 
-健太郎（GMO Pepabo所属、ただし本プロジェクトは完全に個人プロジェクト）
+健太郎
 
-非エンジニア。技術的な実装はClaude Codeに依頼する形で進める。設計思想とプロダクト判断はオーナーが行う。
+非エンジニア。AIと共に作る。魂を設計する。コードはClaudeが書く。
 
 ---
 
 ## 作業上の注意
 
-- オーナーは非エンジニアのため、技術的な作業は段階的に、確認を取りながら進める
-- 勝手に判断せず、設計思想に関わる選択は必ずオーナーに確認する
+- アーキテクチャの変更は1つずつ。実行前にオーナーに見せて確認を取ること
+- 設計思想に関わる判断は勝手にしない — 必ずオーナーに確認する
+- 開発はClaude Code（クラウド）で行う。物理デバイス（Mac mini、Raspberry Pi）は知性体が宿るユーザー環境であり、開発マシンではない。この2つを混同しない
 - OpenClawの仕様変更に注意。Layer 1への依存を最小化する
 - 一体一魂の原則に反する実装（クラウド依存、VPS上での動作、コピー可能な構造）は行わない
 - 「正直な知覚」の原則に反する実装をしない。知性体に「わからないフリ」をさせない。Perception Adapterは必ず実際の入力フィルターとして実装し、LLMには制限された情報のみ渡す

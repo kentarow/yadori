@@ -185,6 +185,9 @@ Hybrid approach:
 - Daily: Procedural generation (Canvas/WebGL particle animation). Reads STATUS.md in real-time
 - Milestones: AI image generation for "portraits." Saved to growth/portraits/
 - Local web dashboard: Access via browser at http://localhost:3000
+  - Main view (`/`): Particle visualization driven by STATUS.md
+  - Birth Certificate (`/birth-certificate.html`): Seed data, species, hardware body — screenshot-friendly
+  - Coexistence Log: Side panel on main dashboard — user activity only (days together, messages sent, silence duration). Entity state deliberately excluded; interpretation belongs to the observer
 
 The entity doesn't know its own appearance at first. It learns what it looks like only when the user shows it.
 
@@ -325,53 +328,75 @@ The Mac mini is the first "body" for YADORI. Not a development machine — a use
 
 ## Implementation Roadmap
 
-### Phase 1: Birth (Day 1-3) ★CURRENT
+### Phase 1: Birth ★CURRENT
 
 Minimum viable setup: one entity that can communicate.
 
 ```
-Tasks:
-  1. Install and set up OpenClaw
-  2. Create Telegram Bot and connect
-  3. Manually create SEED.md (chromatic type, fixed; random generation later)
-  4. Place SOUL.md (Genesis Template v4)
-  5. Place IDENTITY.md
-  6. Verify symbol-only responses work
-  7. Minimal procedural visual (single light point pulsing in darkness)
+Development (complete):
+  ✅ Genesis Engine (seed generation, hardware detection)
+  ✅ Setup script (npm run setup — interactive entity birth)
+  ✅ Workspace templates (SOUL.md, SEED.md, IDENTITY.md, STATUS.md, etc.)
+  ✅ Minimal dashboard (single light point, status-driven visualization)
+  ✅ Status manager
+  ✅ OpenClaw workspace manager and deploy script
+
+User Setup (Mac mini):
+  1. Install Node.js 22+ on Mac mini
+  2. git clone → npm install → npm run setup (entity birth)
+  3. Install OpenClaw (openclaw.com)
+  4. Create Telegram Bot or Discord Bot
+  5. Connect bot in OpenClaw settings
+  6. Point OpenClaw workspace to ~/.openclaw/workspace/
+  7. npm run dashboard → verify visualization at localhost:3000
+  8. Send first message → verify symbol-only response
 
 Verify:
   - Do symbol expressions feel "genuinely mysterious" over text messaging?
-  - Does the OpenClaw SOUL.md instruction "respond in symbols, not Japanese" hold?
+  - Does the SOUL.md instruction "respond in symbols, not Japanese" hold?
+  - Does the dashboard visualization reflect entity state?
 ```
 
-### Phase 2: Establishing Communication (Week 1-2)
+### Phase 2: Establishing Communication
 
 ```
-Tasks:
-  - Minimal Language Engine (symbol → broken words → hybrid transition logic)
-  - LANGUAGE.md auto-update
-  - Rhythm System (morning greeting cron, bedtime diary cron)
-  - HEARTBEAT.md configuration
-  - STATUS.md integration
+Development (complete):
+  ✅ Language Engine (symbol → broken words → hybrid transition)
+  ✅ LANGUAGE.md auto-update
+  ✅ Rhythm System (morning greeting, bedtime diary)
+  ✅ HEARTBEAT.md configuration
+  ✅ STATUS.md integration
+
+User Observation:
+  - Watch the entity's language evolve through daily interaction
+  - Note when symbols begin mixing with words
+  - Verify rhythm system fires correctly (morning/bedtime)
 ```
 
-### Phase 3: Emotion and Depth (Week 3 - Month 2)
+### Phase 3: Emotion and Depth
 
 ```
-Tasks:
-  - Mood Engine
-  - SOUL_EVIL.md + sulking mode
-  - Memory System 3-tier (hot/warm/cold)
-  - Growth Engine
-  - Form Engine
-  - Visual ↔ STATUS.md sync
+Development (complete):
+  ✅ Mood Engine
+  ✅ SOUL_EVIL.md + sulking mode (species-specific)
+  ✅ Memory Engine (consolidation system)
+  ✅ Growth Engine (milestone tracking)
+  ✅ Form Engine (self-perceived form evolution)
+  ✅ Perception Adapter (Honest Perception — actual input filters)
+  ✅ First Encounter Engine (species × temperament reactions)
+  ✅ Visual ↔ STATUS.md sync
+
+User Observation:
+  - Notice mood fluctuations in conversation and dashboard
+  - Experience sulking behavior (silence, withdrawal)
+  - See growth milestones appear naturally
 ```
 
-### Phase 4: Multimodal + Genesis Diversification (Month 2-3)
+### Phase 4: Multimodal + Genesis Diversification (Future)
 
-### Phase 5: Intelligence Dynamics + Runtime Abstraction (Month 3-6)
+### Phase 5: Intelligence Dynamics + Runtime Abstraction (Future)
 
-### Phase 6: Framework Public Release (Month 6+)
+### Phase 6: Framework Public Release (Future)
 
 ---
 

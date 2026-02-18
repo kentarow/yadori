@@ -286,8 +286,10 @@ user-data/     ユーザーの所有物（ライセンス対象外）
 
 ## 開発環境
 
-- ハードウェア: Mac mini M4 (16GB RAM, 256GB SSD)
+- 開発: Claude Code（クラウドベースのAI支援開発）
+- ターゲットハードウェア: Mac mini M4 (16GB RAM, 256GB SSD) — エンティティのデプロイ先
 - ランタイム: OpenClaw（MIT License）
+- メッセージング: Discord（メイン）、Telegram（サポート対象）
 - LLM: Anthropic Claude API（OpenClaw用に専用アカウント）
 - 言語: TypeScript（OpenClawのエコシステムに合わせる）
 - ビジュアル: HTML + Canvas + JavaScript

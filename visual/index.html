@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YADORI</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
+      overflow: hidden;
+      cursor: none;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // --- State (Phase 2: read from STATUS.md via API) ---
+    const state = {
+      mood: 50,
+      energy: 50,
+      curiosity: 70,
+      comfort: 50,
+    };
+
+    // --- Resize ---
+    function resize() {
+      canvas.width = window.innerWidth * devicePixelRatio;
+      canvas.height = window.innerHeight * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // --- Particle ---
+    const particles = [];
+    const PARTICLE_COUNT = 1;
+
+    function createParticle() {
+      return {
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+        baseRadius: 3,
+        phase: Math.random() * Math.PI * 2,
+        driftX: 0,
+        driftY: 0,
+        driftPhaseX: Math.random() * Math.PI * 2,
+        driftPhaseY: Math.random() * Math.PI * 2,
+      };
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(createParticle());
+    }
+
+    // --- Color from mood (chromatic type: warm tones) ---
+    function moodColor(mood, alpha) {
+      // Low mood: deep indigo → High mood: warm amber
+      const hue = 20 + (mood / 100) * 30; // 20-50 (orange range)
+      const sat = 60 + (mood / 100) * 40;  // 60-100%
+      const light = 40 + (mood / 100) * 30; // 40-70%
+      return `hsla(${hue}, ${sat}%, ${light}%, ${alpha})`;
+    }
+
+    // --- Glow layers ---
+    function drawGlow(x, y, radius, mood, breathAlpha) {
+      const layers = [
+        { scale: 12, alpha: 0.02 * breathAlpha },
+        { scale: 8,  alpha: 0.04 * breathAlpha },
+        { scale: 5,  alpha: 0.08 * breathAlpha },
+        { scale: 3,  alpha: 0.15 * breathAlpha },
+        { scale: 1.5, alpha: 0.4 * breathAlpha },
+        { scale: 1,  alpha: 0.9 * breathAlpha },
+      ];
+
+      for (const layer of layers) {
+        const r = radius * layer.scale;
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+        gradient.addColorStop(0, moodColor(mood, layer.alpha));
+        gradient.addColorStop(1, moodColor(mood, 0));
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // --- Animation ---
+    let time = 0;
+
+    function animate() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      // Clear with slight trail
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      ctx.fillRect(0, 0, w, h);
+
+      time += 0.016; // ~60fps
+
+      // Breathing speed tied to energy
+      const breathSpeed = 0.3 + (state.energy / 100) * 0.7; // 0.3-1.0
+
+      // Comfort affects stability (inverse wobble)
+      const wobble = 1.0 - (state.comfort / 100) * 0.7; // 0.3-1.0
+
+      for (const p of particles) {
+        // Breathing pulse
+        p.phase += breathSpeed * 0.016 * Math.PI * 2;
+        const breath = 0.6 + 0.4 * Math.sin(p.phase);
+
+        // Gentle drift (curiosity drives exploration range)
+        const driftRange = 5 + (state.curiosity / 100) * 25;
+        p.driftPhaseX += 0.003 * wobble;
+        p.driftPhaseY += 0.004 * wobble;
+        p.driftX = Math.sin(p.driftPhaseX) * driftRange;
+        p.driftY = Math.cos(p.driftPhaseY) * driftRange * 0.7;
+
+        const x = p.x + p.driftX;
+        const y = p.y + p.driftY;
+        const radius = p.baseRadius * (0.8 + 0.4 * breath);
+
+        drawGlow(x, y, radius, state.mood, breath);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

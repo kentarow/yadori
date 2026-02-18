@@ -286,8 +286,10 @@ User's entity data is entirely the user's. Blogging, IP licensing, merchandising
 
 ## Development Environment
 
-- Hardware: Mac mini M4 (16GB RAM, 256GB SSD)
+- Development: Claude Code (cloud-based AI-assisted development)
+- Target Hardware: Mac mini M4 (16GB RAM, 256GB SSD) — entity deployment target
 - Runtime: OpenClaw (MIT License)
+- Messaging: Discord (primary), Telegram (also supported)
 - LLM: Anthropic Claude API (dedicated account for OpenClaw)
 - Language: TypeScript (aligned with OpenClaw ecosystem)
 - Visual: HTML + Canvas + JavaScript

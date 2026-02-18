@@ -344,7 +344,7 @@ Mac miniはYADORIの最初の「身体」。開発マシンではなく、使う
 ユーザーセットアップ（Mac mini）:
   1. Mac miniにNode.js 22+をインストール
   2. git clone → npm install → npm run setup（知性体の誕生）
-  3. OpenClawをインストール（openclaw.com）
+  3. OpenClawをインストール（openclaw.ai）
   4. Telegram BotまたはDiscord Botを作成
   5. OpenClawの設定でBotを接続
   6. OpenClawのワークスペースを ~/.openclaw/workspace/ に指定

@@ -180,6 +180,8 @@ describe("processInteraction", () => {
 
   it("adds memory entries on interaction", () => {
     const state = createEntityState(makeSeed(), NOW);
+    // Pre-increment so it's not a first encounter
+    state.language = { ...state.language, totalInteractions: 1 };
     const result = processInteraction(state, context, NOW, "User said hello");
     expect(result.updatedState.memory.hot).toHaveLength(1);
     expect(result.updatedState.memory.hot[0].summary).toBe("User said hello");
@@ -195,6 +197,54 @@ describe("processInteraction", () => {
     const state = createEntityState(makeSeed(), NOW);
     const result = processInteraction(state, context, NOW);
     expect(result.newMilestones.some((m) => m.id === "first_interaction")).toBe(true);
+  });
+});
+
+describe("first encounter via processInteraction", () => {
+  const context: InteractionContext = {
+    minutesSinceLastInteraction: 30,
+    userInitiated: true,
+    messageLength: 25,
+  };
+
+  it("triggers first encounter when totalInteractions is 0", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const result = processInteraction(state, context, NOW);
+    expect(result.firstEncounter).not.toBeNull();
+    expect(result.firstEncounter!.expression).toBeTruthy();
+    expect(result.firstEncounter!.innerExperience).toBeTruthy();
+  });
+
+  it("does not trigger first encounter on subsequent interactions", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const first = processInteraction(state, context, NOW);
+    const second = processInteraction(first.updatedState, context, NOW);
+    expect(second.firstEncounter).toBeNull();
+  });
+
+  it("applies first encounter status boost on top of normal effect", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const result = processInteraction(state, context, NOW);
+    // Curiosity should be boosted significantly (normal + first encounter)
+    expect(result.updatedState.status.curiosity).toBeGreaterThan(state.status.curiosity);
+  });
+
+  it("stores first encounter memory imprint instead of normal memory", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const result = processInteraction(state, context, NOW, "User said hello");
+    expect(result.updatedState.memory.hot).toHaveLength(1);
+    expect(result.updatedState.memory.hot[0].summary).toMatch(/\[FIRST ENCOUNTER\]/);
+  });
+
+  it("species-specific: vibration seed gets vibration-themed encounter", () => {
+    const vibSeed = createFixedSeed({
+      perception: "vibration",
+      hardwareBody: TEST_HW,
+      createdAt: "2026-01-01T00:00:00Z",
+    });
+    const state = createEntityState(vibSeed, NOW);
+    const result = processInteraction(state, context, NOW);
+    expect(result.firstEncounter!.innerExperience).toContain("tremor");
   });
 });
 

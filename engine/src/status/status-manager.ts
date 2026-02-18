@@ -43,6 +43,11 @@ import {
 } from "../form/form-engine.js";
 import { consolidateToWarm, getISOWeek } from "../memory/memory-engine.js";
 import { generateSoulEvilMd } from "../mood/sulk-engine.js";
+import {
+  type FirstEncounterReaction,
+  isFirstEncounter,
+  generateFirstEncounter,
+} from "../encounter/first-encounter.js";
 
 export interface EntityState {
   seed: Seed;
@@ -69,6 +74,8 @@ export interface InteractionResult {
   updatedState: EntityState;
   newMilestones: Milestone[];
   activeSoulFile: "SOUL.md" | "SOUL_EVIL.md";
+  /** Non-null only on the very first interaction ever */
+  firstEncounter: FirstEncounterReaction | null;
 }
 
 /**
@@ -185,6 +192,10 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
 
 /**
  * Process a user interaction. Updates mood, energy, language, memory, growth, sulk.
+ *
+ * If this is the entity's very first interaction (totalInteractions === 0),
+ * a FirstEncounterReaction is generated — the entity's unique response to
+ * perceiving "another" for the first time.
  */
 export function processInteraction(
   state: EntityState,
@@ -192,9 +203,20 @@ export function processInteraction(
   now: Date,
   memorySummary?: string,
 ): InteractionResult {
+  // Detect first encounter — before totalInteractions is incremented
+  let firstEncounter: FirstEncounterReaction | null = null;
+  if (isFirstEncounter(state.language.totalInteractions)) {
+    firstEncounter = generateFirstEncounter(state.seed.perception, state.seed.temperament, now);
+  }
+
   // Apply interaction effect to mood
   const effect = computeInteractionEffect(state.status, context, state.seed.temperament);
   let updatedStatus = applyMoodDelta(state.status, effect);
+
+  // Apply first encounter status effect (on top of normal interaction)
+  if (firstEncounter) {
+    updatedStatus = applyMoodDelta(updatedStatus, firstEncounter.statusEffect);
+  }
 
   // Update interaction tracking
   updatedStatus = {
@@ -209,12 +231,14 @@ export function processInteraction(
   updatedLanguage = { ...updatedLanguage, level: newLevel };
   updatedStatus = { ...updatedStatus, languageLevel: newLevel };
 
-  // Update memory
-  const memEntry: MemoryEntry = {
-    timestamp: now.toISOString(),
-    summary: memorySummary ?? `interaction (${context.messageLength} chars)`,
-    mood: updatedStatus.mood,
-  };
+  // Update memory — first encounter gets a special imprint
+  const memEntry: MemoryEntry = firstEncounter
+    ? firstEncounter.memoryImprint
+    : {
+        timestamp: now.toISOString(),
+        summary: memorySummary ?? `interaction (${context.messageLength} chars)`,
+        mood: updatedStatus.mood,
+      };
   const { updated: updatedMemory } = addHotMemory(state.memory, memEntry);
 
   // Process sulk recovery
@@ -241,6 +265,7 @@ export function processInteraction(
     },
     newMilestones,
     activeSoulFile: getActiveSoulFile(updatedSulk),
+    firstEncounter,
   };
 }
 

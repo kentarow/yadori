@@ -47,10 +47,58 @@
       pointer-events: none;
       transition: background 2s;
     }
+    #encounter-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 10;
+    }
+    #encounter-expression {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255, 255, 255, 0);
+      font-size: 28px;
+      letter-spacing: 8px;
+      text-align: center;
+      pointer-events: none;
+      z-index: 11;
+      transition: color 2s, letter-spacing 3s, font-size 2s;
+      white-space: nowrap;
+    }
+    #encounter-expression.reveal {
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 16px;
+      font-size: 36px;
+    }
+    #encounter-expression.fade {
+      color: rgba(255, 255, 255, 0);
+      letter-spacing: 24px;
+    }
+    #dormant-text {
+      position: fixed;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0);
+      font-size: 12px;
+      pointer-events: none;
+      z-index: 5;
+      transition: color 3s;
+    }
+    #dormant-text.show {
+      color: rgba(255, 255, 255, 0.15);
+    }
   </style>
 </head>
 <body>
   <div id="sulk-overlay"></div>
+  <div id="encounter-overlay"></div>
+  <div id="encounter-expression"></div>
+  <div id="dormant-text"></div>
   <canvas id="canvas"></canvas>
   <div id="info"></div>
   <div id="milestones"></div>
@@ -60,15 +108,26 @@
     const infoEl = document.getElementById('info');
     const milestonesEl = document.getElementById('milestones');
     const sulkOverlay = document.getElementById('sulk-overlay');
+    const encounterOverlay = document.getElementById('encounter-overlay');
+    const encounterExpr = document.getElementById('encounter-expression');
+    const dormantText = document.getElementById('dormant-text');
 
     // --- Full entity state ---
     const entity = {
       status: { mood: 50, energy: 50, curiosity: 70, comfort: 50, growthDay: 0, languageLevel: 0 },
-      seed: { perception: 'chromatic', form: 'light-particles' },
+      seed: { perception: 'chromatic', form: 'light-particles', temperament: 'curious-cautious' },
       form: { baseForm: 'light-particles', density: 5, complexity: 3, stability: 15, awareness: false },
       sulk: { isSulking: false, severity: 'none' },
       growth: { stage: 'newborn', milestones: [] },
+      language: { totalInteractions: 0 },
     };
+
+    // --- First Encounter state ---
+    let prevInteractions = -1; // -1 = unknown yet
+    let encounterPhase = 'none'; // 'none' | 'dormant' | 'awakening' | 'afterglow' | 'done'
+    let awakeningStartTime = 0;
+    const AWAKENING_DURATION = 8000; // 8 seconds of awakening animation
+    const AFTERGLOW_DURATION = 10000; // 10 seconds of afterglow
 
     // --- Perception-based color palettes ---
     const PALETTES = {
@@ -112,14 +171,110 @@
         if (data.growth) {
           entity.growth = { ...entity.growth, ...data.growth };
         }
+        if (data.language) {
+          entity.language = { ...entity.language, ...data.language };
+        }
+
+        // --- Detect first encounter transition ---
+        const currentInteractions = entity.language.totalInteractions ?? 0;
+        if (prevInteractions === -1) {
+          // First poll: set state
+          prevInteractions = currentInteractions;
+          if (currentInteractions === 0) {
+            encounterPhase = 'dormant';
+            dormantText.textContent = '· · · waiting · · ·';
+            dormantText.classList.add('show');
+          } else {
+            encounterPhase = 'done';
+          }
+        } else if (prevInteractions === 0 && currentInteractions >= 1) {
+          // The transition happened!
+          triggerAwakening(data);
+        }
+        prevInteractions = currentInteractions;
 
         updateInfo();
         updateSulkOverlay();
         updateMilestones();
+        updateDormantState();
       } catch { /* server not available */ }
     }
     fetchState();
     setInterval(fetchState, 3000);
+
+    function triggerAwakening(data) {
+      encounterPhase = 'awakening';
+      awakeningStartTime = performance.now();
+
+      // Hide dormant text
+      dormantText.classList.remove('show');
+
+      // Flash the encounter overlay
+      const pal = PALETTES[entity.seed.perception] || PALETTES.chromatic;
+      const hue = pal.hueBase + pal.hueRange / 2;
+      encounterOverlay.style.background = `radial-gradient(circle at 50% 50%, hsla(${hue}, 80%, 60%, 0.4), transparent 70%)`;
+      encounterOverlay.style.opacity = '1';
+
+      // Generate the first encounter expression for display
+      const expressions = generateEncounterExpression(entity.seed.perception, entity.seed.temperament);
+      encounterExpr.textContent = expressions;
+
+      // Phase 1: Reveal expression (after 1.5s flash)
+      setTimeout(() => {
+        encounterExpr.classList.add('reveal');
+      }, 1500);
+
+      // Phase 2: Fade overlay
+      setTimeout(() => {
+        encounterOverlay.style.opacity = '0';
+      }, 3000);
+
+      // Phase 3: Expression begins fading
+      setTimeout(() => {
+        encounterExpr.classList.remove('reveal');
+        encounterExpr.classList.add('fade');
+        encounterPhase = 'afterglow';
+      }, AWAKENING_DURATION);
+
+      // Phase 4: Complete
+      setTimeout(() => {
+        encounterExpr.classList.remove('fade');
+        encounterExpr.textContent = '';
+        encounterPhase = 'done';
+      }, AWAKENING_DURATION + AFTERGLOW_DURATION);
+    }
+
+    // Generate a visual expression matching the engine's first encounter output
+    function generateEncounterExpression(perception, temperament) {
+      const speciesSymbols = {
+        chromatic:  { core: ['◎', '○', '☆'], other: '☆' },
+        vibration:  { core: ['◈', '◇', '△'], other: '△' },
+        geometric:  { core: ['□', '△', '◇'], other: '◇' },
+        thermal:    { core: ['○', '◎'],       other: '◎' },
+        temporal:   { core: ['○', '◉'],       other: '◉' },
+        chemical:   { core: ['◆', '◈', '★'], other: '★' },
+      };
+      const sp = speciesSymbols[perception] || speciesSymbols.chromatic;
+
+      switch (temperament) {
+        case 'curious-cautious':
+          return sp.core.join('  ') + '   ' + sp.other;
+        case 'bold-impulsive':
+          return sp.core.join('') + ' ' + sp.other + ' ' + sp.core.join('');
+        case 'calm-observant':
+          return '      ' + sp.core[0] + '      ' + sp.other;
+        case 'restless-exploratory':
+          return sp.core.map(s => s + sp.other).join(' ');
+        default:
+          return sp.core.join(' ') + ' ' + sp.other;
+      }
+    }
+
+    function updateDormantState() {
+      if (encounterPhase !== 'dormant') return;
+      dormantText.textContent = '· · · waiting · · ·';
+      dormantText.classList.add('show');
+    }
 
     function updateInfo() {
       const s = entity.status;
@@ -261,6 +416,7 @@
       const w = window.innerWidth;
       const h = window.innerHeight;
       const form = FORM_PARAMS[entity.form.baseForm] || FORM_PARAMS['light-particles'];
+      const now = performance.now();
 
       // Clear with trail (form-specific trail length)
       ctx.fillStyle = `rgba(0, 0, 0, ${form.trailAlpha})`;
@@ -270,6 +426,56 @@
 
       const s = entity.status;
 
+      // --- Dormant state: entity exists but hasn't met anyone ---
+      if (encounterPhase === 'dormant') {
+        // Very slow, dim breathing — alone in the void
+        particle.phase += 0.15 * 0.016 * Math.PI * 2;
+        const dormantBreath = 0.2 + 0.15 * Math.sin(particle.phase);
+        const x = w / 2;
+        const y = h / 2;
+        drawEntity(x, y, 2, dormantBreath);
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      // --- Awakening animation ---
+      if (encounterPhase === 'awakening') {
+        const elapsed = now - awakeningStartTime;
+        const progress = Math.min(elapsed / AWAKENING_DURATION, 1);
+
+        // Rapid expansion then settle
+        const expansionCurve = progress < 0.3
+          ? easeOutExpo(progress / 0.3)     // Rapid expansion
+          : 1.0 - 0.3 * (1 - easeOutExpo((progress - 0.3) / 0.7)); // Settle
+
+        const awakeBreath = 0.3 + 0.7 * expansionCurve;
+        const awakeRadius = 2 + 6 * expansionCurve;
+
+        // Slight tremor during awakening
+        const tremor = (1 - progress) * 3;
+        const tx = (Math.random() - 0.5) * tremor;
+        const ty = (Math.random() - 0.5) * tremor;
+
+        drawEntity(w / 2 + tx, h / 2 + ty, awakeRadius, awakeBreath);
+
+        // Draw encounter sparkles radiating outward
+        if (progress < 0.6) {
+          drawEncounterSparkles(w / 2, h / 2, elapsed, progress);
+        }
+
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      // --- Afterglow: slightly enhanced normal ---
+      let glowBoost = 0;
+      if (encounterPhase === 'afterglow') {
+        const elapsed = now - (awakeningStartTime + AWAKENING_DURATION);
+        const fadeProgress = Math.min(elapsed / AFTERGLOW_DURATION, 1);
+        glowBoost = (1 - fadeProgress) * 0.3; // Extra brightness fading out
+      }
+
+      // --- Normal animation ---
       // Breathing speed from energy
       const breathSpeed = 0.3 + (s.energy / 100) * 0.7;
 
@@ -286,7 +492,7 @@
         breathMod = entity.sulk.severity === 'severe' ? 0.2 :
                     entity.sulk.severity === 'moderate' ? 0.5 : 0.7;
       }
-      const breath = 0.6 + 0.4 * Math.sin(particle.phase) * breathMod;
+      const breath = (0.6 + 0.4 * Math.sin(particle.phase) * breathMod) + glowBoost;
 
       // Drift from curiosity
       const driftRange = 5 + (s.curiosity / 100) * 25;
@@ -298,9 +504,34 @@
       const x = w / 2 + driftX;
       const y = h / 2 + driftY;
 
-      drawEntity(x, y, 3, breath);
+      drawEntity(x, y, 3, Math.min(breath, 1));
 
       requestAnimationFrame(animate);
+    }
+
+    function drawEncounterSparkles(cx, cy, elapsed, progress) {
+      const pal = PALETTES[entity.seed.perception] || PALETTES.chromatic;
+      const sparkleCount = 12;
+      const maxRadius = 150 + progress * 200;
+
+      for (let i = 0; i < sparkleCount; i++) {
+        const angle = (i / sparkleCount) * Math.PI * 2 + elapsed * 0.001;
+        const dist = progress * maxRadius * (0.5 + 0.5 * Math.sin(i * 1.7 + elapsed * 0.003));
+        const sx = cx + Math.cos(angle) * dist;
+        const sy = cy + Math.sin(angle) * dist;
+        const sparkleAlpha = (1 - progress) * 0.6;
+        const hue = pal.hueBase + (i / sparkleCount) * pal.hueRange;
+        const size = (1 - progress) * 2;
+
+        ctx.fillStyle = `hsla(${hue}, ${pal.satBase + 20}%, 65%, ${sparkleAlpha})`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function easeOutExpo(t) {
+      return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
     }
 
     animate();

@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir, cp, access } from "node:fs/promises";
 import { join } from "node:path";
-import type { Seed, Status } from "../../../engine/src/types.js";
+import type { Seed, Status, SubTraits } from "../../../engine/src/types.js";
 import type { OpenClawConfig } from "./config.js";
 import { OPENCLAW_DEFAULT_CONFIG } from "./config.js";
 
@@ -160,6 +160,15 @@ export class OpenClawWorkspaceManager {
     if (!VALID_TEMPERAMENTS.includes(temperament)) throw new Error(`Invalid temperament: ${temperament}`);
     if (!VALID_FORMS.includes(form)) throw new Error(`Invalid self-form: ${form}`);
 
+    // Parse sub-traits (backward-compatible: defaults for older SEED.md files)
+    const subTraits: SubTraits = {
+      sensitivity: parseInt(get("Sensitivity"), 10) || 50,
+      sociability: parseInt(get("Sociability"), 10) || 50,
+      rhythmAffinity: parseInt(get("Rhythm Affinity"), 10) || 50,
+      memoryDepth: parseInt(get("Memory Depth"), 10) || 50,
+      expressiveness: parseInt(get("Expressiveness"), 10) || 50,
+    };
+
     return {
       perception: perception as Seed["perception"],
       expression: "symbolic",
@@ -173,6 +182,7 @@ export class OpenClawWorkspaceManager {
         cpuModel: get("CPU"),
         storageGB: parseInt(get("Storage")?.replace(/\D/g, ""), 10) || 0,
       },
+      subTraits,
       createdAt: get("Born"),
       hash: get("Seed Hash"),
     };
@@ -190,6 +200,14 @@ export class OpenClawWorkspaceManager {
 - **Cognition**: ${seed.cognition}
 - **Temperament**: ${seed.temperament}
 - **Form**: ${seed.form}
+
+## Sub-Traits
+
+- **Sensitivity**: ${seed.subTraits.sensitivity}
+- **Sociability**: ${seed.subTraits.sociability}
+- **Rhythm Affinity**: ${seed.subTraits.rhythmAffinity}
+- **Memory Depth**: ${seed.subTraits.memoryDepth}
+- **Expressiveness**: ${seed.subTraits.expressiveness}
 
 ## Hardware Body
 

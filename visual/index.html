@@ -163,6 +163,36 @@
     body:hover #log-toggle { opacity: 0.3; }
     #log-toggle:hover { opacity: 0.6 !important; }
     #log-toggle svg { width: 24px; height: 24px; }
+
+    /* Sound toggle */
+    #sound-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    body:hover #sound-toggle { opacity: 0.3; }
+    #sound-toggle:hover { opacity: 0.6 !important; }
+    #sound-toggle svg { width: 22px; height: 22px; }
+    #sound-toggle.muted svg .sound-wave { opacity: 0; }
+    #sound-toggle.muted::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.6);
+      transform: rotate(45deg);
+      top: 4px;
+      left: 13px;
+    }
   </style>
 </head>
 <body>
@@ -180,6 +210,13 @@
       <line x1="8" y1="8" x2="16" y2="8"/>
       <line x1="8" y1="12" x2="16" y2="12"/>
       <line x1="8" y1="16" x2="12" y2="16"/>
+    </svg>
+  </div>
+  <div id="sound-toggle" class="muted" title="Toggle sound">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+      <path class="sound-wave" d="M15.54 8.46a5 5 0 010 7.07"/>
+      <path class="sound-wave" d="M19.07 4.93a10 10 0 010 14.14"/>
     </svg>
   </div>
   <div id="coexistence-log">
@@ -619,6 +656,642 @@
     }
 
     animate();
+
+    // =====================================================
+    // --- Sound Engine (Web Audio API) ---
+    // =====================================================
+
+    const SoundEngine = (() => {
+      let audioCtx = null;
+      let masterGain = null;
+      let isEnabled = false;
+      let isInitialized = false;
+      let soundLoopTimer = null;
+      let prevMood = null;
+      let prevEnergy = null;
+
+      // Species-specific sound profiles
+      const SPECIES_SOUND = {
+        vibration: {
+          waveform: 'square',
+          patternWeight: 3,
+          cryWeight: 2,
+          basePitch: 220,
+          pitchRange: 300,
+        },
+        geometric: {
+          waveform: 'triangle',
+          patternWeight: 3,
+          cryWeight: 1,
+          basePitch: 330,
+          pitchRange: 200,
+        },
+        chromatic: {
+          waveform: 'sine',
+          patternWeight: 1,
+          cryWeight: 3,
+          basePitch: 260,
+          pitchRange: 250,
+        },
+        thermal: {
+          waveform: 'sine',
+          patternWeight: 1,
+          cryWeight: 2,
+          basePitch: 110,
+          pitchRange: 150,
+        },
+        temporal: {
+          waveform: 'triangle',
+          patternWeight: 3,
+          cryWeight: 1,
+          basePitch: 440,
+          pitchRange: 180,
+        },
+        chemical: {
+          waveform: 'sawtooth',
+          patternWeight: 2,
+          cryWeight: 3,
+          basePitch: 200,
+          pitchRange: 280,
+        },
+      };
+
+      // Micro-variation: slight random offset
+      function vary(value, range) {
+        return value + (Math.random() - 0.5) * range;
+      }
+
+      // Get species profile
+      function getProfile() {
+        return SPECIES_SOUND[entity.seed.perception] || SPECIES_SOUND.chromatic;
+      }
+
+      // Compute pitch from mood (0-100) -> frequency
+      function moodPitch(base, range, mood) {
+        // Higher mood = brighter (higher) pitch
+        const normalized = (mood ?? 50) / 100;
+        return base + normalized * range;
+      }
+
+      // Compute interval between sounds from energy
+      function energyInterval() {
+        const energy = entity.status.energy ?? 50;
+        // High energy = shorter intervals (more frequent sounds)
+        // Range: 2s (high energy) to 8s (low energy)
+        return 2000 + (1 - energy / 100) * 6000;
+      }
+
+      // Growth stage affects harmonic richness
+      function growthHarmonics() {
+        const day = entity.status.growthDay ?? 0;
+        if (day < 7) return 0;      // Pure tone only
+        if (day < 14) return 1;     // Slight harmonics
+        if (day < 30) return 2;     // Moderate
+        if (day < 60) return 3;     // Rich
+        return 4;                    // Full richness
+      }
+
+      // Growth stage affects available sound variety
+      function growthSoundLevel() {
+        const day = entity.status.growthDay ?? 0;
+        if (day < 1) return 0;   // Single tone
+        if (day < 7) return 1;   // 2-3 pitches
+        if (day < 14) return 2;  // Rhythm + basic cries
+        if (day < 30) return 3;  // Patterns and cries differentiate
+        if (day < 60) return 4;  // Sound vocabulary
+        return 5;                 // Full expression
+      }
+
+      // Initialize AudioContext (must be called from user gesture)
+      function init() {
+        if (isInitialized) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.12; // Subtle ambient volume
+        masterGain.connect(audioCtx.destination);
+        isInitialized = true;
+      }
+
+      // Create an oscillator with optional harmonics
+      function createTone(freq, waveform, duration, gainValue, startTime) {
+        if (!audioCtx) return;
+        const t = startTime || audioCtx.currentTime;
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = waveform;
+        osc.frequency.setValueAtTime(vary(freq, freq * 0.02), t);
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(gainValue, t + Math.min(duration * 0.1, 0.05));
+        gain.gain.setValueAtTime(gainValue, t + duration * 0.7);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(t);
+        osc.stop(t + duration + 0.05);
+
+        // Add harmonics based on growth
+        const harmonicLevel = growthHarmonics();
+        if (harmonicLevel > 0) {
+          for (let h = 1; h <= harmonicLevel; h++) {
+            const hOsc = audioCtx.createOscillator();
+            const hGain = audioCtx.createGain();
+            hOsc.type = waveform;
+            hOsc.frequency.setValueAtTime(vary(freq * (h + 1), freq * 0.03), t);
+            const hVol = gainValue * (0.15 / (h + 1));
+            hGain.gain.setValueAtTime(0, t);
+            hGain.gain.linearRampToValueAtTime(hVol, t + Math.min(duration * 0.15, 0.06));
+            hGain.gain.setValueAtTime(hVol, t + duration * 0.6);
+            hGain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+            hOsc.connect(hGain);
+            hGain.connect(masterGain);
+            hOsc.start(t);
+            hOsc.stop(t + duration + 0.05);
+          }
+        }
+      }
+
+      // --- Pattern Sounds ---
+      // Short, repeatable, morse-code-like sequences
+
+      // Single pop/blip
+      function playPop(freq, startTime) {
+        const profile = getProfile();
+        const duration = vary(0.08, 0.02);
+        createTone(freq, profile.waveform, duration, 0.6, startTime);
+      }
+
+      // Greeting: pop-pop, pooon
+      function playGreeting() {
+        const profile = getProfile();
+        const mood = entity.status.mood ?? 50;
+        const freq = moodPitch(profile.basePitch, profile.pitchRange, mood);
+        const t = audioCtx.currentTime;
+
+        playPop(freq, t);
+        playPop(vary(freq, 10), t + 0.12);
+        // pause
+        createTone(vary(freq * 0.9, 8), profile.waveform, vary(0.35, 0.05), 0.45, t + 0.4);
+      }
+
+      // Thinking: pop pop pop (evenly spaced)
+      function playThinking() {
+        const profile = getProfile();
+        const mood = entity.status.mood ?? 50;
+        const freq = moodPitch(profile.basePitch, profile.pitchRange, mood);
+        const t = audioCtx.currentTime;
+        const spacing = vary(0.22, 0.03);
+
+        for (let i = 0; i < 3; i++) {
+          playPop(vary(freq, 5), t + i * spacing);
+        }
+      }
+
+      // Agreement: single long tone (pooooon)
+      function playAgreement() {
+        const profile = getProfile();
+        const mood = entity.status.mood ?? 50;
+        const freq = moodPitch(profile.basePitch, profile.pitchRange, mood);
+        createTone(freq, profile.waveform, vary(0.5, 0.08), 0.4);
+      }
+
+      // Excitement: rapid short bursts (popopopopo)
+      function playExcitement() {
+        const profile = getProfile();
+        const mood = entity.status.mood ?? 50;
+        const freq = moodPitch(profile.basePitch, profile.pitchRange, mood);
+        const t = audioCtx.currentTime;
+        const count = 4 + Math.floor(Math.random() * 3);
+
+        for (let i = 0; i < count; i++) {
+          playPop(vary(freq * (1 + i * 0.03), 8), t + i * vary(0.07, 0.01));
+        }
+      }
+
+      // --- Cries (organic/emotional) ---
+
+      // Happy: rising tone + wobble (pyururu~)
+      function playCryHappy() {
+        if (!audioCtx) return;
+        const profile = getProfile();
+        const mood = entity.status.mood ?? 50;
+        const baseFreq = moodPitch(profile.basePitch, profile.pitchRange, mood);
+        const t = audioCtx.currentTime;
+        const duration = vary(0.6, 0.1);
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+
+        osc.type = profile.waveform === 'square' ? 'square' : 'sine';
+        osc.frequency.setValueAtTime(baseFreq * 0.8, t);
+        osc.frequency.linearRampToValueAtTime(baseFreq * 1.3, t + duration * 0.6);
+        osc.frequency.linearRampToValueAtTime(baseFreq * 1.1, t + duration);
+
+        // Wobble via LFO
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(vary(8, 2), t);
+        lfoGain.gain.setValueAtTime(vary(15, 5), t);
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.35, t + 0.04);
+        gain.gain.setValueAtTime(0.35, t + duration * 0.7);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(t);
+        osc.stop(t + duration + 0.05);
+        lfo.start(t);
+        lfo.stop(t + duration + 0.05);
+      }
+
+      // Lonely: descending tone + decay (miu...)
+      function playCryLonely() {
+        if (!audioCtx) return;
+        const profile = getProfile();
+        const mood = entity.status.mood ?? 50;
+        const baseFreq = moodPitch(profile.basePitch, profile.pitchRange, mood);
+        const t = audioCtx.currentTime;
+        const duration = vary(0.8, 0.15);
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(baseFreq * 1.2, t);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, t + duration);
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.3, t + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(t);
+        osc.stop(t + duration + 0.05);
+      }
+
+      // Surprised: short irregular vibration (bururuッ)
+      function playCrySurprised() {
+        if (!audioCtx) return;
+        const profile = getProfile();
+        const mood = entity.status.mood ?? 50;
+        const baseFreq = moodPitch(profile.basePitch, profile.pitchRange, mood);
+        const t = audioCtx.currentTime;
+        const duration = vary(0.25, 0.05);
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+
+        osc.type = profile.waveform;
+        osc.frequency.setValueAtTime(vary(baseFreq * 1.5, 30), t);
+
+        // Rapid irregular vibrato
+        lfo.type = 'sawtooth';
+        lfo.frequency.setValueAtTime(vary(25, 8), t);
+        lfoGain.gain.setValueAtTime(vary(40, 15), t);
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(t);
+        osc.stop(t + duration + 0.05);
+        lfo.start(t);
+        lfo.stop(t + duration + 0.05);
+      }
+
+      // Calm: long stable low tone (fuu~~)
+      function playCryCalm() {
+        if (!audioCtx) return;
+        const profile = getProfile();
+        const mood = entity.status.mood ?? 50;
+        const baseFreq = moodPitch(profile.basePitch * 0.6, profile.pitchRange * 0.5, mood);
+        const t = audioCtx.currentTime;
+        const duration = vary(1.0, 0.2);
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(vary(baseFreq, 5), t);
+        osc.frequency.linearRampToValueAtTime(vary(baseFreq * 0.98, 3), t + duration);
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.2, t + duration * 0.15);
+        gain.gain.setValueAtTime(0.2, t + duration * 0.75);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(t);
+        osc.stop(t + duration + 0.05);
+      }
+
+      // Dormant: very faint, slow single tone
+      function playDormantTone() {
+        if (!audioCtx) return;
+        const profile = getProfile();
+        const baseFreq = profile.basePitch * 0.7;
+        const t = audioCtx.currentTime;
+        const duration = vary(1.5, 0.3);
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(vary(baseFreq, 3), t);
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.06, t + duration * 0.3);
+        gain.gain.setValueAtTime(0.06, t + duration * 0.6);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(t);
+        osc.stop(t + duration + 0.05);
+      }
+
+      // Awakening: burst of sound activity
+      function playAwakeningBurst() {
+        if (!audioCtx) return;
+        const profile = getProfile();
+        const baseFreq = profile.basePitch;
+        const t = audioCtx.currentTime;
+
+        // Rising cascade of tones
+        const noteCount = 6 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < noteCount; i++) {
+          const freq = baseFreq * (0.8 + i * 0.15) + vary(0, 10);
+          const startOffset = i * vary(0.12, 0.02);
+          const dur = vary(0.3, 0.05);
+          const vol = 0.25 + (i / noteCount) * 0.3;
+
+          createTone(freq, profile.waveform, dur, Math.min(vol, 0.5), t + startOffset);
+        }
+
+        // Followed by a sustained tone
+        const sustainStart = t + noteCount * 0.12 + 0.1;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+
+        osc.type = profile.waveform === 'square' ? 'square' : 'sine';
+        osc.frequency.setValueAtTime(baseFreq * 1.5, sustainStart);
+        osc.frequency.linearRampToValueAtTime(baseFreq * 1.2, sustainStart + 1.5);
+
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(4, sustainStart);
+        lfoGain.gain.setValueAtTime(8, sustainStart);
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        gain.gain.setValueAtTime(0, sustainStart);
+        gain.gain.linearRampToValueAtTime(0.4, sustainStart + 0.1);
+        gain.gain.setValueAtTime(0.4, sustainStart + 0.8);
+        gain.gain.exponentialRampToValueAtTime(0.001, sustainStart + 1.5);
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+
+        osc.start(sustainStart);
+        osc.stop(sustainStart + 1.6);
+        lfo.start(sustainStart);
+        lfo.stop(sustainStart + 1.6);
+      }
+
+      // Select a pattern sound based on entity state
+      function pickPatternSound() {
+        const level = growthSoundLevel();
+        const mood = entity.status.mood ?? 50;
+        const energy = entity.status.energy ?? 50;
+        const curiosity = entity.status.curiosity ?? 50;
+
+        // Day 0: single tone only
+        if (level === 0) {
+          playAgreement();
+          return;
+        }
+
+        // Build weighted list based on state
+        const options = [];
+
+        // Greeting: moderate mood
+        if (level >= 1) options.push({ fn: playGreeting, weight: mood > 40 ? 2 : 1 });
+        // Thinking: moderate energy, higher curiosity
+        if (level >= 1) options.push({ fn: playThinking, weight: curiosity > 50 ? 3 : 1 });
+        // Agreement: calm state
+        if (level >= 1) options.push({ fn: playAgreement, weight: mood > 60 ? 2 : 1 });
+        // Excitement: high energy + curiosity
+        if (level >= 2) options.push({ fn: playExcitement, weight: (energy > 60 && curiosity > 60) ? 4 : 1 });
+
+        const totalWeight = options.reduce((sum, o) => sum + o.weight, 0);
+        let r = Math.random() * totalWeight;
+        for (const opt of options) {
+          r -= opt.weight;
+          if (r <= 0) { opt.fn(); return; }
+        }
+        // fallback
+        if (options.length > 0) options[0].fn();
+      }
+
+      // Select a cry sound based on entity state
+      function pickCrySound() {
+        const level = growthSoundLevel();
+        const mood = entity.status.mood ?? 50;
+        const comfort = entity.status.comfort ?? 50;
+
+        // No cries before day 14
+        if (level < 2) return;
+
+        const options = [];
+
+        // Happy: high mood
+        options.push({ fn: playCryHappy, weight: mood > 65 ? 4 : 1 });
+        // Lonely: low comfort
+        options.push({ fn: playCryLonely, weight: comfort < 35 ? 4 : 1 });
+        // Surprised: random, low weight
+        if (level >= 3) options.push({ fn: playCrySurprised, weight: 1 });
+        // Calm: high comfort, moderate mood
+        options.push({ fn: playCryCalm, weight: comfort > 60 ? 3 : 1 });
+
+        const totalWeight = options.reduce((sum, o) => sum + o.weight, 0);
+        let r = Math.random() * totalWeight;
+        for (const opt of options) {
+          r -= opt.weight;
+          if (r <= 0) { opt.fn(); return; }
+        }
+      }
+
+      // Detect mood transitions for triggering cries
+      function checkMoodTransition() {
+        const mood = entity.status.mood ?? 50;
+        const energy = entity.status.energy ?? 50;
+
+        if (prevMood !== null) {
+          const moodDelta = Math.abs(mood - prevMood);
+          const energyDelta = Math.abs(energy - (prevEnergy ?? 50));
+
+          // Significant mood change triggers a cry
+          if (moodDelta > 10 || energyDelta > 15) {
+            // Small delay so it doesn't overlap with pattern sounds
+            setTimeout(() => {
+              if (isEnabled && !entity.sulk.isSulking) {
+                pickCrySound();
+              }
+            }, 500 + Math.random() * 1000);
+          }
+        }
+
+        prevMood = mood;
+        prevEnergy = energy;
+      }
+
+      // Main sound loop
+      function soundLoop() {
+        if (!isEnabled || !audioCtx) return;
+
+        // Sulking = silence
+        if (entity.sulk.isSulking) {
+          scheduleSoundLoop();
+          return;
+        }
+
+        // Dormant = very faint, infrequent tone
+        if (encounterPhase === 'dormant') {
+          playDormantTone();
+          soundLoopTimer = setTimeout(soundLoop, vary(6000, 2000));
+          return;
+        }
+
+        // Awakening = burst (played once from triggerAwakening hook)
+        // During awakening phase, play excited sounds more frequently
+        if (encounterPhase === 'awakening') {
+          pickPatternSound();
+          soundLoopTimer = setTimeout(soundLoop, vary(800, 200));
+          return;
+        }
+
+        // Normal operation: decide pattern vs cry based on species weights
+        const profile = getProfile();
+        const totalWeight = profile.patternWeight + profile.cryWeight;
+        const roll = Math.random() * totalWeight;
+
+        if (roll < profile.patternWeight) {
+          pickPatternSound();
+        } else {
+          const level = growthSoundLevel();
+          if (level >= 2) {
+            pickCrySound();
+          } else {
+            pickPatternSound(); // fallback if cries not yet available
+          }
+        }
+
+        scheduleSoundLoop();
+      }
+
+      function scheduleSoundLoop() {
+        const interval = energyInterval();
+        // Add comfort-based silence extension
+        const comfort = entity.status.comfort ?? 50;
+        const mood = entity.status.mood ?? 50;
+
+        // Low mood + low comfort = longer silence between sounds
+        let silenceMultiplier = 1;
+        if (mood < 30) silenceMultiplier += 0.5;
+        if (comfort < 30) silenceMultiplier += 0.3;
+
+        const finalInterval = vary(interval * silenceMultiplier, interval * 0.2);
+        soundLoopTimer = setTimeout(soundLoop, Math.max(finalInterval, 1500));
+      }
+
+      // Enable/disable
+      function enable() {
+        if (!isInitialized) init();
+        isEnabled = true;
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        soundLoop();
+      }
+
+      function disable() {
+        isEnabled = false;
+        if (soundLoopTimer) {
+          clearTimeout(soundLoopTimer);
+          soundLoopTimer = null;
+        }
+      }
+
+      function toggle() {
+        if (isEnabled) {
+          disable();
+        } else {
+          enable();
+        }
+        return isEnabled;
+      }
+
+      // Called when awakening is triggered (from the existing triggerAwakening)
+      function onAwakening() {
+        if (!isEnabled || !audioCtx) return;
+        playAwakeningBurst();
+      }
+
+      return {
+        init,
+        enable,
+        disable,
+        toggle,
+        isEnabled: () => isEnabled,
+        checkMoodTransition,
+        onAwakening,
+      };
+    })();
+
+    // --- Sound Toggle Button ---
+    const soundToggle = document.getElementById('sound-toggle');
+
+    soundToggle.addEventListener('click', () => {
+      const enabled = SoundEngine.toggle();
+      soundToggle.classList.toggle('muted', !enabled);
+      soundToggle.title = enabled ? 'Mute sound' : 'Toggle sound';
+    });
+
+    // Hook mood transition checks into the fetch cycle
+    const _origFetchState = fetchState;
+    fetchState = async function() {
+      await _origFetchState();
+      SoundEngine.checkMoodTransition();
+    };
+
+    // Hook awakening sound into the existing triggerAwakening
+    const _origTriggerAwakening = triggerAwakening;
+    triggerAwakening = function(data) {
+      _origTriggerAwakening(data);
+      SoundEngine.onAwakening();
+    };
 
     // --- Coexistence Log ---
     const logToggle = document.getElementById('log-toggle');

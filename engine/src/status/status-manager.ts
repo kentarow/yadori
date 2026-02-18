@@ -35,6 +35,14 @@ import {
   evaluateGrowth,
   formatMilestonesMd,
 } from "../growth/growth-engine.js";
+import {
+  type FormState,
+  createInitialFormState,
+  evolveForm,
+  formatFormMd,
+} from "../form/form-engine.js";
+import { consolidateToWarm, getISOWeek } from "../memory/memory-engine.js";
+import { generateSoulEvilMd } from "../mood/sulk-engine.js";
 
 export interface EntityState {
   seed: Seed;
@@ -43,6 +51,7 @@ export interface EntityState {
   memory: MemoryState;
   growth: GrowthState;
   sulk: SulkState;
+  form: FormState;
 }
 
 export interface HeartbeatResult {
@@ -52,6 +61,8 @@ export interface HeartbeatResult {
   sleepSignal: boolean;
   newMilestones: Milestone[];
   activeSoulFile: "SOUL.md" | "SOUL_EVIL.md";
+  soulEvilMd: string | null;
+  memoryConsolidated: boolean;
 }
 
 export interface InteractionResult {
@@ -79,6 +90,7 @@ export function createEntityState(seed: Seed, now = new Date()): EntityState {
     memory: createInitialMemoryState(),
     growth: createInitialGrowthState(now),
     sulk: createInitialSulkState(),
+    form: createInitialFormState(seed.form),
   };
 }
 
@@ -129,26 +141,45 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
     now,
   );
 
+  // Evolve form
+  const updatedForm = evolveForm(state.form, updatedGrowth.stage, updatedStatus);
+
+  // Consolidate memory if triggered (Sunday night)
+  let updatedMemory = state.memory;
+  let memoryConsolidated = false;
+  if (pulse.shouldConsolidateMemory && state.memory.hot.length > 0) {
+    updatedMemory = consolidateToWarm(state.memory, getISOWeek(now));
+    memoryConsolidated = true;
+  }
+
   // Generate diary if it's evening
   let diary: DiaryEntry | null = null;
   if (pulse.shouldDiary) {
     diary = generateDiaryEntry(updatedStatus, updatedLanguage, state.seed.perception, now);
   }
 
+  // Generate species-specific SOUL_EVIL.md if sulking
+  const soulEvilMd = updatedSulk.isSulking
+    ? generateSoulEvilMd(state.seed.perception, updatedSulk.severity)
+    : null;
+
   return {
     updatedState: {
       seed: state.seed,
       status: updatedStatus,
       language: updatedLanguage,
-      memory: state.memory,
+      memory: updatedMemory,
       growth: updatedGrowth,
       sulk: updatedSulk,
+      form: updatedForm,
     },
     diary,
     wakeSignal: pulse.shouldWake,
     sleepSignal: pulse.shouldSleep,
     newMilestones,
     activeSoulFile: getActiveSoulFile(updatedSulk),
+    soulEvilMd,
+    memoryConsolidated,
   };
 }
 
@@ -206,6 +237,7 @@ export function processInteraction(
       memory: updatedMemory,
       growth: updatedGrowth,
       sulk: updatedSulk,
+      form: state.form, // Form evolves only during heartbeat, not per interaction
     },
     newMilestones,
     activeSoulFile: getActiveSoulFile(updatedSulk),
@@ -220,12 +252,14 @@ export function serializeState(state: EntityState): {
   languageMd: string;
   memoryMd: string;
   milestonesMd: string;
+  formMd: string;
 } {
   return {
     statusMd: formatStatusForWrite(state.status),
     languageMd: formatLanguageMd(state.language),
     memoryMd: formatMemoryMd(state.memory),
     milestonesMd: formatMilestonesMd(state.growth),
+    formMd: formatFormMd(state.form),
   };
 }
 

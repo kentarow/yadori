@@ -8,6 +8,7 @@ export interface RhythmPulse {
   shouldWake: boolean;
   shouldSleep: boolean;
   shouldDiary: boolean;
+  shouldConsolidateMemory: boolean;
   statusAdjustment: MoodDelta;
 }
 
@@ -55,11 +56,16 @@ export function computeHeartbeat(status: Status, now: Date): RhythmPulse {
   if (timeOfDay === "morning" || timeOfDay === "dawn") moodDrift = 2;
   if (timeOfDay === "night" || timeOfDay === "lateNight") moodDrift = -2;
 
+  // Consolidate memory on Sunday nights (weekly summary)
+  const isSunday = now.getDay() === 0;
+  const shouldConsolidateMemory = isSunday && timeOfDay === "night";
+
   return {
     timeOfDay,
     shouldWake: timeOfDay === "morning",
     shouldSleep: timeOfDay === "night",
     shouldDiary: timeOfDay === "evening",
+    shouldConsolidateMemory,
     statusAdjustment: {
       mood: moodDrift,
       energy: energyDrift,

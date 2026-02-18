@@ -38,11 +38,13 @@ describe("createEntityState", () => {
     expect(state.language.nativeSymbols.length).toBeGreaterThan(0);
   });
 
-  it("initializes memory, growth, and sulk", () => {
+  it("initializes memory, growth, sulk, and form", () => {
     const state = createEntityState(makeSeed(), NOW);
     expect(state.memory.hot).toEqual([]);
     expect(state.growth.milestones.length).toBeGreaterThan(0); // first_breath
     expect(state.sulk.isSulking).toBe(false);
+    expect(state.form.baseForm).toBe("light-particles"); // from fixed seed
+    expect(state.form.awareness).toBe(false);
   });
 });
 
@@ -92,6 +94,53 @@ describe("processHeartbeat", () => {
     const result = processHeartbeat(state, NOW);
     expect(result.updatedState.sulk.isSulking).toBe(true);
     expect(result.activeSoulFile).toBe("SOUL_EVIL.md");
+  });
+
+  it("generates species-specific SOUL_EVIL.md when sulking", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    state.status = { ...state.status, comfort: 15, mood: 20 };
+    const result = processHeartbeat(state, NOW);
+    expect(result.soulEvilMd).not.toBeNull();
+    expect(result.soulEvilMd).toContain("chromatic"); // seed perception
+  });
+
+  it("does not generate soulEvilMd when not sulking", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const result = processHeartbeat(state, NOW);
+    expect(result.soulEvilMd).toBeNull();
+  });
+
+  it("evolves form during heartbeat", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const result = processHeartbeat(state, NOW);
+    expect(result.updatedState.form).toBeDefined();
+    expect(result.updatedState.form.baseForm).toBe("light-particles");
+  });
+
+  it("consolidates memory on Sunday night", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    // Add some hot memories
+    state.memory.hot = [
+      { timestamp: NOW.toISOString(), summary: "test memory", mood: 50 },
+    ];
+    // 2026-02-22 is a Sunday
+    const sundayNight = new Date("2026-02-22T22:00:00Z");
+    const result = processHeartbeat(state, sundayNight);
+    expect(result.memoryConsolidated).toBe(true);
+    expect(result.updatedState.memory.hot).toHaveLength(0);
+    expect(result.updatedState.memory.warm).toHaveLength(1);
+  });
+
+  it("does not consolidate memory on non-Sunday", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    state.memory.hot = [
+      { timestamp: NOW.toISOString(), summary: "test memory", mood: 50 },
+    ];
+    // Wednesday night
+    const wedNight = new Date("2026-02-18T22:00:00Z");
+    const result = processHeartbeat(state, wedNight);
+    expect(result.memoryConsolidated).toBe(false);
+    expect(result.updatedState.memory.hot).toHaveLength(1);
   });
 });
 
@@ -176,5 +225,12 @@ describe("serializeState", () => {
     const { milestonesMd } = serializeState(state);
     expect(milestonesMd).toContain("# Growth Milestones");
     expect(milestonesMd).toContain("First Breath");
+  });
+
+  it("produces formMd", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const { formMd } = serializeState(state);
+    expect(formMd).toContain("light-particles");
+    expect(formMd).toContain("**density**");
   });
 });

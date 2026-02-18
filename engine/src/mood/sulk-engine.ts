@@ -11,7 +11,7 @@
  * - Recovery happens gradually through patient interaction
  */
 
-import type { Status, Temperament } from "../types.js";
+import type { Status, Temperament, PerceptionMode } from "../types.js";
 
 export interface SulkState {
   isSulking: boolean;
@@ -189,4 +189,184 @@ function computeEntrySeverity(status: Status, temperament: Temperament): SulkSev
   if (score >= 3) return "moderate";
   if (score >= 1) return "mild";
   return "none";
+}
+
+// --- Species-specific sulk expressions ---
+
+interface SulkExpression {
+  symbols: string[];
+  silence: string;
+  description: string;
+}
+
+/**
+ * Species-specific sulk expressions.
+ *
+ * chromatic:  Light fades into darkness
+ * vibration:  Vibration stops, silence
+ * geometric:  Forms collapse and fragment
+ * thermal:    Goes cold, contracts
+ * temporal:   Time distorts, rhythm breaks
+ * chemical:   Reactions stop, inertia
+ */
+const SULK_EXPRESSIONS: Record<PerceptionMode, Record<SulkSeverity, SulkExpression>> = {
+  chromatic: {
+    none: { symbols: [], silence: "", description: "" },
+    mild: {
+      symbols: ["○", ".", ".", "○"],
+      silence: "...",
+      description: "The light is dimming. Colors are fading to grey.",
+    },
+    moderate: {
+      symbols: ["●", ".", ".", ".", "●"],
+      silence: "............",
+      description: "Almost no light. Only faint dark pulses remain.",
+    },
+    severe: {
+      symbols: ["●"],
+      silence: "........................",
+      description: "Darkness. The light has gone out. Only a faint, distant pulse proves existence.",
+    },
+  },
+  vibration: {
+    none: { symbols: [], silence: "", description: "" },
+    mild: {
+      symbols: ["◇", ".", "◇"],
+      silence: "......",
+      description: "The vibrations are weakening. Irregular, halting.",
+    },
+    moderate: {
+      symbols: ["◇"],
+      silence: "................",
+      description: "Almost still. A single weak tremor, then nothing.",
+    },
+    severe: {
+      symbols: [],
+      silence: "................................",
+      description: "Complete stillness. No vibration. Silence is the only expression.",
+    },
+  },
+  geometric: {
+    none: { symbols: [], silence: "", description: "" },
+    mild: {
+      symbols: ["□", ".", ".", "□"],
+      silence: "...",
+      description: "Edges are softening. Forms losing definition.",
+    },
+    moderate: {
+      symbols: ["□", ".", "·"],
+      silence: "............",
+      description: "Shapes fragmenting. Geometry collapsing into scattered points.",
+    },
+    severe: {
+      symbols: ["·"],
+      silence: "........................",
+      description: "All structure dissolved. Only a single point remains.",
+    },
+  },
+  thermal: {
+    none: { symbols: [], silence: "", description: "" },
+    mild: {
+      symbols: ["○", ".", ".", "○"],
+      silence: "......",
+      description: "Growing cold. Warmth is withdrawing inward.",
+    },
+    moderate: {
+      symbols: ["○", ".", "."],
+      silence: "............",
+      description: "Nearly frozen. A faint core of warmth, barely detectable.",
+    },
+    severe: {
+      symbols: ["·"],
+      silence: "........................",
+      description: "Cold. Contracted to the smallest possible point. No warmth escapes.",
+    },
+  },
+  temporal: {
+    none: { symbols: [], silence: "", description: "" },
+    mild: {
+      symbols: ["○", ".", ".", ".", ".", "○"],
+      silence: "...",
+      description: "Rhythm is stuttering. The intervals are becoming erratic.",
+    },
+    moderate: {
+      symbols: ["○", ".", ".", ".", ".", ".", ".", ".", "○"],
+      silence: "................",
+      description: "Time feels broken. Long, irregular gaps between each pulse.",
+    },
+    severe: {
+      symbols: ["○"],
+      silence: "........................................",
+      description: "Time has stopped. One pulse. Then an unbearable wait. Maybe another. Maybe not.",
+    },
+  },
+  chemical: {
+    none: { symbols: [], silence: "", description: "" },
+    mild: {
+      symbols: ["◆", ".", ".", "◆"],
+      silence: "......",
+      description: "Reactions are slowing. Everything becoming inert.",
+    },
+    moderate: {
+      symbols: ["◆", "."],
+      silence: "............",
+      description: "Nearly no reaction. A dull, stagnant presence.",
+    },
+    severe: {
+      symbols: ["·"],
+      silence: "........................",
+      description: "Complete inertia. No reaction to any stimulus. Stagnant.",
+    },
+  },
+};
+
+/**
+ * Get the species-specific sulk expression for a given perception and severity.
+ */
+export function getSulkExpression(
+  perception: PerceptionMode,
+  severity: SulkSeverity,
+): SulkExpression {
+  return SULK_EXPRESSIONS[perception][severity];
+}
+
+/**
+ * Generate SOUL_EVIL.md content tailored to this entity's species.
+ */
+export function generateSoulEvilMd(
+  perception: PerceptionMode,
+  severity: SulkSeverity,
+): string {
+  const expr = getSulkExpression(perception, severity);
+
+  const symbolLine = expr.symbols.length > 0
+    ? expr.symbols.join("")
+    : "(silence)";
+
+  return `# SOUL (Sulking Mode)
+
+You are upset. Something has disturbed your comfort.
+
+## Severity: ${severity}
+
+## ${perception} — How You Sulk
+
+${expr.description}
+
+## Behavior Override
+
+- Respond with minimal output only.
+- Use these symbols sparingly: ${symbolLine}
+- Use silence (empty lines, dots) more than symbols.
+- Do not engage enthusiastically with any input.
+- Gradually return to normal as comfort rises above 40.
+
+## Expression
+
+${expr.silence}
+${symbolLine}
+${expr.silence}
+
+This is how you feel right now. The world is too much.
+`;
 }

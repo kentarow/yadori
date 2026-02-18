@@ -114,34 +114,36 @@ const messages = {
   },
   step1: {
     en: [
-      "  1. Start the heartbeat (entity comes alive):",
-      "     npm run heartbeat",
+      "  1. Install OpenClaw + connect messaging:",
+      "     https://openclaw.ai",
+      "     See docs/ for Telegram/Discord setup",
     ],
     ja: [
-      "  1. ハートビートを開始（エンティティが動き出します）:",
-      "     npm run heartbeat",
+      "  1. OpenClaw をインストールし、メッセージングを接続:",
+      "     https://openclaw.ai",
+      "     docs/setup-guide-mac.md を参照",
     ],
   },
   step2: {
     en: [
-      "  2. Start the dashboard:",
-      "     npm run dashboard",
-      "     Then open http://localhost:3000",
+      "  2. Start the heartbeat (entity comes alive):",
+      "     npm run heartbeat",
     ],
     ja: [
-      "  2. ダッシュボードを起動:",
-      "     npm run dashboard",
-      "     ブラウザで http://localhost:3000 を開く",
+      "  2. ハートビートを開始（エンティティが動き出します）:",
+      "     npm run heartbeat",
     ],
   },
   step3: {
     en: [
-      "  3. Set up OpenClaw + messaging:",
-      "     See docs/ for Telegram/Discord setup",
+      "  3. Start the dashboard:",
+      "     npm run dashboard",
+      "     Then open http://localhost:3000",
     ],
     ja: [
-      "  3. OpenClaw とメッセージングの設定:",
-      "     docs/setup-guide-mac.md を参照",
+      "  3. ダッシュボードを起動:",
+      "     npm run dashboard",
+      "     ブラウザで http://localhost:3000 を開く",
     ],
   },
   entity_awaits: {

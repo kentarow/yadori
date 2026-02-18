@@ -17,6 +17,7 @@ function makeStatus(overrides: Partial<Status> = {}): Status {
     curiosity: 50,
     comfort: 50,
     languageLevel: 0,
+    perceptionLevel: 0,
     growthDay: 5,
     lastInteraction: "never",
     ...overrides,

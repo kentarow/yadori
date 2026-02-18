@@ -28,6 +28,7 @@ const TEST_STATUS: Status = {
   curiosity: 88,
   comfort: 60,
   languageLevel: 1,
+  perceptionLevel: 0,
   growthDay: 7,
   lastInteraction: "2026-02-18T12:00:00.000Z",
 };

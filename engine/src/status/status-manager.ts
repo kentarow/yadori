@@ -48,6 +48,11 @@ import {
   isFirstEncounter,
   generateFirstEncounter,
 } from "../encounter/first-encounter.js";
+import {
+  type PerceptionGrowthState,
+  createInitialPerceptionGrowthState,
+  evaluatePerceptionLevel,
+} from "../perception/perception-growth.js";
 
 export interface EntityState {
   seed: Seed;
@@ -57,6 +62,7 @@ export interface EntityState {
   growth: GrowthState;
   sulk: SulkState;
   form: FormState;
+  perception: PerceptionGrowthState;
 }
 
 export interface HeartbeatResult {
@@ -90,6 +96,7 @@ export function createEntityState(seed: Seed, now = new Date()): EntityState {
       curiosity: 70,
       comfort: 50,
       languageLevel: 0,
+      perceptionLevel: 0,
       growthDay: 0,
       lastInteraction: "never",
     },
@@ -98,6 +105,7 @@ export function createEntityState(seed: Seed, now = new Date()): EntityState {
     growth: createInitialGrowthState(now),
     sulk: createInitialSulkState(),
     form: createInitialFormState(seed.form),
+    perception: createInitialPerceptionGrowthState(),
   };
 }
 
@@ -129,6 +137,14 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
     level: newLevel,
   };
   updatedStatus = { ...updatedStatus, languageLevel: newLevel };
+
+  // Evaluate perception level (independent from language)
+  const newPerceptionLevel = evaluatePerceptionLevel(state.perception, updatedStatus.growthDay);
+  const updatedPerception: PerceptionGrowthState = {
+    ...state.perception,
+    level: newPerceptionLevel,
+  };
+  updatedStatus = { ...updatedStatus, perceptionLevel: newPerceptionLevel };
 
   // Evaluate sulk state
   const updatedSulk = evaluateSulk(
@@ -179,6 +195,7 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
       growth: updatedGrowth,
       sulk: updatedSulk,
       form: updatedForm,
+      perception: updatedPerception,
     },
     diary,
     wakeSignal: pulse.shouldWake,
@@ -261,7 +278,8 @@ export function processInteraction(
       memory: updatedMemory,
       growth: updatedGrowth,
       sulk: updatedSulk,
-      form: state.form, // Form evolves only during heartbeat, not per interaction
+      form: state.form,       // Form evolves only during heartbeat
+      perception: state.perception, // Perception evolves only during heartbeat
     },
     newMilestones,
     activeSoulFile: getActiveSoulFile(updatedSulk),
@@ -301,6 +319,10 @@ function formatStatusForWrite(status: Status): string {
 ## Language
 
 - **level**: ${status.languageLevel}
+
+## Perception
+
+- **perception_level**: ${status.perceptionLevel}
 
 ## Growth
 

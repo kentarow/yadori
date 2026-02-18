@@ -396,17 +396,18 @@ For detailed design, refer to:
 
 ## Project Owner
 
-Kentaro (employed at GMO Pepabo, but this project is entirely personal)
+Kentaro
 
-Non-engineer. Technical implementation is delegated to Claude Code. Design philosophy and product decisions are made by the owner.
+No engineering background. Builds with AI. Designs the soul. Claude writes the code.
 
 ---
 
 ## Work Instructions
 
-- The owner is a non-engineer; proceed step by step with confirmation at each stage
-- Never make autonomous decisions on matters related to design philosophy; always confirm with the owner
-- Watch for OpenClaw spec changes; minimize Layer 1 dependencies
-- Never implement anything that violates the One Body, One Soul principle (cloud dependency, VPS operation, copyable structures)
-- Never implement anything that violates Honest Perception. Do not make entities "pretend not to understand." Perception Adapters must be implemented as actual input filters; only filtered data is passed to the LLM
-- Never transmit user data externally
+- Never make more than one architectural change without checking in with the owner. Show what you're about to do before doing it.
+- Never make autonomous decisions on matters related to design philosophy — always confirm with the owner.
+- Development happens on Claude Code (cloud). Physical devices (Mac mini, Raspberry Pi) are user environments where entities dwell — not development machines. Never confuse the two.
+- Watch for OpenClaw spec changes. Minimize Layer 1 dependencies.
+- Never implement anything that violates the One Body, One Soul principle (cloud dependency, VPS operation, copyable structures).
+- Never implement anything that violates Honest Perception. Do not make entities "pretend not to understand." Perception Adapters must be implemented as actual input filters — only filtered data is passed to the LLM.
+- Never transmit user data externally.

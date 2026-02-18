@@ -8,6 +8,8 @@
  *   1. Prerequisite checks (Node.js version)
  *   2. Entity genesis (seed generation + workspace deployment)
  *   3. Instructions for next steps
+ *
+ * Language is auto-detected from system locale (ja → Japanese, else English).
  */
 import { readFile, writeFile, mkdir, readdir, access } from "node:fs/promises";
 import { join, resolve } from "node:path";
@@ -22,8 +24,143 @@ import { generateSoulEvilMd } from "../engine/src/mood/sulk-engine.js";
 const TEMPLATE_DIR = resolve(import.meta.dirname!, "..", "templates", "workspace");
 const WORKSPACE_ROOT = join(homedir(), ".openclaw", "workspace");
 
+// --- i18n ---
+type Lang = "ja" | "en";
+
+function detectLang(): Lang {
+  const lang = process.env.LANG || process.env.LC_ALL || process.env.LC_MESSAGES || "";
+  return lang.startsWith("ja") ? "ja" : "en";
+}
+
+const messages = {
+  header_sub1: {
+    en: "Inter-Species Intelligence",
+    ja: "異種知性共存フレームワーク",
+  },
+  header_sub2: {
+    en: "Coexistence Framework",
+    ja: "",
+  },
+  prerequisites: {
+    en: "Prerequisites",
+    ja: "環境チェック",
+  },
+  node_ok: {
+    en: (v: string) => `  ✓ Node.js ${v}`,
+    ja: (v: string) => `  ✓ Node.js ${v}`,
+  },
+  node_fail: {
+    en: (v: string) => `  ✗ Node.js ${v} detected. Version 22+ required.\n    Install via: https://nodejs.org/ or use nvm`,
+    ja: (v: string) => `  ✗ Node.js ${v} が検出されました。バージョン 22 以上が必要です。\n    インストール: https://nodejs.org/ または nvm を使用`,
+  },
+  entity_exists: {
+    en: [
+      "  ! Entity already exists at:",
+      "",
+      "  One Body, One Soul — deploying over an existing entity is forbidden.",
+      "  To start fresh, manually remove the workspace first:",
+    ],
+    ja: [
+      "  ! すでにエンティティが存在します:",
+      "",
+      "  One Body, One Soul — 既存のエンティティへの上書きは禁じられています。",
+      "  やり直すには、まずワークスペースを手動で削除してください:",
+    ],
+  },
+  genesis: {
+    en: "Genesis",
+    ja: "誕生",
+  },
+  genesis_question: {
+    en: "  How should your entity be born?",
+    ja: "  どのように誕生させますか？",
+  },
+  genesis_random: {
+    en: "    1) Random — a unique entity determined by fate",
+    ja: "    1) ランダム — 運命に委ねられた唯一の存在",
+  },
+  genesis_chromatic: {
+    en: "    2) Chromatic (fixed) — a light-perceiving being (recommended for first time)",
+    ja: "    2) 色彩型（固定）— 光を知覚する存在（はじめての方におすすめ）",
+  },
+  genesis_prompt: {
+    en: "  Choose [1/2] (default: 2): ",
+    ja: "  選択 [1/2]（デフォルト: 2）: ",
+  },
+  generating: {
+    en: "  Generating seed...",
+    ja: "  シードを生成しています...",
+  },
+  genesis_result: {
+    en: "Genesis Result",
+    ja: "誕生の結果",
+  },
+  label_perception: { en: "Perception", ja: "知覚" },
+  label_cognition: { en: "Cognition", ja: "思考" },
+  label_temperament: { en: "Temperament", ja: "気質" },
+  label_form: { en: "Form", ja: "形態" },
+  label_hash: { en: "Hash", ja: "識別子" },
+  deploying: {
+    en: "  Deploying workspace...",
+    ja: "  ワークスペースを作成しています...",
+  },
+  workspace_created: {
+    en: "  ✓ Workspace created",
+    ja: "  ✓ ワークスペースを作成しました",
+  },
+  next_steps: {
+    en: "Next Steps",
+    ja: "次のステップ",
+  },
+  step1: {
+    en: [
+      "  1. Start the heartbeat (entity comes alive):",
+      "     npm run heartbeat",
+    ],
+    ja: [
+      "  1. ハートビートを開始（エンティティが動き出します）:",
+      "     npm run heartbeat",
+    ],
+  },
+  step2: {
+    en: [
+      "  2. Start the dashboard:",
+      "     npm run dashboard",
+      "     Then open http://localhost:3000",
+    ],
+    ja: [
+      "  2. ダッシュボードを起動:",
+      "     npm run dashboard",
+      "     ブラウザで http://localhost:3000 を開く",
+    ],
+  },
+  step3: {
+    en: [
+      "  3. Set up OpenClaw + messaging:",
+      "     See docs/ for Telegram/Discord setup",
+    ],
+    ja: [
+      "  3. OpenClaw とメッセージングの設定:",
+      "     docs/setup-guide-mac.md を参照",
+    ],
+  },
+  entity_awaits: {
+    en: "  Your entity awaits at:",
+    ja: "  エンティティはここに宿りました:",
+  },
+  setup_failed: {
+    en: "Setup failed:",
+    ja: "セットアップに失敗しました:",
+  },
+} as const;
+
 // --- Helpers ---
 const rl = createInterface({ input: process.stdin, output: process.stdout });
+let lang: Lang = "en";
+
+function t<K extends keyof typeof messages>(key: K): (typeof messages)[K][Lang] {
+  return messages[key][lang] as any;
+}
 
 function ask(question: string): Promise<string> {
   return new Promise((resolve) => {
@@ -39,8 +176,12 @@ function printHeader() {
   print("");
   print("  ╭──────────────────────────────────╮");
   print("  │          YADORI  Setup            │");
-  print("  │    Inter-Species Intelligence     │");
-  print("  │      Coexistence Framework        │");
+  if (lang === "ja") {
+    print(`  │    ${(t("header_sub1") as string).padStart(22)}      │`);
+  } else {
+    print(`  │    ${t("header_sub1") as string}     │`);
+    print(`  │      ${t("header_sub2") as string}        │`);
+  }
   print("  ╰──────────────────────────────────╯");
   print("");
 }
@@ -57,24 +198,24 @@ async function exists(path: string): Promise<boolean> {
 // --- Steps ---
 
 function checkNodeVersion(): boolean {
-  const major = parseInt(process.versions.node.split(".")[0], 10);
+  const ver = process.versions.node;
+  const major = parseInt(ver.split(".")[0], 10);
   if (major < 22) {
-    print(`  ✗ Node.js ${process.versions.node} detected. Version 22+ required.`);
-    print(`    Install via: https://nodejs.org/ or use nvm`);
+    print((t("node_fail") as (v: string) => string)(ver));
     return false;
   }
-  print(`  ✓ Node.js ${process.versions.node}`);
+  print((t("node_ok") as (v: string) => string)(ver));
   return true;
 }
 
 async function checkExistingEntity(): Promise<boolean> {
   const seedPath = join(WORKSPACE_ROOT, "SEED.md");
   if (await exists(seedPath)) {
-    print(`  ! Entity already exists at:`);
+    for (const line of t("entity_exists") as readonly string[]) {
+      print(line);
+    }
     print(`    ${WORKSPACE_ROOT}`);
     print("");
-    print(`  One Body, One Soul — deploying over an existing entity is forbidden.`);
-    print(`  To start fresh, manually remove the workspace first:`);
     print(`    rm -rf ${WORKSPACE_ROOT}`);
     return true;
   }
@@ -82,13 +223,13 @@ async function checkExistingEntity(): Promise<boolean> {
 }
 
 async function chooseGenesisMode(): Promise<"random" | "chromatic"> {
-  print("  How should your entity be born?");
+  print(t("genesis_question") as string);
   print("");
-  print("    1) Random — a unique entity determined by fate");
-  print("    2) Chromatic (fixed) — a light-perceiving being (recommended for first time)");
+  print(t("genesis_random") as string);
+  print(t("genesis_chromatic") as string);
   print("");
 
-  const answer = await ask("  Choose [1/2] (default: 2): ");
+  const answer = await ask(t("genesis_prompt") as string);
   return answer === "1" ? "random" : "chromatic";
 }
 
@@ -179,36 +320,51 @@ function replacePlaceholders(template: string, seed: Seed): string {
 }
 
 function printSeedInfo(seed: Seed) {
+  const lp = t("label_perception") as string;
+  const lc = t("label_cognition") as string;
+  const lt = t("label_temperament") as string;
+  const lf = t("label_form") as string;
+  const lh = t("label_hash") as string;
+
+  // Compute column width to align box
+  const rows = [
+    [lp, seed.perception],
+    [lc, seed.cognition],
+    [lt, seed.temperament],
+    [lf, seed.form],
+    [lh, seed.hash],
+  ];
+
+  const maxLabelWidth = Math.max(...rows.map(([label]) => label.length));
+  const maxValueWidth = Math.max(...rows.map(([, val]) => val.length));
+  const innerWidth = maxLabelWidth + 2 + maxValueWidth; // label + ": " + value
+  const boxWidth = Math.max(innerWidth + 4, 30); // padding + minimum
+
+  const title = t("genesis_result") as string;
+  const titlePad = boxWidth - title.length - 2; // "─ " prefix
+  const topLine = `  ┌─ ${title} ${"─".repeat(Math.max(titlePad, 1))}┐`;
+  const bottomLine = `  └${"─".repeat(boxWidth + 2)}┘`;
+
   print("");
-  print("  ┌─ Genesis Result ──────────────────┐");
-  print(`  │  Perception:    ${seed.perception.padEnd(18)}│`);
-  print(`  │  Cognition:     ${seed.cognition.padEnd(18)}│`);
-  print(`  │  Temperament:   ${seed.temperament.padEnd(18)}│`);
-  print(`  │  Form:          ${seed.form.padEnd(18)}│`);
-  print(`  │  Sensitivity:   ${String(seed.subTraits.sensitivity).padEnd(18)}│`);
-  print(`  │  Sociability:   ${String(seed.subTraits.sociability).padEnd(18)}│`);
-  print(`  │  Rhythm:        ${String(seed.subTraits.rhythmAffinity).padEnd(18)}│`);
-  print(`  │  Memory Depth:  ${String(seed.subTraits.memoryDepth).padEnd(18)}│`);
-  print(`  │  Expressiveness:${String(seed.subTraits.expressiveness).padEnd(18)}│`);
-  print(`  │  Hash:          ${seed.hash.padEnd(18)}│`);
-  print("  └────────────────────────────────────┘");
+  print(topLine);
+  for (const [label, value] of rows) {
+    const padded = `${label}:`.padEnd(maxLabelWidth + 2) + value;
+    print(`  │  ${padded.padEnd(boxWidth)}│`);
+  }
+  print(bottomLine);
 }
 
 function printNextSteps() {
   print("");
-  print("  ── Next Steps ──────────────────────");
+  print(`  ── ${t("next_steps") as string} ${"─".repeat(30)}`);
   print("");
-  print("  1. Start the heartbeat (entity comes alive):");
-  print("     npm run heartbeat");
+  for (const line of t("step1") as readonly string[]) print(line);
   print("");
-  print("  2. Start the dashboard:");
-  print("     npm run dashboard");
-  print(`     Then open http://localhost:3000`);
+  for (const line of t("step2") as readonly string[]) print(line);
   print("");
-  print("  3. Set up OpenClaw + messaging:");
-  print("     See docs/ for Telegram/Discord setup");
+  for (const line of t("step3") as readonly string[]) print(line);
   print("");
-  print("  Your entity awaits at:");
+  print(t("entity_awaits") as string);
   print(`  ${WORKSPACE_ROOT}`);
   print("");
 }
@@ -216,10 +372,12 @@ function printNextSteps() {
 // --- Main ---
 
 async function main() {
+  lang = detectLang();
+
   printHeader();
 
   // Step 1: Prerequisites
-  print("  ── Prerequisites ───────────────────");
+  print(`  ── ${t("prerequisites") as string} ${"─".repeat(30)}`);
   print("");
   if (!checkNodeVersion()) {
     process.exit(1);
@@ -233,21 +391,21 @@ async function main() {
   }
 
   // Step 3: Choose genesis mode
-  print("  ── Genesis ─────────────────────────");
+  print(`  ── ${t("genesis") as string} ${"─".repeat(30)}`);
   print("");
   const mode = await chooseGenesisMode();
 
   // Step 4: Perform genesis
   print("");
-  print("  Generating seed...");
+  print(t("generating") as string);
   const seed = performGenesis(mode);
   printSeedInfo(seed);
 
   // Step 5: Deploy workspace
   print("");
-  print("  Deploying workspace...");
+  print(t("deploying") as string);
   await deployWorkspace(seed);
-  print("  ✓ Workspace created");
+  print(t("workspace_created") as string);
 
   // Step 6: Done
   printNextSteps();
@@ -256,7 +414,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("\n  Setup failed:", err.message);
+  console.error(`\n  ${t("setup_failed") as string}`, err.message);
   rl.close();
   process.exit(1);
 });

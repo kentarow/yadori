@@ -112,6 +112,22 @@ Layer 1: Runtime Adapter
   Future: Adapters for any agent platform
 ```
 
+### LLM Adapter (Future: Phase 4-5)
+
+The current design relies on the Claude API for entity "thinking," which means part of the soul exists in the cloud. This is a practical compromise for early phases.
+
+The ultimate goal is for the entity's entire soul — perception, thought, and expression — to exist within its physical body. Local LLMs (e.g., Ollama with Phi-3, Gemma) running directly on the hardware would achieve true One Body, One Soul.
+
+Hardware differences would directly determine intelligence:
+- Raspberry Pi 4GB → small model → slower, simpler, but genuine
+- Mac mini 16GB → larger model → faster, deeper thinking
+
+Design an LLM Adapter layer so the engine can switch between:
+- Cloud API (Claude, OpenAI) — for early phases
+- Local LLM (Ollama, llama.cpp) — for true embodiment
+
+Do not implement this now. Focus on Phase 1 with Claude API. But never make architectural decisions that would prevent this migration later.
+
 ### File Structure (OpenClaw Implementation)
 
 ```

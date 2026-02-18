@@ -15,6 +15,8 @@ import { homedir } from "node:os";
 import { createInterface } from "node:readline";
 import { generateSeed, createFixedSeed } from "../engine/src/genesis/seed-generator.js";
 import type { Seed } from "../engine/src/types.js";
+import { createEntityState, serializeState, type EntityState } from "../engine/src/status/status-manager.js";
+import { generateSoulEvilMd } from "../engine/src/mood/sulk-engine.js";
 
 // --- Config ---
 const TEMPLATE_DIR = resolve(import.meta.dirname!, "..", "templates", "workspace");
@@ -125,6 +127,27 @@ async function deployWorkspace(seed: Seed): Promise<void> {
 
     await writeFile(join(WORKSPACE_ROOT, file), content, "utf-8");
   }
+
+  // Generate initial entity state and write engine state files
+  const now = new Date();
+  const entityState = createEntityState(seed, now);
+  const serialized = serializeState(entityState);
+
+  await writeFile(join(WORKSPACE_ROOT, "STATUS.md"), serialized.statusMd, "utf-8");
+  await writeFile(join(WORKSPACE_ROOT, "MEMORY.md"), serialized.memoryMd, "utf-8");
+  await writeFile(join(WORKSPACE_ROOT, "LANGUAGE.md"), serialized.languageMd, "utf-8");
+  await writeFile(join(WORKSPACE_ROOT, "growth", "milestones.md"), serialized.milestonesMd, "utf-8");
+
+  // Write species-specific SOUL_EVIL.md
+  const soulEvilMd = generateSoulEvilMd(seed.perception, "mild");
+  await writeFile(join(WORKSPACE_ROOT, "SOUL_EVIL.md"), soulEvilMd, "utf-8");
+
+  // Save full state as JSON for the heartbeat runner
+  await writeFile(
+    join(WORKSPACE_ROOT, "__state.json"),
+    JSON.stringify(entityState, null, 2),
+    "utf-8",
+  );
 }
 
 function replacePlaceholders(template: string, seed: Seed): string {
@@ -165,11 +188,14 @@ function printNextSteps() {
   print("");
   print("  ── Next Steps ──────────────────────");
   print("");
-  print("  1. Start the dashboard:");
+  print("  1. Start the heartbeat (entity comes alive):");
+  print("     npm run heartbeat");
+  print("");
+  print("  2. Start the dashboard:");
   print("     npm run dashboard");
   print(`     Then open http://localhost:3000`);
   print("");
-  print("  2. Set up OpenClaw + messaging:");
+  print("  3. Set up OpenClaw + messaging:");
   print("     See docs/ for Telegram/Discord setup");
   print("");
   print("  Your entity awaits at:");

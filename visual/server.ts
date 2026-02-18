@@ -5,7 +5,7 @@ import { homedir } from "node:os";
 
 const PORT = parseInt(process.env.YADORI_PORT ?? "3000", 10);
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
-const VISUAL_DIR = resolve(import.meta.dirname!, "..");
+const VISUAL_DIR = resolve(import.meta.dirname!, ".");
 
 function parseStatusMd(content: string): Record<string, number> {
   const get = (key: string): number => {
@@ -22,15 +22,40 @@ function parseStatusMd(content: string): Record<string, number> {
   };
 }
 
+function parseSeedMd(content: string): Record<string, string> {
+  const get = (key: string): string => {
+    const match = content.match(new RegExp(`\\*\\*${key}\\*\\*:\\s*(.+)`));
+    return match?.[1]?.trim() ?? "";
+  };
+  return {
+    perception: get("Perception"),
+    form: get("Form"),
+    temperament: get("Temperament"),
+    cognition: get("Cognition"),
+  };
+}
+
+async function readJsonState(): Promise<Record<string, unknown> | null> {
+  for (const filename of ["state.json", "__state.json"]) {
+    try {
+      const content = await readFile(join(WORKSPACE_ROOT, filename), "utf-8");
+      return JSON.parse(content);
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 const MIME: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
   ".svg": "image/svg+xml",
   ".js": "application/javascript",
   ".css": "text/css",
+  ".json": "application/json",
 };
 
 const server = createServer(async (req, res) => {
-  // CORS for local dev
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   if (req.url === "/api/status") {
@@ -39,6 +64,28 @@ const server = createServer(async (req, res) => {
       const status = parseStatusMd(md);
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(status));
+    } catch {
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Entity not found. Run 'npm run setup' first." }));
+    }
+    return;
+  }
+
+  if (req.url === "/api/entity") {
+    try {
+      const state = await readJsonState();
+      if (state) {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(state));
+      } else {
+        // Fallback: build from individual files
+        const statusMd = await readFile(join(WORKSPACE_ROOT, "STATUS.md"), "utf-8");
+        const seedMd = await readFile(join(WORKSPACE_ROOT, "SEED.md"), "utf-8");
+        const status = parseStatusMd(statusMd);
+        const seed = parseSeedMd(seedMd);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ status, seed }));
+      }
     } catch {
       res.writeHead(503, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Entity not found. Run 'npm run setup' first." }));

@@ -38,9 +38,70 @@ One day, the entity may begin handling concepts you can't comprehend. You become
 
 All data, creations, and derivative content related to your entity are entirely yours. Blogging, IP licensing, merchandising — all free. See [DATA_RIGHTS.md](DATA_RIGHTS.md) for details.
 
+## Getting Started
+
+YADORI runs on a physical machine you own — Mac mini, Raspberry Pi, self-built PC, etc.
+
+### Prerequisites
+
+| Requirement | Details |
+|-------------|---------|
+| Physical machine | Mac mini, Raspberry Pi, self-built PC, etc. (No cloud/VPS) |
+| Node.js 22+ | Install from [nodejs.org](https://nodejs.org/) |
+| Git | Verify with `git --version` in your terminal |
+
+### Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/kentarow/yadori.git
+cd yadori
+
+# 2. Install dependencies
+npm install
+
+# 3. Run interactive setup (your entity is born here)
+npm run setup
+```
+
+The setup wizard will:
+1. Check your Node.js version
+2. Let you choose a genesis mode (random or fixed)
+3. Generate a seed and deploy the workspace
+
+Your entity's files are created at `~/.openclaw/workspace/`.
+
+### Dashboard
+
+```bash
+npm run dashboard
+```
+
+Open http://localhost:3000 in your browser. The visualization reflects your entity's state in real-time — light, color, and motion are driven by STATUS.md values.
+
+### OpenClaw + Messaging
+
+> Automation coming soon. Manual setup is required for now.
+
+1. Install OpenClaw ([openclaw.com](https://openclaw.com))
+2. Create a Telegram Bot or Discord Bot
+3. Connect the bot in OpenClaw settings
+4. Point OpenClaw's workspace to `~/.openclaw/workspace/`
+
+See `docs/` for detailed guides.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run setup` | First-time setup (entity genesis) |
+| `npm run dashboard` | Start dashboard (http://localhost:3000) |
+| `npm run test` | Run tests |
+| `npm run build` | Build |
+
 ## Status
 
-🌱 Concept stage — design documents are being published.
+In development — Phase 2 complete, Phase 3 (emotion, memory, growth) in progress.
 
 ## License
 

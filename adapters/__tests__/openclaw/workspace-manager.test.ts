@@ -98,6 +98,43 @@ describe("OpenClawWorkspaceManager", () => {
     });
   });
 
+  describe("writeMemory / readMemory", () => {
+    it("writes and reads MEMORY.md", async () => {
+      const memoryMd = "# MEMORY\n\n## Hot Memory (Recent)\n\nNo recent memories.\n";
+      await manager.writeMemory(memoryMd);
+      const read = await manager.readMemory();
+      expect(read).toContain("# MEMORY");
+    });
+  });
+
+  describe("writeMilestones", () => {
+    it("writes to growth/milestones.md", async () => {
+      await mkdir(join(tempDir, "growth"), { recursive: true });
+      const md = "# Growth Milestones\n\n- **Day 0**: First Breath\n";
+      await manager.writeMilestones(md);
+      const read = await readFile(join(tempDir, "growth", "milestones.md"), "utf-8");
+      expect(read).toContain("First Breath");
+    });
+  });
+
+  describe("writeSoulEvil", () => {
+    it("writes SOUL_EVIL.md", async () => {
+      const md = "# SOUL (Sulking Mode)\n\nYou are upset.\n";
+      await manager.writeSoulEvil(md);
+      const read = await readFile(join(tempDir, "SOUL_EVIL.md"), "utf-8");
+      expect(read).toContain("Sulking Mode");
+    });
+  });
+
+  describe("writeDiary", () => {
+    it("writes diary entry to diary/YYYY-MM-DD.md", async () => {
+      await mkdir(join(tempDir, "diary"), { recursive: true });
+      await manager.writeDiary("2026-02-18", "# 2026-02-18\n\n◎◎◎");
+      const read = await readFile(join(tempDir, "diary", "2026-02-18.md"), "utf-8");
+      expect(read).toContain("◎◎◎");
+    });
+  });
+
   describe("deployWorkspace", () => {
     let templateDir: string;
 

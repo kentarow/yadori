@@ -12,13 +12,51 @@ import {
   computeNaturalDecay,
   applyMoodDelta,
 } from "../mood/mood-engine.js";
+import {
+  type SulkState,
+  createInitialSulkState,
+  evaluateSulk,
+  processSulkInteraction,
+  getActiveSoulFile,
+} from "../mood/sulk-engine.js";
 import { computeHeartbeat } from "../rhythm/rhythm-system.js";
 import { generateDiaryEntry, formatDiaryMd, type DiaryEntry } from "../diary/diary-engine.js";
+import {
+  type MemoryState,
+  type MemoryEntry,
+  createInitialMemoryState,
+  addHotMemory,
+  formatMemoryMd,
+} from "../memory/memory-engine.js";
+import {
+  type GrowthState,
+  type Milestone,
+  createInitialGrowthState,
+  evaluateGrowth,
+  formatMilestonesMd,
+} from "../growth/growth-engine.js";
+import {
+  type FormState,
+  createInitialFormState,
+  evolveForm,
+  formatFormMd,
+} from "../form/form-engine.js";
+import { consolidateToWarm, getISOWeek } from "../memory/memory-engine.js";
+import { generateSoulEvilMd } from "../mood/sulk-engine.js";
+import {
+  type FirstEncounterReaction,
+  isFirstEncounter,
+  generateFirstEncounter,
+} from "../encounter/first-encounter.js";
 
 export interface EntityState {
   seed: Seed;
   status: Status;
   language: LanguageState;
+  memory: MemoryState;
+  growth: GrowthState;
+  sulk: SulkState;
+  form: FormState;
 }
 
 export interface HeartbeatResult {
@@ -26,16 +64,24 @@ export interface HeartbeatResult {
   diary: DiaryEntry | null;
   wakeSignal: boolean;
   sleepSignal: boolean;
+  newMilestones: Milestone[];
+  activeSoulFile: "SOUL.md" | "SOUL_EVIL.md";
+  soulEvilMd: string | null;
+  memoryConsolidated: boolean;
 }
 
 export interface InteractionResult {
   updatedState: EntityState;
+  newMilestones: Milestone[];
+  activeSoulFile: "SOUL.md" | "SOUL_EVIL.md";
+  /** Non-null only on the very first interaction ever */
+  firstEncounter: FirstEncounterReaction | null;
 }
 
 /**
  * Create the initial entity state from a seed.
  */
-export function createEntityState(seed: Seed): EntityState {
+export function createEntityState(seed: Seed, now = new Date()): EntityState {
   return {
     seed,
     status: {
@@ -48,12 +94,16 @@ export function createEntityState(seed: Seed): EntityState {
       lastInteraction: "never",
     },
     language: createInitialLanguageState(seed.perception),
+    memory: createInitialMemoryState(),
+    growth: createInitialGrowthState(now),
+    sulk: createInitialSulkState(),
+    form: createInitialFormState(seed.form),
   };
 }
 
 /**
  * Process a heartbeat tick. Called periodically (e.g., every 30 minutes).
- * Updates status based on rhythm and natural decay, optionally generates diary.
+ * Updates status, evaluates sulk, checks milestones, optionally generates diary.
  */
 export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult {
   const pulse = computeHeartbeat(state.status, now);
@@ -80,35 +130,93 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
   };
   updatedStatus = { ...updatedStatus, languageLevel: newLevel };
 
+  // Evaluate sulk state
+  const updatedSulk = evaluateSulk(
+    state.sulk,
+    updatedStatus,
+    minutesSince,
+    state.seed.temperament,
+    now,
+  );
+
+  // Evaluate growth milestones
+  const { updated: updatedGrowth, newMilestones } = evaluateGrowth(
+    state.growth,
+    updatedStatus,
+    updatedLanguage,
+    state.memory,
+    now,
+  );
+
+  // Evolve form
+  const updatedForm = evolveForm(state.form, updatedGrowth.stage, updatedStatus);
+
+  // Consolidate memory if triggered (Sunday night)
+  let updatedMemory = state.memory;
+  let memoryConsolidated = false;
+  if (pulse.shouldConsolidateMemory && state.memory.hot.length > 0) {
+    updatedMemory = consolidateToWarm(state.memory, getISOWeek(now));
+    memoryConsolidated = true;
+  }
+
   // Generate diary if it's evening
   let diary: DiaryEntry | null = null;
   if (pulse.shouldDiary) {
     diary = generateDiaryEntry(updatedStatus, updatedLanguage, state.seed.perception, now);
   }
 
+  // Generate species-specific SOUL_EVIL.md if sulking
+  const soulEvilMd = updatedSulk.isSulking
+    ? generateSoulEvilMd(state.seed.perception, updatedSulk.severity)
+    : null;
+
   return {
     updatedState: {
       seed: state.seed,
       status: updatedStatus,
       language: updatedLanguage,
+      memory: updatedMemory,
+      growth: updatedGrowth,
+      sulk: updatedSulk,
+      form: updatedForm,
     },
     diary,
     wakeSignal: pulse.shouldWake,
     sleepSignal: pulse.shouldSleep,
+    newMilestones,
+    activeSoulFile: getActiveSoulFile(updatedSulk),
+    soulEvilMd,
+    memoryConsolidated,
   };
 }
 
 /**
- * Process a user interaction. Updates mood, energy, language state.
+ * Process a user interaction. Updates mood, energy, language, memory, growth, sulk.
+ *
+ * If this is the entity's very first interaction (totalInteractions === 0),
+ * a FirstEncounterReaction is generated — the entity's unique response to
+ * perceiving "another" for the first time.
  */
 export function processInteraction(
   state: EntityState,
   context: InteractionContext,
   now: Date,
+  memorySummary?: string,
 ): InteractionResult {
+  // Detect first encounter — before totalInteractions is incremented
+  let firstEncounter: FirstEncounterReaction | null = null;
+  if (isFirstEncounter(state.language.totalInteractions)) {
+    firstEncounter = generateFirstEncounter(state.seed.perception, state.seed.temperament, now);
+  }
+
   // Apply interaction effect to mood
   const effect = computeInteractionEffect(state.status, context, state.seed.temperament);
   let updatedStatus = applyMoodDelta(state.status, effect);
+
+  // Apply first encounter status effect (on top of normal interaction)
+  if (firstEncounter) {
+    updatedStatus = applyMoodDelta(updatedStatus, firstEncounter.statusEffect);
+  }
 
   // Update interaction tracking
   updatedStatus = {
@@ -123,12 +231,41 @@ export function processInteraction(
   updatedLanguage = { ...updatedLanguage, level: newLevel };
   updatedStatus = { ...updatedStatus, languageLevel: newLevel };
 
+  // Update memory — first encounter gets a special imprint
+  const memEntry: MemoryEntry = firstEncounter
+    ? firstEncounter.memoryImprint
+    : {
+        timestamp: now.toISOString(),
+        summary: memorySummary ?? `interaction (${context.messageLength} chars)`,
+        mood: updatedStatus.mood,
+      };
+  const { updated: updatedMemory } = addHotMemory(state.memory, memEntry);
+
+  // Process sulk recovery
+  const updatedSulk = processSulkInteraction(state.sulk, updatedStatus);
+
+  // Evaluate growth milestones
+  const { updated: updatedGrowth, newMilestones } = evaluateGrowth(
+    state.growth,
+    updatedStatus,
+    updatedLanguage,
+    updatedMemory,
+    now,
+  );
+
   return {
     updatedState: {
       seed: state.seed,
       status: updatedStatus,
       language: updatedLanguage,
+      memory: updatedMemory,
+      growth: updatedGrowth,
+      sulk: updatedSulk,
+      form: state.form, // Form evolves only during heartbeat, not per interaction
     },
+    newMilestones,
+    activeSoulFile: getActiveSoulFile(updatedSulk),
+    firstEncounter,
   };
 }
 
@@ -138,10 +275,16 @@ export function processInteraction(
 export function serializeState(state: EntityState): {
   statusMd: string;
   languageMd: string;
+  memoryMd: string;
+  milestonesMd: string;
+  formMd: string;
 } {
   return {
     statusMd: formatStatusForWrite(state.status),
     languageMd: formatLanguageMd(state.language),
+    memoryMd: formatMemoryMd(state.memory),
+    milestonesMd: formatMilestonesMd(state.growth),
+    formMd: formatFormMd(state.form),
   };
 }
 

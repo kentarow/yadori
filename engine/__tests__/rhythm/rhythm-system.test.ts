@@ -83,6 +83,26 @@ describe("computeHeartbeat", () => {
     const pulse = computeHeartbeat(makeStatus({ energy: 80 }), dateAt(22));
     expect(pulse.statusAdjustment.energy).toBeLessThan(0);
   });
+
+  it("triggers memory consolidation on Sunday night", () => {
+    // 2026-02-22 is a Sunday
+    const sundayNight = new Date(2026, 1, 22, 22, 0);
+    const pulse = computeHeartbeat(makeStatus(), sundayNight);
+    expect(pulse.shouldConsolidateMemory).toBe(true);
+  });
+
+  it("does not trigger memory consolidation on other nights", () => {
+    // 2026-02-18 is a Wednesday
+    const wedNight = dateAt(22);
+    const pulse = computeHeartbeat(makeStatus(), wedNight);
+    expect(pulse.shouldConsolidateMemory).toBe(false);
+  });
+
+  it("does not trigger memory consolidation on Sunday morning", () => {
+    const sundayMorning = new Date(2026, 1, 22, 9, 0);
+    const pulse = computeHeartbeat(makeStatus(), sundayMorning);
+    expect(pulse.shouldConsolidateMemory).toBe(false);
+  });
 });
 
 describe("shouldPulse", () => {

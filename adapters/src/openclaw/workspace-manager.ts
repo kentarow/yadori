@@ -50,6 +50,26 @@ export class OpenClawWorkspaceManager {
     await writeFile(join(this.root, "STATUS.md"), content, "utf-8");
   }
 
+  async writeMemory(memoryMd: string): Promise<void> {
+    await writeFile(join(this.root, "MEMORY.md"), memoryMd, "utf-8");
+  }
+
+  async readMemory(): Promise<string> {
+    return readFile(join(this.root, "MEMORY.md"), "utf-8");
+  }
+
+  async writeMilestones(milestonesMd: string): Promise<void> {
+    await writeFile(join(this.root, "growth", "milestones.md"), milestonesMd, "utf-8");
+  }
+
+  async writeSoulEvil(soulEvilMd: string): Promise<void> {
+    await writeFile(join(this.root, "SOUL_EVIL.md"), soulEvilMd, "utf-8");
+  }
+
+  async writeDiary(date: string, content: string): Promise<void> {
+    await writeFile(join(this.root, "diary", `${date}.md`), content, "utf-8");
+  }
+
   async readSeed(): Promise<Seed> {
     const content = await readFile(join(this.root, "SEED.md"), "utf-8");
     return this.parseSeedMd(content);

@@ -6,10 +6,18 @@ export type {
   Temperament,
   SelfForm,
   HardwareBody,
+  SubTraits,
   Status,
+  ExpressionChannel,
+  TextExpressionParams,
+  SoundExpressionParams,
+  VisualExpressionParams,
+  ExpressionParams,
+  ImageFeatures,
+  AudioFeatures,
 } from "./types.js";
 
-export { LanguageLevel } from "./types.js";
+export { LanguageLevel, PerceptionLevel } from "./types.js";
 
 export { generateSeed, createFixedSeed } from "./genesis/seed-generator.js";
 export { detectHardware } from "./genesis/hardware-detector.js";
@@ -62,3 +70,22 @@ export {
   type HeartbeatResult,
   type InteractionResult,
 } from "./status/status-manager.js";
+
+// Expression Adapter
+export {
+  generateExpressionParams,
+} from "./expression/expression-adapter.js";
+
+// Image Processor
+export {
+  processImage,
+  rgbToHsl,
+  computeColorHistogram,
+} from "./perception/image-processor.js";
+
+// Audio Processor
+export {
+  processAudio,
+  fft,
+  estimateBPM,
+} from "./perception/audio-processor.js";

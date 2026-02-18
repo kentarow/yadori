@@ -157,6 +157,11 @@ function replacePlaceholders(template: string, seed: Seed): string {
     "{{cognition}}": seed.cognition,
     "{{temperament}}": seed.temperament,
     "{{form}}": seed.form,
+    "{{sensitivity}}": String(seed.subTraits.sensitivity),
+    "{{sociability}}": String(seed.subTraits.sociability),
+    "{{rhythmAffinity}}": String(seed.subTraits.rhythmAffinity),
+    "{{memoryDepth}}": String(seed.subTraits.memoryDepth),
+    "{{expressiveness}}": String(seed.subTraits.expressiveness),
     "{{platform}}": seed.hardwareBody.platform,
     "{{arch}}": seed.hardwareBody.arch,
     "{{totalMemoryGB}}": String(seed.hardwareBody.totalMemoryGB),
@@ -176,11 +181,16 @@ function replacePlaceholders(template: string, seed: Seed): string {
 function printSeedInfo(seed: Seed) {
   print("");
   print("  ┌─ Genesis Result ──────────────────┐");
-  print(`  │  Perception:  ${seed.perception.padEnd(20)}│`);
-  print(`  │  Cognition:   ${seed.cognition.padEnd(20)}│`);
-  print(`  │  Temperament: ${seed.temperament.padEnd(20)}│`);
-  print(`  │  Form:        ${seed.form.padEnd(20)}│`);
-  print(`  │  Hash:        ${seed.hash.padEnd(20)}│`);
+  print(`  │  Perception:    ${seed.perception.padEnd(18)}│`);
+  print(`  │  Cognition:     ${seed.cognition.padEnd(18)}│`);
+  print(`  │  Temperament:   ${seed.temperament.padEnd(18)}│`);
+  print(`  │  Form:          ${seed.form.padEnd(18)}│`);
+  print(`  │  Sensitivity:   ${String(seed.subTraits.sensitivity).padEnd(18)}│`);
+  print(`  │  Sociability:   ${String(seed.subTraits.sociability).padEnd(18)}│`);
+  print(`  │  Rhythm:        ${String(seed.subTraits.rhythmAffinity).padEnd(18)}│`);
+  print(`  │  Memory Depth:  ${String(seed.subTraits.memoryDepth).padEnd(18)}│`);
+  print(`  │  Expressiveness:${String(seed.subTraits.expressiveness).padEnd(18)}│`);
+  print(`  │  Hash:          ${seed.hash.padEnd(18)}│`);
   print("  └────────────────────────────────────┘");
 }
 

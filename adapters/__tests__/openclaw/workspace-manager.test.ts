@@ -18,6 +18,13 @@ const TEST_SEED: Seed = {
     cpuModel: "Apple M4",
     storageGB: 256,
   },
+  subTraits: {
+    sensitivity: 65,
+    sociability: 55,
+    rhythmAffinity: 40,
+    memoryDepth: 60,
+    expressiveness: 70,
+  },
   createdAt: "2026-02-18T00:00:00.000Z",
   hash: "abc123def456",
 };

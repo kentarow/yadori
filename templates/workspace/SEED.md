@@ -10,6 +10,14 @@
 - **Temperament**: {{temperament}}
 - **Form**: {{form}}
 
+## Sub-Traits
+
+- **Sensitivity**: {{sensitivity}}
+- **Sociability**: {{sociability}}
+- **Rhythm Affinity**: {{rhythmAffinity}}
+- **Memory Depth**: {{memoryDepth}}
+- **Expressiveness**: {{expressiveness}}
+
 ## Hardware Body
 
 - **Platform**: {{platform}}

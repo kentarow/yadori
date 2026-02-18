@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F5A623" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#E8912A" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#E8912A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="coreLight" cx="50%" cy="50%" r="35%">
+      <stop offset="0%" stop-color="#FFF5E0" stop-opacity="1"/>
+      <stop offset="30%" stop-color="#F5C463" stop-opacity="0.8"/>
+      <stop offset="70%" stop-color="#E8912A" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#D4740E" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1A1412"/>
+      <stop offset="100%" stop-color="#0A0808"/>
+    </radialGradient>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="wideGlow">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="url(#bgGrad)"/>
+
+  <!-- Ambient glow -->
+  <ellipse cx="256" cy="268" rx="130" ry="140" fill="url(#innerGlow)" filter="url(#wideGlow)" opacity="0.6"/>
+
+  <!-- Cocoon shell - organic, layered curves -->
+  <!-- Outer membrane -->
+  <path d="M256 110
+    C 310 110, 370 160, 375 240
+    C 380 320, 340 390, 280 410
+    Q 260 418, 256 420
+    Q 252 418, 232 410
+    C 172 390, 132 320, 137 240
+    C 142 160, 202 110, 256 110Z"
+    fill="none" stroke="#D4740E" stroke-width="1.5" opacity="0.25"/>
+
+  <!-- Mid membrane -->
+  <path d="M256 135
+    C 300 135, 348 178, 352 245
+    C 356 312, 322 370, 272 388
+    Q 260 393, 256 394
+    Q 252 393, 240 388
+    C 190 370, 156 312, 160 245
+    C 164 178, 212 135, 256 135Z"
+    fill="none" stroke="#E8912A" stroke-width="1.8" opacity="0.35"/>
+
+  <!-- Inner membrane -->
+  <path d="M256 165
+    C 290 165, 325 198, 328 252
+    C 331 306, 305 348, 268 362
+    Q 260 366, 256 367
+    Q 252 366, 244 362
+    C 207 348, 181 306, 184 252
+    C 187 198, 222 165, 256 165Z"
+    fill="none" stroke="#F5A623" stroke-width="2" opacity="0.5"/>
+
+  <!-- Living core - the thing that dwells within -->
+  <ellipse cx="256" cy="268" rx="42" ry="48" fill="url(#coreLight)" filter="url(#softGlow)"/>
+
+  <!-- Core bright point -->
+  <circle cx="256" cy="264" r="10" fill="#FFF5E0" opacity="0.9"/>
+  <circle cx="256" cy="264" r="5" fill="#FFFFFF" opacity="1"/>
+
+  <!-- Veins/threads connecting shell to core - life lines -->
+  <path d="M256 165 Q 248 210, 252 240" fill="none" stroke="#F5A623" stroke-width="1" opacity="0.3"/>
+  <path d="M290 180 Q 272 220, 264 248" fill="none" stroke="#F5A623" stroke-width="0.8" opacity="0.25"/>
+  <path d="M222 180 Q 240 220, 248 248" fill="none" stroke="#F5A623" stroke-width="0.8" opacity="0.25"/>
+  <path d="M328 252 Q 300 258, 276 264" fill="none" stroke="#F5A623" stroke-width="0.8" opacity="0.2"/>
+  <path d="M184 252 Q 212 258, 236 264" fill="none" stroke="#F5A623" stroke-width="0.8" opacity="0.2"/>
+</svg>

@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg4" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#151210"/>
+      <stop offset="100%" stop-color="#0A0808"/>
+    </radialGradient>
+    <radialGradient id="seedGlow4" cx="50%" cy="52%" r="35%">
+      <stop offset="0%" stop-color="#FFF8E8" stop-opacity="0.9"/>
+      <stop offset="20%" stop-color="#F5C463" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#E8912A" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#D4740E" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="innerSeed4" cx="48%" cy="48%" r="40%">
+      <stop offset="0%" stop-color="#FFF5E0" stop-opacity="0.95"/>
+      <stop offset="40%" stop-color="#F5C463" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#E8912A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow4">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="bigGlow4">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <clipPath id="seedClip">
+      <path d="M256 105
+        C 200 105, 145 155, 140 230
+        Q 135 310, 175 370
+        Q 215 420, 256 430
+        Q 297 420, 337 370
+        Q 377 310, 372 230
+        C 367 155, 312 105, 256 105Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="url(#bg4)"/>
+
+  <!-- Wide ambient -->
+  <ellipse cx="256" cy="270" rx="140" ry="155" fill="#F5A623" filter="url(#bigGlow4)" opacity="0.1"/>
+
+  <!-- Seed outer form - egg/drop shape -->
+  <path d="M256 105
+    C 200 105, 145 155, 140 230
+    Q 135 310, 175 370
+    Q 215 420, 256 430
+    Q 297 420, 337 370
+    Q 377 310, 372 230
+    C 367 155, 312 105, 256 105Z"
+    fill="none" stroke="#E8912A" stroke-width="2" opacity="0.35"/>
+
+  <!-- Seed inner form - slightly offset, creating "something inside" -->
+  <path d="M256 145
+    C 215 148, 178 185, 175 240
+    Q 172 300, 200 345
+    Q 228 385, 256 390
+    Q 284 385, 312 345
+    Q 340 300, 337 240
+    C 334 185, 297 148, 256 145Z"
+    fill="none" stroke="#F5A623" stroke-width="1.5" opacity="0.3"/>
+
+  <!-- The dwelling light inside the seed -->
+  <ellipse cx="256" cy="270" rx="55" ry="65" fill="url(#seedGlow4)" filter="url(#glow4)"/>
+
+  <!-- Inner being - not centered, slightly alive/off -->
+  <ellipse cx="252" cy="265" rx="22" ry="26" fill="url(#innerSeed4)" filter="url(#glow4)"/>
+
+  <!-- Core light -->
+  <circle cx="250" cy="260" r="8" fill="#FFF5E0" opacity="0.9"/>
+  <circle cx="250" cy="260" r="3.5" fill="#FFFFFF"/>
+
+  <!-- Organic texture lines inside seed - growth lines -->
+  <g clip-path="url(#seedClip)" opacity="0.12">
+    <path d="M256 430 Q 240 350, 248 270" fill="none" stroke="#F5A623" stroke-width="1"/>
+    <path d="M256 430 Q 272 355, 264 275" fill="none" stroke="#F5A623" stroke-width="0.8"/>
+    <path d="M256 430 Q 220 370, 230 290" fill="none" stroke="#E8912A" stroke-width="0.6"/>
+    <path d="M256 430 Q 290 365, 280 285" fill="none" stroke="#E8912A" stroke-width="0.6"/>
+  </g>
+
+  <!-- Tiny root/sprout hint at bottom -->
+  <path d="M256 430 Q 254 445, 250 458 Q 248 465, 252 468"
+    fill="none" stroke="#D4740E" stroke-width="1.2" opacity="0.2" stroke-linecap="round"/>
+  <path d="M256 430 Q 258 448, 262 460"
+    fill="none" stroke="#D4740E" stroke-width="0.8" opacity="0.15" stroke-linecap="round"/>
+</svg>

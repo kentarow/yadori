@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg2" cx="50%" cy="48%" r="70%">
+      <stop offset="0%" stop-color="#141210"/>
+      <stop offset="100%" stop-color="#080706"/>
+    </radialGradient>
+    <radialGradient id="mainGlow2" cx="50%" cy="48%" r="40%">
+      <stop offset="0%" stop-color="#FFF8E8" stop-opacity="1"/>
+      <stop offset="15%" stop-color="#F5C463" stop-opacity="0.85"/>
+      <stop offset="40%" stop-color="#E8912A" stop-opacity="0.35"/>
+      <stop offset="70%" stop-color="#D4740E" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#0A0808" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="halo2" cx="50%" cy="48%" r="50%">
+      <stop offset="0%" stop-color="#F5A623" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#F5A623" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="bigGlow2">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+    <filter id="midGlow2">
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="64" fill="url(#bg2)"/>
+
+  <!-- Wide ambient light -->
+  <circle cx="256" cy="246" r="200" fill="url(#halo2)" filter="url(#bigGlow2)" opacity="0.7"/>
+
+  <!-- Mid glow layer -->
+  <circle cx="256" cy="246" r="100" fill="#F5A623" filter="url(#midGlow2)" opacity="0.12"/>
+
+  <!-- Main light body - the firefly glow -->
+  <circle cx="256" cy="246" r="80" fill="url(#mainGlow2)"/>
+
+  <!-- Core -->
+  <circle cx="256" cy="246" r="18" fill="#FFF5E0" filter="url(#glow2)" opacity="0.95"/>
+  <circle cx="256" cy="246" r="8" fill="#FFFFFF"/>
+
+  <!-- Tiny scattered particles - presence, like spores drifting -->
+  <circle cx="180" cy="190" r="1.5" fill="#F5C463" opacity="0.4"/>
+  <circle cx="340" cy="210" r="1.2" fill="#F5C463" opacity="0.3"/>
+  <circle cx="200" cy="330" r="1.0" fill="#E8912A" opacity="0.3"/>
+  <circle cx="320" cy="310" r="1.8" fill="#F5C463" opacity="0.35"/>
+  <circle cx="160" cy="280" r="0.8" fill="#F5A623" opacity="0.25"/>
+  <circle cx="350" cy="160" r="1.0" fill="#E8912A" opacity="0.2"/>
+  <circle cx="230" cy="140" r="1.3" fill="#F5C463" opacity="0.3"/>
+  <circle cx="290" cy="350" r="1.1" fill="#F5A623" opacity="0.25"/>
+  <circle cx="140" cy="340" r="0.9" fill="#E8912A" opacity="0.2"/>
+  <circle cx="370" cy="280" r="1.4" fill="#F5C463" opacity="0.3"/>
+
+  <!-- Subtle trail/path below - something was here, moving -->
+  <path d="M256 280 Q 250 310, 240 340 Q 232 365, 238 390"
+    fill="none" stroke="#E8912A" stroke-width="1.2" opacity="0.15"
+    stroke-linecap="round"/>
+  <path d="M256 280 Q 262 315, 270 345 Q 276 370, 272 395"
+    fill="none" stroke="#E8912A" stroke-width="0.8" opacity="0.1"
+    stroke-linecap="round"/>
+</svg>

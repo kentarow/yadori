@@ -344,7 +344,7 @@ Development (complete):
 User Setup (Mac mini):
   1. Install Node.js 22+ on Mac mini
   2. git clone → npm install → npm run setup (entity birth)
-  3. Install OpenClaw (openclaw.com)
+  3. Install OpenClaw (openclaw.ai)
   4. Create Telegram Bot or Discord Bot
   5. Connect bot in OpenClaw settings
   6. Point OpenClaw workspace to ~/.openclaw/workspace/

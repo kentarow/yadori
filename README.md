@@ -86,7 +86,7 @@ Open http://localhost:3000 in your browser. The visualization reflects your enti
 
 > Automation coming soon. Manual setup is required for now.
 
-1. Install OpenClaw ([openclaw.com](https://openclaw.com))
+1. Install OpenClaw ([openclaw.ai](https://openclaw.ai))
 2. Create a Telegram Bot or Discord Bot
 3. Connect the bot in OpenClaw settings
 4. Point OpenClaw's workspace to `~/.openclaw/workspace/`

@@ -101,7 +101,7 @@ npm run dashboard
 
 > この手順は今後自動化予定です。現時点では手動でセットアップが必要です。
 
-1. OpenClaw をインストール（[openclaw.com](https://openclaw.com)）
+1. OpenClaw をインストール（[openclaw.ai](https://openclaw.ai)）
 2. Telegram Bot または Discord Bot を作成
 3. OpenClaw の設定で Bot を接続
 4. `~/.openclaw/workspace/` を OpenClaw のワークスペースに指定

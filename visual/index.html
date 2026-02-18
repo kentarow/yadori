@@ -10,43 +10,145 @@
       background: #000;
       overflow: hidden;
       cursor: none;
+      font-family: monospace;
     }
     canvas {
       display: block;
       width: 100vw;
       height: 100vh;
     }
+    #info {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      color: rgba(255, 255, 255, 0.15);
+      font-size: 11px;
+      line-height: 1.6;
+      pointer-events: none;
+      transition: color 0.5s;
+      white-space: pre;
+    }
+    body:hover #info { color: rgba(255, 255, 255, 0.4); }
+    #milestones {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      color: rgba(255, 255, 255, 0);
+      font-size: 12px;
+      line-height: 1.8;
+      text-align: right;
+      pointer-events: none;
+      transition: color 3s;
+    }
+    #milestones.show { color: rgba(255, 255, 255, 0.35); }
+    #sulk-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      transition: background 2s;
+    }
   </style>
 </head>
 <body>
+  <div id="sulk-overlay"></div>
   <canvas id="canvas"></canvas>
+  <div id="info"></div>
+  <div id="milestones"></div>
   <script>
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const infoEl = document.getElementById('info');
+    const milestonesEl = document.getElementById('milestones');
+    const sulkOverlay = document.getElementById('sulk-overlay');
 
-    // --- State (live from STATUS.md via dashboard server) ---
-    const state = {
-      mood: 50,
-      energy: 50,
-      curiosity: 70,
-      comfort: 50,
+    // --- Full entity state ---
+    const entity = {
+      status: { mood: 50, energy: 50, curiosity: 70, comfort: 50, growthDay: 0, languageLevel: 0 },
+      seed: { perception: 'chromatic', form: 'light-particles' },
+      form: { baseForm: 'light-particles', density: 5, complexity: 3, stability: 15, awareness: false },
+      sulk: { isSulking: false, severity: 'none' },
+      growth: { stage: 'newborn', milestones: [] },
     };
 
-    // Poll STATUS.md every 3 seconds
-    async function fetchStatus() {
+    // --- Perception-based color palettes ---
+    const PALETTES = {
+      chromatic:  { hueBase: 20,  hueRange: 30, satBase: 60, satRange: 40 },
+      vibration:  { hueBase: 250, hueRange: 40, satBase: 50, satRange: 30 },
+      geometric:  { hueBase: 180, hueRange: 20, satBase: 30, satRange: 40 },
+      thermal:    { hueBase: 0,   hueRange: 40, satBase: 70, satRange: 30 },
+      temporal:   { hueBase: 210, hueRange: 50, satBase: 40, satRange: 30 },
+      chemical:   { hueBase: 90,  hueRange: 40, satBase: 50, satRange: 40 },
+    };
+
+    // --- Form-based rendering parameters ---
+    const FORM_PARAMS = {
+      'light-particles': { shape: 'circle', trailAlpha: 0.12 },
+      'fluid':           { shape: 'circle', trailAlpha: 0.06 },
+      'crystal':         { shape: 'diamond', trailAlpha: 0.18 },
+      'sound-echo':      { shape: 'ring',   trailAlpha: 0.08 },
+      'mist':            { shape: 'circle', trailAlpha: 0.04 },
+      'geometric-cluster': { shape: 'square', trailAlpha: 0.15 },
+    };
+
+    // Poll entity state every 3 seconds
+    async function fetchState() {
       try {
-        const res = await fetch('/api/status');
-        if (res.ok) {
-          const data = await res.json();
-          state.mood = data.mood ?? state.mood;
-          state.energy = data.energy ?? state.energy;
-          state.curiosity = data.curiosity ?? state.curiosity;
-          state.comfort = data.comfort ?? state.comfort;
+        const res = await fetch('/api/entity');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.status) {
+          entity.status = { ...entity.status, ...data.status };
         }
-      } catch { /* server not available, use defaults */ }
+        if (data.seed) {
+          entity.seed = { ...entity.seed, ...data.seed };
+        }
+        if (data.form) {
+          entity.form = { ...entity.form, ...data.form };
+        }
+        if (data.sulk) {
+          entity.sulk = { ...entity.sulk, ...data.sulk };
+        }
+        if (data.growth) {
+          entity.growth = { ...entity.growth, ...data.growth };
+        }
+
+        updateInfo();
+        updateSulkOverlay();
+        updateMilestones();
+      } catch { /* server not available */ }
     }
-    fetchStatus();
-    setInterval(fetchStatus, 3000);
+    fetchState();
+    setInterval(fetchState, 3000);
+
+    function updateInfo() {
+      const s = entity.status;
+      const f = entity.form;
+      const g = entity.growth;
+      infoEl.textContent =
+        `day ${s.growthDay} · ${g.stage} · ${entity.seed.perception}\n` +
+        `mood ${s.mood} · energy ${s.energy} · curiosity ${s.curiosity} · comfort ${s.comfort}\n` +
+        `form: ${f.baseForm} (density ${f.density} · complexity ${f.complexity} · stability ${f.stability})`;
+    }
+
+    function updateSulkOverlay() {
+      if (entity.sulk.isSulking) {
+        const opacity = entity.sulk.severity === 'severe' ? 0.4 :
+                        entity.sulk.severity === 'moderate' ? 0.2 : 0.1;
+        sulkOverlay.style.background = `rgba(0, 0, 30, ${opacity})`;
+      } else {
+        sulkOverlay.style.background = 'transparent';
+      }
+    }
+
+    function updateMilestones() {
+      if (!entity.growth.milestones || entity.growth.milestones.length === 0) return;
+      const latest = entity.growth.milestones.slice(-3);
+      milestonesEl.innerHTML = latest.map(m =>
+        `Day ${m.achievedDay}: ${m.label.split(' — ')[0]}`
+      ).join('<br>');
+      milestonesEl.classList.add('show');
+    }
 
     // --- Resize ---
     function resize() {
@@ -58,56 +160,98 @@
     resize();
 
     // --- Particle ---
-    const particles = [];
-    const PARTICLE_COUNT = 1;
+    const particle = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+      phase: Math.random() * Math.PI * 2,
+      driftPhaseX: Math.random() * Math.PI * 2,
+      driftPhaseY: Math.random() * Math.PI * 2,
+    };
 
-    function createParticle() {
-      return {
-        x: window.innerWidth / 2,
-        y: window.innerHeight / 2,
-        baseRadius: 3,
-        phase: Math.random() * Math.PI * 2,
-        driftX: 0,
-        driftY: 0,
-        driftPhaseX: Math.random() * Math.PI * 2,
-        driftPhaseY: Math.random() * Math.PI * 2,
-      };
-    }
-
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      particles.push(createParticle());
-    }
-
-    // --- Color from mood (chromatic type: warm tones) ---
-    function moodColor(mood, alpha) {
-      // Low mood: deep indigo → High mood: warm amber
-      const hue = 20 + (mood / 100) * 30; // 20-50 (orange range)
-      const sat = 60 + (mood / 100) * 40;  // 60-100%
-      const light = 40 + (mood / 100) * 30; // 40-70%
+    // --- Color from perception + mood ---
+    function getColor(mood, alpha) {
+      const pal = PALETTES[entity.seed.perception] || PALETTES.chromatic;
+      const hue = pal.hueBase + (mood / 100) * pal.hueRange;
+      const sat = pal.satBase + (mood / 100) * pal.satRange;
+      const light = 40 + (mood / 100) * 30;
       return `hsla(${hue}, ${sat}%, ${light}%, ${alpha})`;
     }
 
-    // --- Glow layers ---
-    function drawGlow(x, y, radius, mood, breathAlpha) {
-      const layers = [
-        { scale: 12, alpha: 0.02 * breathAlpha },
-        { scale: 8,  alpha: 0.04 * breathAlpha },
-        { scale: 5,  alpha: 0.08 * breathAlpha },
-        { scale: 3,  alpha: 0.15 * breathAlpha },
-        { scale: 1.5, alpha: 0.4 * breathAlpha },
-        { scale: 1,  alpha: 0.9 * breathAlpha },
-      ];
+    // --- Draw entity based on form ---
+    function drawEntity(x, y, baseRadius, breathAlpha) {
+      const form = FORM_PARAMS[entity.form.baseForm] || FORM_PARAMS['light-particles'];
+      const mood = entity.status.mood;
+      const density = entity.form.density;
+      const complexity = entity.form.complexity;
 
-      for (const layer of layers) {
-        const r = radius * layer.scale;
-        const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
-        gradient.addColorStop(0, moodColor(mood, layer.alpha));
-        gradient.addColorStop(1, moodColor(mood, 0));
-        ctx.fillStyle = gradient;
+      // Radius scales with density
+      const densityScale = 0.5 + (density / 100) * 1.5;
+      const radius = baseRadius * densityScale;
+
+      // Number of glow layers scales with complexity
+      const layerCount = 3 + Math.floor((complexity / 100) * 5);
+
+      for (let i = layerCount - 1; i >= 0; i--) {
+        const t = i / layerCount;
+        const layerScale = 1 + t * (8 + complexity / 15);
+        const layerAlpha = (1 - t * 0.85) * breathAlpha * 0.6;
+        const r = radius * layerScale;
+
+        if (form.shape === 'diamond') {
+          drawDiamond(x, y, r, getColor(mood, layerAlpha));
+        } else if (form.shape === 'ring') {
+          drawRing(x, y, r, getColor(mood, layerAlpha), layerAlpha);
+        } else if (form.shape === 'square') {
+          drawSquare(x, y, r, getColor(mood, layerAlpha));
+        } else {
+          drawCircleGlow(x, y, r, mood, layerAlpha);
+        }
+      }
+
+      // Sulking: dark core
+      if (entity.sulk.isSulking) {
+        const sulkAlpha = entity.sulk.severity === 'severe' ? 0.6 :
+                          entity.sulk.severity === 'moderate' ? 0.3 : 0.15;
+        ctx.fillStyle = `rgba(0, 0, 20, ${sulkAlpha})`;
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.arc(x, y, radius * 0.8, 0, Math.PI * 2);
         ctx.fill();
       }
+    }
+
+    function drawCircleGlow(x, y, r, mood, alpha) {
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, r);
+      gradient.addColorStop(0, getColor(mood, alpha));
+      gradient.addColorStop(1, getColor(mood, 0));
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawDiamond(x, y, r, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x, y - r);
+      ctx.lineTo(x + r * 0.6, y);
+      ctx.lineTo(x, y + r);
+      ctx.lineTo(x - r * 0.6, y);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawRing(x, y, r, color, alpha) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1 + alpha * 3;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function drawSquare(x, y, r, color) {
+      ctx.fillStyle = color;
+      const half = r * 0.7;
+      ctx.fillRect(x - half, y - half, half * 2, half * 2);
     }
 
     // --- Animation ---
@@ -116,37 +260,45 @@
     function animate() {
       const w = window.innerWidth;
       const h = window.innerHeight;
+      const form = FORM_PARAMS[entity.form.baseForm] || FORM_PARAMS['light-particles'];
 
-      // Clear with slight trail
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+      // Clear with trail (form-specific trail length)
+      ctx.fillStyle = `rgba(0, 0, 0, ${form.trailAlpha})`;
       ctx.fillRect(0, 0, w, h);
 
-      time += 0.016; // ~60fps
+      time += 0.016;
 
-      // Breathing speed tied to energy
-      const breathSpeed = 0.3 + (state.energy / 100) * 0.7; // 0.3-1.0
+      const s = entity.status;
 
-      // Comfort affects stability (inverse wobble)
-      const wobble = 1.0 - (state.comfort / 100) * 0.7; // 0.3-1.0
+      // Breathing speed from energy
+      const breathSpeed = 0.3 + (s.energy / 100) * 0.7;
 
-      for (const p of particles) {
-        // Breathing pulse
-        p.phase += breathSpeed * 0.016 * Math.PI * 2;
-        const breath = 0.6 + 0.4 * Math.sin(p.phase);
+      // Stability from form engine (inverse wobble)
+      const stabilityFactor = entity.form.stability / 100;
+      const wobble = 1.0 - stabilityFactor * 0.7;
 
-        // Gentle drift (curiosity drives exploration range)
-        const driftRange = 5 + (state.curiosity / 100) * 25;
-        p.driftPhaseX += 0.003 * wobble;
-        p.driftPhaseY += 0.004 * wobble;
-        p.driftX = Math.sin(p.driftPhaseX) * driftRange;
-        p.driftY = Math.cos(p.driftPhaseY) * driftRange * 0.7;
+      // Breathing pulse
+      particle.phase += breathSpeed * 0.016 * Math.PI * 2;
 
-        const x = p.x + p.driftX;
-        const y = p.y + p.driftY;
-        const radius = p.baseRadius * (0.8 + 0.4 * breath);
-
-        drawGlow(x, y, radius, state.mood, breath);
+      // Sulking slows everything
+      let breathMod = 1;
+      if (entity.sulk.isSulking) {
+        breathMod = entity.sulk.severity === 'severe' ? 0.2 :
+                    entity.sulk.severity === 'moderate' ? 0.5 : 0.7;
       }
+      const breath = 0.6 + 0.4 * Math.sin(particle.phase) * breathMod;
+
+      // Drift from curiosity
+      const driftRange = 5 + (s.curiosity / 100) * 25;
+      particle.driftPhaseX += 0.003 * wobble;
+      particle.driftPhaseY += 0.004 * wobble;
+      const driftX = Math.sin(particle.driftPhaseX) * driftRange;
+      const driftY = Math.cos(particle.driftPhaseY) * driftRange * 0.7;
+
+      const x = w / 2 + driftX;
+      const y = h / 2 + driftY;
+
+      drawEntity(x, y, 3, breath);
 
       requestAnimationFrame(animate);
     }

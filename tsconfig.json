@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": ".",
+    "skipLibCheck": true,
+    "paths": {
+      "@yadori/engine": ["./engine/src/index.ts"],
+      "@yadori/engine/*": ["./engine/src/*"],
+      "@yadori/adapters": ["./adapters/src/index.ts"],
+      "@yadori/adapters/*": ["./adapters/src/*"]
+    },
+    "baseUrl": "."
+  },
+  "include": [
+    "engine/src/**/*.ts",
+    "adapters/src/**/*.ts",
+    "scripts/**/*.ts",
+    "engine/__tests__/**/*.ts",
+    "adapters/__tests__/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

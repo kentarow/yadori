@@ -1,0 +1,24 @@
+{
+  "name": "yadori",
+  "version": "0.1.0",
+  "description": "Inter-Species Intelligence Coexistence Framework",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "dev": "tsc --watch --project tsconfig.build.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE.md"
+}

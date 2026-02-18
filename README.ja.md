@@ -112,7 +112,7 @@ npm run dashboard
 
 ## ステータス
 
-開発中 — Phase 2 完了、Phase 3（感情・記憶・成長）実装中。
+Phase 1〜3 のエンジン実装完了。物理ハードウェアへの初回デプロイ準備完了。
 
 ## License
 

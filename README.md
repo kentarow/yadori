@@ -101,7 +101,7 @@ See `docs/` for detailed guides.
 
 ## Status
 
-In development — Phase 2 complete, Phase 3 (emotion, memory, growth) in progress.
+Phase 1-3 engine complete. Ready for first deployment on physical hardware.
 
 ## License
 

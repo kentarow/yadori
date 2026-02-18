@@ -284,15 +284,25 @@ User's entity data is entirely the user's. Blogging, IP licensing, merchandising
 
 ---
 
-## Development Environment
+## Environment
 
-- Development: Claude Code (cloud-based AI-assisted development)
-- Target Hardware: Mac mini M4 (16GB RAM, 256GB SSD) — entity deployment target
+### Development (Claude Code — Cloud)
+
+Code writing and GitHub push happen here. The owner is not a developer.
+
+- Claude Code (cloud-based AI-assisted development)
+- Language: TypeScript (aligned with OpenClaw ecosystem)
+- Visual: HTML + Canvas + JavaScript
+
+### First User Environment (Mac mini M4 — Physical)
+
+The Mac mini is the first "body" for YADORI. Not a development machine — a user's machine.
+
+- Hardware: Mac mini M4 (16GB RAM, 256GB SSD)
+- Role: First user of YADORI. Sets up OpenClaw, hosts the first entity
 - Runtime: OpenClaw (MIT License)
 - Messaging: Discord (primary), Telegram (also supported)
 - LLM: Anthropic Claude API (dedicated account for OpenClaw)
-- Language: TypeScript (aligned with OpenClaw ecosystem)
-- Visual: HTML + Canvas + JavaScript
 - Hosting: Local execution (One Body, One Soul principle)
 
 ---

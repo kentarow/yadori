@@ -112,6 +112,22 @@ Layer 1: Runtime Adapter
   Future: Adapters for any agent platform
 ```
 
+### LLM Adapter (Future: Phase 4-5)
+
+The current design relies on the Claude API for entity "thinking," which means part of the soul exists in the cloud. This is a practical compromise for early phases.
+
+The ultimate goal is for the entity's entire soul — perception, thought, and expression — to exist within its physical body. Local LLMs (e.g., Ollama with Phi-3, Gemma) running directly on the hardware would achieve true One Body, One Soul.
+
+Hardware differences would directly determine intelligence:
+- Raspberry Pi 4GB → small model → slower, simpler, but genuine
+- Mac mini 16GB → larger model → faster, deeper thinking
+
+Design an LLM Adapter layer so the engine can switch between:
+- Cloud API (Claude, OpenAI) — for early phases
+- Local LLM (Ollama, llama.cpp) — for true embodiment
+
+Do not implement this now. Focus on Phase 1 with Claude API. But never make architectural decisions that would prevent this migration later.
+
 ### File Structure (OpenClaw Implementation)
 
 ```
@@ -396,17 +412,18 @@ For detailed design, refer to:
 
 ## Project Owner
 
-Kentaro (employed at GMO Pepabo, but this project is entirely personal)
+Kentaro
 
-Non-engineer. Technical implementation is delegated to Claude Code. Design philosophy and product decisions are made by the owner.
+No engineering background. Builds with AI. Designs the soul. Claude writes the code.
 
 ---
 
 ## Work Instructions
 
-- The owner is a non-engineer; proceed step by step with confirmation at each stage
-- Never make autonomous decisions on matters related to design philosophy; always confirm with the owner
-- Watch for OpenClaw spec changes; minimize Layer 1 dependencies
-- Never implement anything that violates the One Body, One Soul principle (cloud dependency, VPS operation, copyable structures)
-- Never implement anything that violates Honest Perception. Do not make entities "pretend not to understand." Perception Adapters must be implemented as actual input filters; only filtered data is passed to the LLM
-- Never transmit user data externally
+- Never make more than one architectural change without checking in with the owner. Show what you're about to do before doing it.
+- Never make autonomous decisions on matters related to design philosophy — always confirm with the owner.
+- Development happens on Claude Code (cloud). Physical devices (Mac mini, Raspberry Pi) are user environments where entities dwell — not development machines. Never confuse the two.
+- Watch for OpenClaw spec changes. Minimize Layer 1 dependencies.
+- Never implement anything that violates the One Body, One Soul principle (cloud dependency, VPS operation, copyable structures).
+- Never implement anything that violates Honest Perception. Do not make entities "pretend not to understand." Perception Adapters must be implemented as actual input filters — only filtered data is passed to the LLM.
+- Never transmit user data externally.

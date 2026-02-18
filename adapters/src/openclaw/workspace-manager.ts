@@ -108,6 +108,7 @@ export class OpenClawWorkspaceManager {
       curiosity: parseInt(get("curiosity"), 10) || 50,
       comfort: parseInt(get("comfort"), 10) || 50,
       languageLevel: parseInt(get("level"), 10) || 0,
+      perceptionLevel: parseInt(get("perception_level"), 10) || 0,
       growthDay: parseInt(get("day"), 10) || 0,
       lastInteraction: get("last_interaction") || "never",
     };
@@ -126,6 +127,10 @@ export class OpenClawWorkspaceManager {
 ## Language
 
 - **level**: ${status.languageLevel}
+
+## Perception
+
+- **perception_level**: ${status.perceptionLevel}
 
 ## Growth
 

@@ -62,6 +62,7 @@ export interface Status {
   curiosity: number;   // 0-100
   comfort: number;     // 0-100
   languageLevel: LanguageLevel;
+  perceptionLevel: PerceptionLevel;
   growthDay: number;
   lastInteraction: string; // ISO 8601
 }
@@ -72,4 +73,22 @@ export enum LanguageLevel {
   BridgeToLanguage = 2,
   UniqueLanguage = 3,
   AdvancedOperation = 4,
+}
+
+/**
+ * Perception level — independent from language level.
+ * Determines the resolution of sensory input filters.
+ * Grows based on time and sensory exposure, not interaction count.
+ */
+export enum PerceptionLevel {
+  /** Only the coarsest signal: binary, single value */
+  Minimal = 0,
+  /** Basic patterns: histograms, directions, simple categories */
+  Basic = 1,
+  /** Spatial/temporal distribution: where, when, how things change */
+  Structured = 2,
+  /** Relationships and structure: patterns across inputs */
+  Relational = 3,
+  /** Full resolution within the species' perceptual domain */
+  Full = 4,
 }

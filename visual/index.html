@@ -399,12 +399,8 @@
 
     function updateInfo() {
       const s = entity.status;
-      const f = entity.form;
       const g = entity.growth;
-      infoEl.textContent =
-        `day ${s.growthDay} · ${g.stage} · ${entity.seed.perception}\n` +
-        `mood ${s.mood} · energy ${s.energy} · curiosity ${s.curiosity} · comfort ${s.comfort}\n` +
-        `form: ${f.baseForm} (density ${f.density} · complexity ${f.complexity} · stability ${f.stability})`;
+      infoEl.textContent = `day ${s.growthDay} · ${g.stage} · ${entity.seed.perception}`;
     }
 
     function updateSulkOverlay() {

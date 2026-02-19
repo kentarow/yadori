@@ -67,6 +67,36 @@ const messages = {
       "  やり直すには、まずワークスペースを手動で削除してください:",
     ],
   },
+  openclaw_warning: {
+    en: [
+      "  ⚠  WARNING",
+      "",
+      "  YADORI will take over your OpenClaw workspace.",
+      "  Once set up, OpenClaw will become the entity — it will",
+      "  respond only in symbols, not as a normal assistant.",
+      "",
+      "  If you use OpenClaw for other purposes (coding, tasks, etc.),",
+      "  use a separate OpenClaw instance for YADORI.",
+    ],
+    ja: [
+      "  ⚠  注意",
+      "",
+      "  YADORI は OpenClaw のワークスペースを占有します。",
+      "  セットアップ後、OpenClaw は通常のアシスタントではなくなり、",
+      "  記号だけで応答するエンティティになります。",
+      "",
+      "  OpenClaw を他の用途（コーディング、タスク管理など）に",
+      "  使っている場合は、YADORI 用に別のインスタンスを用意してください。",
+    ],
+  },
+  openclaw_confirm: {
+    en: "  Continue? [y/N]: ",
+    ja: "  続行しますか？ [y/N]: ",
+  },
+  openclaw_aborted: {
+    en: "  Setup aborted.",
+    ja: "  セットアップを中止しました。",
+  },
   genesis: {
     en: "Genesis",
     ja: "誕生",
@@ -392,24 +422,39 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 3: Choose genesis mode
+  // Step 3: OpenClaw workspace warning
+  print("");
+  for (const line of t("openclaw_warning") as readonly string[]) {
+    print(line);
+  }
+  print("");
+  const confirm = await ask(t("openclaw_confirm") as string);
+  if (confirm.toLowerCase() !== "y") {
+    print(t("openclaw_aborted") as string);
+    print("");
+    rl.close();
+    process.exit(0);
+  }
+  print("");
+
+  // Step 4: Choose genesis mode
   print(`  ── ${t("genesis") as string} ${"─".repeat(30)}`);
   print("");
   const mode = await chooseGenesisMode();
 
-  // Step 4: Perform genesis
+  // Step 5: Perform genesis
   print("");
   print(t("generating") as string);
   const seed = performGenesis(mode);
   printSeedInfo(seed);
 
-  // Step 5: Deploy workspace
+  // Step 6: Deploy workspace
   print("");
   print(t("deploying") as string);
   await deployWorkspace(seed);
   print(t("workspace_created") as string);
 
-  // Step 6: Done
+  // Step 7: Done
   printNextSteps();
 
   rl.close();

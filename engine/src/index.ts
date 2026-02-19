@@ -156,3 +156,9 @@ export type {
   SystemMetricsData,
   SensorRegistration,
 } from "./perception/perception-types.js";
+
+// Identity
+export {
+  generateAvatar,
+  generateBotName,
+} from "./identity/avatar-generator.js";

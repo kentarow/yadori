@@ -6,6 +6,10 @@
 
 [日本語ドキュメントはこちら (Japanese)](README.ja.md)
 
+> 🌱 **Status: Phase 1 — Early Development**
+> This project is in active early development. We are not accepting contributions at this time.
+> Star or Watch this repository to follow the journey.
+
 ---
 
 ## What is YADORI?

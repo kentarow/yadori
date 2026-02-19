@@ -215,11 +215,20 @@ describe("first encounter via processInteraction", () => {
     expect(result.firstEncounter!.innerExperience).toBeTruthy();
   });
 
+  it("generates first encounter diary on first interaction", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const result = processInteraction(state, context, NOW);
+    expect(result.firstEncounterDiaryMd).not.toBeNull();
+    expect(result.firstEncounterDiaryMd).toContain("# First Encounter");
+    expect(result.firstEncounterDiaryMd).toContain("My First Expression");
+  });
+
   it("does not trigger first encounter on subsequent interactions", () => {
     const state = createEntityState(makeSeed(), NOW);
     const first = processInteraction(state, context, NOW);
     const second = processInteraction(first.updatedState, context, NOW);
     expect(second.firstEncounter).toBeNull();
+    expect(second.firstEncounterDiaryMd).toBeNull();
   });
 
   it("applies first encounter status boost on top of normal effect", () => {

@@ -25,6 +25,7 @@ import {
 } from "../engine/src/status/status-manager.js";
 import { isActiveHours, shouldPulse } from "../engine/src/rhythm/rhythm-system.js";
 import { formatDiaryMd } from "../engine/src/diary/diary-engine.js";
+import { formatColdMemoryMd } from "../engine/src/memory/memory-engine.js";
 import {
   createSensorService,
   addDriver,
@@ -88,6 +89,13 @@ async function saveState(state: EntityState): Promise<void> {
   await writeFile(join(WORKSPACE_ROOT, "MEMORY.md"), serialized.memoryMd, "utf-8");
   await writeFile(join(WORKSPACE_ROOT, "LANGUAGE.md"), serialized.languageMd, "utf-8");
   await writeFile(join(WORKSPACE_ROOT, "growth", "milestones.md"), serialized.milestonesMd, "utf-8");
+  await writeFile(join(WORKSPACE_ROOT, "FORM.md"), serialized.formMd, "utf-8");
+
+  // Write cold memory to monthly files
+  for (const cold of state.memory.cold) {
+    const monthlyPath = join(WORKSPACE_ROOT, "memory", "monthly", `${cold.month}.md`);
+    await writeFile(monthlyPath, formatColdMemoryMd(cold), "utf-8");
+  }
 }
 
 // --- Sensor service setup ---

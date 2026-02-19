@@ -47,6 +47,7 @@ import {
   type FirstEncounterReaction,
   isFirstEncounter,
   generateFirstEncounter,
+  formatFirstEncounterDiary,
 } from "../encounter/first-encounter.js";
 import {
   type PerceptionGrowthState,
@@ -82,6 +83,8 @@ export interface InteractionResult {
   activeSoulFile: "SOUL.md" | "SOUL_EVIL.md";
   /** Non-null only on the very first interaction ever */
   firstEncounter: FirstEncounterReaction | null;
+  /** Formatted diary entry for the first encounter (write to diary/YYYY-MM-DD.md) */
+  firstEncounterDiaryMd: string | null;
 }
 
 /**
@@ -270,6 +273,11 @@ export function processInteraction(
     now,
   );
 
+  // Generate first encounter diary if applicable
+  const firstEncounterDiaryMd = firstEncounter
+    ? formatFirstEncounterDiary(firstEncounter, state.seed.perception, state.seed.temperament, now)
+    : null;
+
   return {
     updatedState: {
       seed: state.seed,
@@ -284,6 +292,7 @@ export function processInteraction(
     newMilestones,
     activeSoulFile: getActiveSoulFile(updatedSulk),
     firstEncounter,
+    firstEncounterDiaryMd,
   };
 }
 

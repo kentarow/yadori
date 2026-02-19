@@ -1,89 +1,27 @@
 # Contributing to YADORI
 
-Thank you for your interest in YADORI! This guide will help you get started.
+Thank you for your interest in YADORI.
 
-## Before You Start
+Right now, YADORI is in **Phase 1 — Early Development**, and we are **not accepting external contributions**.
 
-Please read [CLAUDE.md](CLAUDE.md) — it contains the design principles and architecture that guide all development decisions. In particular:
+This isn't because we don't value outside perspectives — we do. But the core philosophy, architecture, and design language of this project are still being shaped by the original designer. YADORI's soul needs to solidify before it can grow with others.
 
-- **One Body, One Soul** — never introduce cloud dependency or copyable structures
-- **Honest Perception** — perception adapters must be actual input filters, not acting instructions
-- **Runtime Agnostic** — minimize coupling to any specific runtime (including OpenClaw)
+Things like:
 
-## Development Setup
+- What "honest perception" actually means in code
+- How an entity should grow, forget, and discover itself
+- Where the line is between "framework" and "creature"
 
-```bash
-git clone https://github.com/kentarow/yadori.git
-cd yadori
-npm install
-```
+These are still being worked out, one decision at a time. Opening contributions before that foundation is firm would risk diluting what makes YADORI what it is.
 
-### Commands
+## When will this change?
 
-| Command | Description |
-|---------|-------------|
-| `npm test` | Run tests (vitest) |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run lint` | Type check (tsc --noEmit) |
-| `npm run build` | Build TypeScript |
-| `npm run dashboard` | Start dashboard at localhost:3000 |
+When the framework's core is stable and the design principles are fully expressed in working code, we'll open up for contributions. This document will be updated with proper guidelines when that time comes.
 
-## How to Contribute
+## In the meantime
 
-### Reporting Bugs
+- **Star** or **Watch** this repository to follow the journey
+- Read the docs — especially `CLAUDE.md` and `docs/` — if you're curious about the thinking behind the design
+- If something resonates with you, that means a lot
 
-Use the [Bug Report](https://github.com/kentarow/yadori/issues/new?template=bug_report.md) issue template. Include:
-
-- Steps to reproduce
-- Expected vs actual behavior
-- Node.js version and OS
-
-### Suggesting Features
-
-Use the [Feature Request](https://github.com/kentarow/yadori/issues/new?template=feature_request.md) issue template. Before submitting, consider whether the feature aligns with YADORI's design principles.
-
-### Pull Requests
-
-1. Fork the repository
-2. Create a feature branch from `main` (`git checkout -b feature/your-feature`)
-3. Make your changes
-4. Ensure all tests pass (`npm test`) and type check succeeds (`npm run lint`)
-5. Commit with a clear message (see below)
-6. Open a Pull Request using the PR template
-
-### Commit Messages
-
-Use clear, concise commit messages:
-
-```
-Add perception filter for thermal type
-Fix mood decay calculation when energy is zero
-Update SOUL.md template with new symbol set
-```
-
-- Start with a verb (Add, Fix, Update, Remove, Refactor)
-- Keep the first line under 72 characters
-- Add a body for complex changes
-
-## Project Structure
-
-| Directory | License | Purpose |
-|-----------|---------|---------|
-| `engine/` | MPL 2.0 | Life Engine core (modifications must be shared) |
-| `visual/` | MPL 2.0 | Dashboard & visualization |
-| `adapters/` | MIT | Runtime adapters (easy to write custom ones) |
-| `templates/` | CC BY-SA 4.0 | Workspace templates |
-| `docs/` | CC BY-SA 4.0 | Documentation |
-
-Contributions to each directory fall under that directory's license.
-
-## Code Style
-
-- TypeScript with strict mode
-- ESM modules (`"type": "module"`)
-- Prefer explicit types over `any`
-- Tests live in `__tests__/` directories mirroring `src/`
-
-## Questions?
-
-Open a [Discussion](https://github.com/kentarow/yadori/discussions) or an Issue. We're happy to help.
+See you when the time is right.

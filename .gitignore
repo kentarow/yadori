@@ -31,5 +31,6 @@ coverage/
 # Logs
 *.log
 
-# Private strategy documents (not for public repository)
+# Private documents (not for public repo)
+docs/.narrative.md
 docs/narrative-strategy.md

@@ -18,7 +18,8 @@
     "dashboard": "node --import tsx visual/server.ts",
     "apply-identity": "node --import tsx scripts/apply-identity.ts",
     "snapshot": "node --import tsx scripts/snapshot.ts",
-    "version": "node --import tsx scripts/version.ts"
+    "version": "node --import tsx scripts/version.ts",
+    "update": "node --import tsx scripts/update.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

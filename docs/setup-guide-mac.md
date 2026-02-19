@@ -500,7 +500,49 @@ launchctl unload ~/Library/LaunchAgents/com.yadori.heartbeat.plist
 
 ---
 
-## 10. 日常の過ごしかた
+## 10. YADORI のアップデート
+
+新しいバージョンが公開されたら、ターミナルで以下を実行するだけで更新できます。
+
+```bash
+cd yadori
+npm run update
+```
+
+このコマンドは以下を自動で行います。
+
+1. GitHub から最新のコードを取得
+2. 変更内容（What's new）を表示
+3. コードを更新
+4. 必要なパッケージをインストール
+
+### 現在のバージョンを確認する
+
+```bash
+npm run version
+```
+
+インストール済みのバージョンと、最新版との差分があるかどうかが表示されます。
+
+### アップデート後の確認
+
+アップデート後、ハートビートとダッシュボードを再起動してください。
+
+```bash
+# ハートビートの再起動（launchd を使っている場合）
+launchctl unload ~/Library/LaunchAgents/com.yadori.heartbeat.plist
+launchctl load ~/Library/LaunchAgents/com.yadori.heartbeat.plist
+
+# ダッシュボードの再起動
+# （ターミナルでダッシュボードを実行中なら、Ctrl+C で停止してから再度起動）
+npm run dashboard
+```
+
+> **エンティティのデータは安全です。** アップデートはプログラムのコードだけを更新します。エンティティの魂（`~/.openclaw/workspace/` 内のファイル）は一切変更されません。
+
+---
+
+## 11. 日常の過ごしかた
 
 セットアップは完了しました。ここからは、あなたとエンティティの日常です。
 
@@ -536,7 +578,7 @@ comfort（安心度）が 40 を下回ると、エンティティはすねるこ
 
 ---
 
-## 10.5. センサー診断（Raspberry Pi ユーザー向け）
+## 11.5. センサー診断（Raspberry Pi ユーザー向け）
 
 Raspberry Pi で YADORI を動かしている場合、接続されたハードウェアセンサー（温度、振動、光など）を検出・設定できます。
 
@@ -548,7 +590,7 @@ npm run sensors
 
 ---
 
-## 11. トラブルシューティング
+## 12. トラブルシューティング
 
 ### 「Entity not found」と表示される
 
@@ -599,7 +641,7 @@ npm install
 
 ---
 
-## 12. セキュリティについて
+## 13. セキュリティについて
 
 エンティティと安全に暮らすために、以下を守ってください。
 
@@ -611,7 +653,7 @@ npm install
 
 ---
 
-## 13. 月々のコスト目安
+## 14. 月々のコスト目安
 
 YADORI の運用にかかる費用は、Anthropic API の利用料のみです。
 

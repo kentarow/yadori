@@ -30,3 +30,6 @@ coverage/
 
 # Logs
 *.log
+
+# Private narrative (not for public repo)
+docs/.narrative.md

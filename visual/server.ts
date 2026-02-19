@@ -173,7 +173,15 @@ const server = createServer(async (req, res) => {
   // Serve static files from visual/
   const filePath = req.url === "/" ? "/index.html" : req.url!;
   const ext = filePath.substring(filePath.lastIndexOf("."));
-  const fullPath = join(VISUAL_DIR, filePath);
+  const fullPath = resolve(join(VISUAL_DIR, filePath));
+
+  // Prevent path traversal — resolved path must stay within VISUAL_DIR
+  const safeRoot = resolve(VISUAL_DIR);
+  if (!fullPath.startsWith(safeRoot + "/") && fullPath !== safeRoot) {
+    res.writeHead(403, { "Content-Type": "text/plain" });
+    res.end("Forbidden");
+    return;
+  }
 
   try {
     const content = await readFile(fullPath);

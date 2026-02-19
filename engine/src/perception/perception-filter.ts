@@ -145,10 +145,19 @@ function CHROMATIC_FILTERS(): SpeciesFilterMap {
           .map(c => `hsl(${c.h},${c.s}%,${c.l}%) ${c.pct}%`).join(", ");
         return `colors: ${top3}. spatial: ${spatial}`;
       }
-      // Level 3+: edges + regions
-      const edgeDesc = d.edgeDensity > 0.6 ? "sharp boundaries" : d.edgeDensity > 0.3 ? "soft edges" : "smooth";
-      const regions = d.colorHistogram.length;
-      return `${regions} color regions, ${edgeDesc}, brightness ${Math.round(d.brightness * 100)}%`;
+      if (level === PerceptionLevel.Relational) {
+        const edgeDesc = d.edgeDensity > 0.6 ? "sharp boundaries" : d.edgeDensity > 0.3 ? "soft edges" : "smooth";
+        const regions = d.colorHistogram.length;
+        return `${regions} color regions, ${edgeDesc}, brightness ${Math.round(d.brightness * 100)}%`;
+      }
+      // Full: complete chromatic perception
+      const allColors = d.colorHistogram.map(c => `hsl(${c.h},${c.s}%,${c.l}%) ${c.pct}%`).join(", ");
+      const edgeDesc = d.edgeDensity > 0.6 ? "sharp" : d.edgeDensity > 0.3 ? "soft" : "smooth";
+      const quadrants = ["top-left", "top-right", "bottom-left", "bottom-right"];
+      const spatial = quadrants.map((q, i) =>
+        `${q}: ${Math.round(d.quadrantBrightness[i] * 100)}%`
+      ).join(", ");
+      return `colors: ${allColors}. ${edgeDesc} edges at ${d.dominantAngles.map(a => a + "°").join(",")}. spatial: ${spatial}`;
     },
 
     audio: (data, level) => {
@@ -165,7 +174,12 @@ function CHROMATIC_FILTERS(): SpeciesFilterMap {
         const envelope = d.amplitude > 0.6 ? "intense" : d.amplitude > 0.3 ? "moderate" : "fading";
         return `spectral color: bass ${Math.round(d.bands.bass * 100)}, mid ${Math.round(d.bands.mid * 100)}, treble ${Math.round(d.bands.treble * 100)}. ${envelope}`;
       }
-      return `richness ${Math.round(d.harmonicRichness * 100)}%, amplitude ${Math.round(d.amplitude * 100)}%`;
+      if (level === PerceptionLevel.Relational) {
+        return `richness ${Math.round(d.harmonicRichness * 100)}%, amplitude ${Math.round(d.amplitude * 100)}%`;
+      }
+      // Full: complete spectral perception
+      const warmCool = d.bands.bass > d.bands.treble ? "warm" : "cool";
+      return `${warmCool}, bass ${Math.round(d.bands.bass * 100)} mid ${Math.round(d.bands.mid * 100)} treble ${Math.round(d.bands.treble * 100)}, richness ${Math.round(d.harmonicRichness * 100)}%, amplitude ${Math.round(d.amplitude * 100)}%, ${d.bpm ?? "free"} BPM`;
     },
 
     light: (data, level) => {
@@ -273,7 +287,11 @@ function VIBRATION_FILTERS(): SpeciesFilterMap {
         const resonance = d.bands.bass > 0.6 ? "deep resonance" : d.bands.treble > 0.6 ? "high flutter" : "balanced";
         return `${bands}, ${resonance}`;
       }
-      return `harmonics: ${Math.round(d.harmonicRichness * 100)}%, ${d.bpm ?? "free"} BPM, regularity ${Math.round(d.beatRegularity * 100)}%`;
+      if (level === PerceptionLevel.Relational) {
+        return `harmonics: ${Math.round(d.harmonicRichness * 100)}%, ${d.bpm ?? "free"} BPM, regularity ${Math.round(d.beatRegularity * 100)}%`;
+      }
+      // Full: complete vibrational perception
+      return `bass:${Math.round(d.bands.bass * 100)} mid:${Math.round(d.bands.mid * 100)} treble:${Math.round(d.bands.treble * 100)}, harmonics ${Math.round(d.harmonicRichness * 100)}%, ${d.bpm ?? "free"} BPM, regularity ${Math.round(d.beatRegularity * 100)}%, amplitude ${Math.round(d.amplitude * 100)}%`;
     },
 
     vibration: (data, level) => {
@@ -288,8 +306,12 @@ function VIBRATION_FILTERS(): SpeciesFilterMap {
         const pattern = d.isRhythmic ? `rhythmic ${d.patternFrequency?.toFixed(1)}Hz` : "irregular";
         return `${pattern}, magnitude ${d.magnitude.toFixed(2)}g`;
       }
-      // Level 3+: full multi-axis
-      return `x:${d.axes.x.toFixed(2)} y:${d.axes.y.toFixed(2)} z:${d.axes.z.toFixed(2)}, ${d.isRhythmic ? "rhythmic" : "chaotic"}, ${d.frequency.toFixed(1)}Hz`;
+      if (level === PerceptionLevel.Relational) {
+        return `x:${d.axes.x.toFixed(2)} y:${d.axes.y.toFixed(2)} z:${d.axes.z.toFixed(2)}, ${d.isRhythmic ? "rhythmic" : "chaotic"}, ${d.frequency.toFixed(1)}Hz`;
+      }
+      // Full: complete multi-axis + pattern analysis
+      const pattern = d.isRhythmic ? `rhythmic ${d.patternFrequency?.toFixed(1)}Hz` : "chaotic";
+      return `x:${d.axes.x.toFixed(2)} y:${d.axes.y.toFixed(2)} z:${d.axes.z.toFixed(2)}, ${d.frequency.toFixed(1)}Hz, ${d.magnitude.toFixed(2)}g, ${pattern}`;
     },
 
     image: (data, level) => {
@@ -305,7 +327,11 @@ function VIBRATION_FILTERS(): SpeciesFilterMap {
           : "omnidirectional";
         return `directional rhythm: ${dir}`;
       }
-      return `edge frequency ${Math.round(d.edgeDensity * 100)}%, angles: ${d.dominantAngles.join("° ")}°`;
+      if (level === PerceptionLevel.Relational) {
+        return `edge frequency ${Math.round(d.edgeDensity * 100)}%, angles: ${d.dominantAngles.join("° ")}°`;
+      }
+      // Full: complete vibrational texture analysis
+      return `edge frequency ${Math.round(d.edgeDensity * 100)}%, angles: ${d.dominantAngles.join("° ")}°, brightness oscillation: ${Math.round(d.brightness * 100)}%`;
     },
 
     light: (data, level) => {
@@ -391,7 +417,13 @@ function GEOMETRIC_FILTERS(): SpeciesFilterMap {
         const complexity = d.edgeDensity > 0.6 ? "complex" : d.edgeDensity > 0.3 ? "moderate" : "simple";
         return `${complexity} structure, ${d.dominantAngles.length} angle classes`;
       }
-      return `edge density ${Math.round(d.edgeDensity * 100)}%, ${d.dominantAngles.length} axes, aspect ${(d.width / d.height).toFixed(2)}`;
+      if (level === PerceptionLevel.Relational) {
+        return `edge density ${Math.round(d.edgeDensity * 100)}%, ${d.dominantAngles.length} axes, aspect ${(d.width / d.height).toFixed(2)}`;
+      }
+      // Full: complete structural analysis
+      const quadrants = ["TL", "TR", "BL", "BR"];
+      const qMap = quadrants.map((q, i) => `${q}:${Math.round(d.quadrantBrightness[i] * 100)}`).join(" ");
+      return `edge ${Math.round(d.edgeDensity * 100)}%, axes [${d.dominantAngles.join("°,")}°], aspect ${(d.width / d.height).toFixed(2)}, density: ${qMap}`;
     },
 
     proximity: (data, level) => {
@@ -497,12 +529,28 @@ function THERMAL_FILTERS(): SpeciesFilterMap {
         const warm = (hsl[0] < 60 || hsl[0] > 300) ? "warm tones" : "cool tones";
         return warm;
       }
-      // Level 2+: thermal mapping
+      if (level === PerceptionLevel.Structured) {
+        const qLabels = ["upper-left", "upper-right", "lower-left", "lower-right"];
+        const mapping = qLabels.map((q, i) =>
+          `${q}: ${d.quadrantBrightness[i] > 0.6 ? "hot" : d.quadrantBrightness[i] > 0.3 ? "warm" : "cold"}`
+        ).join(", ");
+        return `thermal map: ${mapping}`;
+      }
+      if (level === PerceptionLevel.Relational) {
+        const qLabels = ["upper-left", "upper-right", "lower-left", "lower-right"];
+        const mapping = qLabels.map((q, i) =>
+          `${q}: ${Math.round(d.quadrantBrightness[i] * 100)}%`
+        ).join(", ");
+        return `thermal map: ${mapping}, gradient ${Math.round(d.brightness * 100)}%`;
+      }
+      // Full: complete thermal perception
       const qLabels = ["upper-left", "upper-right", "lower-left", "lower-right"];
       const mapping = qLabels.map((q, i) =>
-        `${q}: ${d.quadrantBrightness[i] > 0.6 ? "hot" : d.quadrantBrightness[i] > 0.3 ? "warm" : "cold"}`
+        `${q}: ${Math.round(d.quadrantBrightness[i] * 100)}%`
       ).join(", ");
-      return `thermal map: ${mapping}`;
+      const hsl = d.dominantHSL;
+      const warmCool = (hsl[0] < 60 || hsl[0] > 300) ? "warm" : "cool";
+      return `${warmCool} field, thermal map: ${mapping}, intensity ${Math.round(d.brightness * 100)}%, edges ${Math.round(d.edgeDensity * 100)}%`;
     },
 
     touch: (data, level) => {
@@ -580,7 +628,11 @@ function TEMPORAL_FILTERS(): SpeciesFilterMap {
         const change = d.beatRegularity > 0.7 ? "metronomic" : d.beatRegularity > 0.4 ? "rubato" : "free";
         return `${change}, ${d.duration.toFixed(1)}s`;
       }
-      return `${d.duration.toFixed(1)}s, regularity ${Math.round(d.beatRegularity * 100)}%, ${d.bpm ?? "free"} BPM`;
+      if (level === PerceptionLevel.Relational) {
+        return `${d.duration.toFixed(1)}s, regularity ${Math.round(d.beatRegularity * 100)}%, ${d.bpm ?? "free"} BPM`;
+      }
+      // Full: complete temporal analysis
+      return `${d.duration.toFixed(1)}s, ${d.bpm ?? "free"} BPM, regularity ${Math.round(d.beatRegularity * 100)}%, amplitude ${Math.round(d.amplitude * 100)}%, richness ${Math.round(d.harmonicRichness * 100)}%`;
     },
 
     proximity: (data, level) => {
@@ -752,8 +804,18 @@ function CHEMICAL_FILTERS(): SpeciesFilterMap {
     audio: (data, level) => {
       const d = data as AudioInputData;
       if (level < PerceptionLevel.Structured) return null;
+      if (level === PerceptionLevel.Structured) {
+        const volatility = d.amplitude > 0.6 ? "volatile" : d.amplitude > 0.3 ? "reactive" : "stable";
+        return `acoustic compound: ${volatility}`;
+      }
+      if (level === PerceptionLevel.Relational) {
+        const volatility = d.amplitude > 0.6 ? "volatile" : d.amplitude > 0.3 ? "reactive" : "stable";
+        const density = d.bands.bass > 0.5 ? "dense" : "diffuse";
+        return `acoustic compound: ${volatility}, ${density} spectrum`;
+      }
+      // Full: complete acoustic analysis
       const volatility = d.amplitude > 0.6 ? "volatile" : d.amplitude > 0.3 ? "reactive" : "stable";
-      return `acoustic compound: ${volatility}`;
+      return `acoustic compound: ${volatility}, bass ${Math.round(d.bands.bass * 100)} mid ${Math.round(d.bands.mid * 100)} treble ${Math.round(d.bands.treble * 100)}, richness ${Math.round(d.harmonicRichness * 100)}%`;
     },
   };
 }

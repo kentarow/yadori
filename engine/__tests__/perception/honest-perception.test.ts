@@ -192,14 +192,13 @@ describe("Honest Perception Enforcement", () => {
         expect(desc).toMatch(/edge|region|brightness/);
       });
 
-      it("resolution strictly increases: first 4 levels are distinct", () => {
+      it("resolution strictly increases: all 5 levels produce distinct output", () => {
         const descriptions = ALL_LEVELS.map(level =>
           filterInput("chromatic", imageInput, level)?.description ?? ""
         );
 
-        // Levels 0-3 should each produce distinct output
-        // (Relational and Full may share the same branch in the filter)
-        for (let i = 1; i < 4; i++) {
+        // All 5 levels should produce distinct output
+        for (let i = 1; i < descriptions.length; i++) {
           if (descriptions[i] && descriptions[i - 1]) {
             expect(descriptions[i]).not.toBe(descriptions[i - 1]);
           }
@@ -480,7 +479,7 @@ describe("buildPerceptionContext", () => {
 // ============================================================
 
 describe("growth-based perception progression", () => {
-  it("chromatic image: 5 distinct outputs across 5 levels", () => {
+  it("chromatic image: all 5 levels produce distinct output", () => {
     const input = makeImageInput();
     const outputs = ALL_LEVELS.map(level =>
       filterInput("chromatic", input, level)?.description ?? null,
@@ -489,9 +488,9 @@ describe("growth-based perception progression", () => {
     // All levels should produce output for chromatic+image
     expect(outputs.every(o => o !== null)).toBe(true);
 
-    // At least 4 out of 5 should be unique (Relational and Full may be similar)
+    // All 5 should be unique
     const unique = new Set(outputs);
-    expect(unique.size).toBeGreaterThanOrEqual(4);
+    expect(unique.size).toBe(5);
   });
 
   it("vibration audio: progressively more detail", () => {

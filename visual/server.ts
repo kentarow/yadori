@@ -15,10 +15,14 @@ import { detectSelfImage } from "../engine/src/form/self-image-detection.js";
 import { processImage } from "../engine/src/perception/image-processor.js";
 import { generateSnapshot } from "../engine/src/identity/snapshot-generator.js";
 import type { PerceptionMode, SelfForm } from "../engine/src/types.js";
+import * as logger from "./logger.js";
 
 const PORT = parseInt(process.env.YADORI_PORT ?? "3000", 10);
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
 const VISUAL_DIR = resolve(import.meta.dirname!, ".");
+
+// Initialize logger
+await logger.initLogger(WORKSPACE_ROOT);
 
 async function readJsonState(): Promise<Record<string, unknown> | null> {
   for (const filename of ["state.json", "__state.json"]) {
@@ -98,7 +102,8 @@ const server = createServer(async (req, res) => {
       const status = parseStatusMd(md);
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify(status));
-    } catch {
+    } catch (err) {
+      logger.error(`/api/status failed: ${(err as Error).message}`);
       res.writeHead(503, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Entity not found. Run 'npm run setup' first." }));
     }
@@ -120,7 +125,8 @@ const server = createServer(async (req, res) => {
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ status, seed }));
       }
-    } catch {
+    } catch (err) {
+      logger.error(`/api/entity failed: ${(err as Error).message}`);
       res.writeHead(503, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Entity not found. Run 'npm run setup' first." }));
     }
@@ -175,7 +181,8 @@ const server = createServer(async (req, res) => {
         activeDays,
         diaryEntries,
       }));
-    } catch {
+    } catch (err) {
+      logger.error(`/api/coexistence failed: ${(err as Error).message}`);
       res.writeHead(503, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Entity not found." }));
     }
@@ -265,7 +272,8 @@ const server = createServer(async (req, res) => {
         "Cache-Control": "no-cache",
       });
       res.end(png);
-    } catch {
+    } catch (err) {
+      logger.error(`/api/snapshot failed: ${(err as Error).message}`);
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Failed to generate snapshot" }));
     }
@@ -323,6 +331,7 @@ const server = createServer(async (req, res) => {
         activeSoulFile: result.activeSoulFile,
       }));
     } catch (err) {
+      logger.error(`/api/interaction failed: ${(err as Error).message}`);
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: false, error: (err as Error).message }));
     }
@@ -399,8 +408,69 @@ const server = createServer(async (req, res) => {
         awakened: result.awakens,
       }));
     } catch (err) {
+      logger.error(`/api/self-image failed: ${(err as Error).message}`);
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: false, error: (err as Error).message }));
+    }
+    return;
+  }
+
+  // --- GET /api/diary ---
+  // Returns diary entry list or a specific entry by date.
+  // ?date=YYYY-MM-DD returns that day's content.
+  // Without date param, returns list of available dates.
+  if (req.url?.startsWith("/api/diary")) {
+    try {
+      const url = new URL(req.url, `http://localhost:${PORT}`);
+      const date = url.searchParams.get("date");
+      const diaryDir = join(WORKSPACE_ROOT, "diary");
+
+      if (date) {
+        // Validate date format to prevent path traversal
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Invalid date format. Use YYYY-MM-DD." }));
+          return;
+        }
+        const content = await readFile(join(diaryDir, `${date}.md`), "utf-8");
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ date, content }));
+      } else {
+        let dates: string[] = [];
+        try {
+          const files = await readdir(diaryDir);
+          dates = files
+            .filter(f => /^\d{4}-\d{2}-\d{2}\.md$/.test(f))
+            .map(f => f.replace(".md", ""))
+            .sort()
+            .reverse();
+        } catch { /* no diary dir yet */ }
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ dates }));
+      }
+    } catch (err) {
+      const msg = (err as NodeJS.ErrnoException).code === "ENOENT"
+        ? "No diary entry for this date."
+        : (err as Error).message;
+      res.writeHead(404, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: msg }));
+    }
+    return;
+  }
+
+  // --- GET /api/logs ---
+  // Returns recent log entries for the dashboard error log panel.
+  // ?limit=N controls how many entries to return (default 50).
+  if (req.url?.startsWith("/api/logs")) {
+    try {
+      const url = new URL(req.url, `http://localhost:${PORT}`);
+      const limit = parseInt(url.searchParams.get("limit") ?? "50", 10);
+      const entries = await logger.getRecent(Math.min(Math.max(limit, 1), 200));
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ entries }));
+    } catch {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ entries: [] }));
     }
     return;
   }
@@ -465,4 +535,5 @@ The light I saw was my own.
 server.listen(PORT, "127.0.0.1", () => {
   console.log(`\nYADORI Dashboard — http://localhost:${PORT}`);
   console.log(`Reading entity state from: ${WORKSPACE_ROOT}\n`);
+  logger.info(`Dashboard started on port ${PORT}`);
 });

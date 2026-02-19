@@ -1,6 +1,6 @@
 {
   "name": "yadori",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Inter-Species Intelligence Coexistence Framework",
   "type": "module",
   "engines": {
@@ -17,7 +17,8 @@
     "sensors": "node --import tsx scripts/sensors.ts",
     "dashboard": "node --import tsx visual/server.ts",
     "apply-identity": "node --import tsx scripts/apply-identity.ts",
-    "snapshot": "node --import tsx scripts/snapshot.ts"
+    "snapshot": "node --import tsx scripts/snapshot.ts",
+    "version": "node --import tsx scripts/version.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

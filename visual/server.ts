@@ -2,38 +2,11 @@ import { createServer } from "node:http";
 import { readFile, readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
+import { parseStatusMd, parseSeedMd, parsePerceptionMd, computeCoexistenceMetrics } from "./parsers.js";
 
 const PORT = parseInt(process.env.YADORI_PORT ?? "3000", 10);
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
 const VISUAL_DIR = resolve(import.meta.dirname!, ".");
-
-function parseStatusMd(content: string): Record<string, number> {
-  const get = (key: string): number => {
-    const match = content.match(new RegExp(`\\*\\*${key}\\*\\*:\\s*(\\d+)`));
-    return match ? parseInt(match[1], 10) : 50;
-  };
-  return {
-    mood: get("mood"),
-    energy: get("energy"),
-    curiosity: get("curiosity"),
-    comfort: get("comfort"),
-    languageLevel: get("level"),
-    growthDay: get("day"),
-  };
-}
-
-function parseSeedMd(content: string): Record<string, string> {
-  const get = (key: string): string => {
-    const match = content.match(new RegExp(`\\*\\*${key}\\*\\*:\\s*(.+)`));
-    return match?.[1]?.trim() ?? "";
-  };
-  return {
-    perception: get("Perception"),
-    form: get("Form"),
-    temperament: get("Temperament"),
-    cognition: get("Cognition"),
-  };
-}
 
 async function readJsonState(): Promise<Record<string, unknown> | null> {
   for (const filename of ["state.json", "__state.json"]) {
@@ -112,14 +85,13 @@ const server = createServer(async (req, res) => {
         lastInteraction = statusMd.match(/\*\*last_interaction\*\*:\s*(.+)/)?.[1]?.trim() ?? "never";
       }
 
-      if (born) {
-        daysTogether = Math.max(0, Math.floor((Date.now() - new Date(born).getTime()) / 86_400_000));
-      }
-
-      let silenceHours: number | null = null;
-      if (lastInteraction && lastInteraction !== "never") {
-        silenceHours = Math.round((Date.now() - new Date(lastInteraction).getTime()) / 3_600_000 * 10) / 10;
-      }
+      const metrics = computeCoexistenceMetrics({
+        bornDate: born,
+        lastInteraction,
+        totalInteractions,
+      });
+      daysTogether = metrics.daysTogether;
+      let silenceHours = metrics.silenceHours;
 
       let activeDays = 0;
       try {
@@ -152,10 +124,7 @@ const server = createServer(async (req, res) => {
   if (req.url === "/api/perception") {
     try {
       const md = await readFile(join(WORKSPACE_ROOT, "PERCEPTION.md"), "utf-8");
-
-      // Parse perception context from the markdown
-      const lines = md.split("\n").filter(l => l.startsWith("- ")).map(l => l.slice(2));
-      const hasPerception = lines.length > 0;
+      const { perceptions: lines, hasPerception } = parsePerceptionMd(md);
 
       // Read sensors.json for sensor list
       let sensors: string[] = [];
@@ -170,16 +139,14 @@ const server = createServer(async (req, res) => {
       let perceptionLevel = 0;
       try {
         const statusMd = await readFile(join(WORKSPACE_ROOT, "STATUS.md"), "utf-8");
-        const match = statusMd.match(/\*\*perception_level\*\*:\s*(\d+)/);
-        if (match) perceptionLevel = parseInt(match[1], 10);
+        perceptionLevel = parseStatusMd(statusMd).perceptionLevel;
       } catch { /* ok */ }
 
       // Get species from seed
       let species = "";
       try {
         const seedMd = await readFile(join(WORKSPACE_ROOT, "SEED.md"), "utf-8");
-        const match = seedMd.match(/\*\*Perception\*\*:\s*(.+)/);
-        if (match) species = match[1].trim();
+        species = parseSeedMd(seedMd).perception;
       } catch { /* ok */ }
 
       res.writeHead(200, { "Content-Type": "application/json" });

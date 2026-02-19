@@ -16,7 +16,8 @@
     "heartbeat": "node --import tsx scripts/heartbeat.ts",
     "sensors": "node --import tsx scripts/sensors.ts",
     "dashboard": "node --import tsx visual/server.ts",
-    "apply-identity": "node --import tsx scripts/apply-identity.ts"
+    "apply-identity": "node --import tsx scripts/apply-identity.ts",
+    "snapshot": "node --import tsx scripts/snapshot.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

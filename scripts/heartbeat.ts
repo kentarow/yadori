@@ -36,13 +36,14 @@ import {
   type SensorServiceState,
 } from "../engine/src/perception/sensor-service.js";
 import { recordSensoryInput } from "../engine/src/perception/perception-growth.js";
-import { createAllDrivers } from "../adapters/src/sensors/create-all.js";
+import { createAllDrivers, type AllDriversConfig } from "../adapters/src/sensors/create-all.js";
 import type { PerceptionMode } from "../engine/src/types.js";
 import { PerceptionLevel } from "../engine/src/types.js";
 
 // --- Config ---
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
 const PERCEPTION_PATH = join(WORKSPACE_ROOT, "PERCEPTION.md");
+const SENSORS_CONFIG_PATH = join(WORKSPACE_ROOT, "sensors.json");
 const CHECK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
 
 // --- Sensor exposure accumulator ---
@@ -91,14 +92,26 @@ async function saveState(state: EntityState): Promise<void> {
 
 // --- Sensor service setup ---
 
+async function loadSensorsConfig(): Promise<AllDriversConfig> {
+  try {
+    const content = await readFile(SENSORS_CONFIG_PATH, "utf-8");
+    return JSON.parse(content) as AllDriversConfig;
+  } catch {
+    return {}; // Use defaults
+  }
+}
+
 async function initSensorService(state: EntityState): Promise<void> {
   entitySpecies = state.seed.perception;
   entityPerceptionLevel = state.status.perceptionLevel as PerceptionLevel;
 
   sensorService = createSensorService();
 
+  // Load sensor config (GPIO pins, I2C addresses, disabled drivers)
+  const sensorsConfig = await loadSensorsConfig();
+
   // Create and register all RPi sensor drivers
-  const drivers = createAllDrivers();
+  const drivers = createAllDrivers(sensorsConfig);
   for (const driver of drivers) {
     addDriver(sensorService, driver);
   }

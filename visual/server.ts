@@ -13,6 +13,8 @@ import { formatColdMemoryMd } from "../engine/src/memory/memory-engine.js";
 import { awakenSelfAwareness } from "../engine/src/form/form-engine.js";
 import { detectSelfImage } from "../engine/src/form/self-image-detection.js";
 import { processImage } from "../engine/src/perception/image-processor.js";
+import { generateSnapshot } from "../engine/src/identity/snapshot-generator.js";
+import type { PerceptionMode, SelfForm } from "../engine/src/types.js";
 
 const PORT = parseInt(process.env.YADORI_PORT ?? "3000", 10);
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
@@ -225,6 +227,47 @@ const server = createServer(async (req, res) => {
         perceptionLevel: 0,
         species: "",
       }));
+    }
+    return;
+  }
+
+  // --- GET /api/snapshot ---
+  // Returns a state-aware PNG image of the entity's current appearance.
+  if (req.url === "/api/snapshot") {
+    try {
+      const state = await readJsonState();
+      if (!state) {
+        res.writeHead(503, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Entity not found. Run 'npm run setup' first." }));
+        return;
+      }
+
+      const seed = state.seed as Record<string, unknown>;
+      const status = state.status as Record<string, number>;
+      const form = state.form as Record<string, unknown>;
+
+      const png = generateSnapshot(
+        (seed.perception as PerceptionMode) ?? "chromatic",
+        (seed.form as SelfForm) ?? "light-particles",
+        {
+          mood: status.mood ?? 50,
+          energy: status.energy ?? 50,
+          curiosity: status.curiosity ?? 50,
+          comfort: status.comfort ?? 50,
+          density: (form.density as number) ?? 10,
+          complexity: (form.complexity as number) ?? 5,
+        },
+      );
+
+      res.writeHead(200, {
+        "Content-Type": "image/png",
+        "Content-Length": png.length,
+        "Cache-Control": "no-cache",
+      });
+      res.end(png);
+    } catch {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Failed to generate snapshot" }));
     }
     return;
   }

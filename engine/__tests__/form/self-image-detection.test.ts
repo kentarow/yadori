@@ -178,7 +178,6 @@ describe("detectSelfImage", () => {
 
       const result = detectSelfImage(features, "thermal");
       // Hue 350 is 30 degrees from center 20 — within range of 40
-      expect(result.dominantHueMatch !== undefined || result.resonance > 0.4).toBe(true);
       expect(result.resonance).toBeGreaterThan(0.4);
     });
 

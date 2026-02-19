@@ -25,6 +25,7 @@ import type {
   VibrationSensorData,
   ColorSensorData,
   ProximitySensorData,
+  TouchSensorData,
   SystemMetricsData,
 } from "./perception-types.js";
 
@@ -207,6 +208,24 @@ function CHROMATIC_FILTERS(): SpeciesFilterMap {
       return `${colorRef} (${d.value}${d.unit})`;
     },
 
+    touch: (data, level) => {
+      const d = data as TouchSensorData;
+      if (!d.active) return null;
+      if (level === PerceptionLevel.Minimal) return "flash";
+      if (level === PerceptionLevel.Basic) {
+        const intensity = d.pressure != null ? (d.pressure > 0.6 ? "bright flash" : "soft glow") : "flash";
+        return intensity;
+      }
+      if (level === PerceptionLevel.Structured) {
+        const pattern = d.gesture === "hold" ? "sustained radiance" :
+          d.gesture === "double-tap" ? "strobe" :
+          d.gesture === "long-press" ? "deepening glow" : "spark";
+        return `${pattern}, ${d.points} point${d.points > 1 ? "s" : ""}`;
+      }
+      const dur = d.duration != null ? `, ${d.duration.toFixed(1)}s` : "";
+      return `contact light: ${d.points} point${d.points > 1 ? "s" : ""}, pressure ${d.pressure != null ? Math.round(d.pressure * 100) + "%" : "binary"}${dur}`;
+    },
+
     system: (data, level) => {
       const d = data as SystemMetricsData;
       if (level < PerceptionLevel.Basic) return null;
@@ -295,6 +314,27 @@ function VIBRATION_FILTERS(): SpeciesFilterMap {
       return d.trend !== "stable" ? `flicker: ${d.trend}` : null;
     },
 
+    touch: (data, level) => {
+      const d = data as TouchSensorData;
+      if (!d.active) return null;
+      // Vibration type is most sensitive to touch — perceives even at level 0
+      if (level === PerceptionLevel.Minimal) {
+        return d.gesture === "tap" ? "impact" : d.gesture === "double-tap" ? "double-impact" : "contact";
+      }
+      if (level === PerceptionLevel.Basic) {
+        const force = d.pressure != null ? (d.pressure > 0.6 ? "heavy strike" : d.pressure > 0.3 ? "tap" : "brush") : "strike";
+        return `${force}, ${d.gesture}`;
+      }
+      if (level === PerceptionLevel.Structured) {
+        const rhythm = d.gesture === "double-tap" ? "syncopated" :
+          d.gesture === "hold" ? "sustained resonance" :
+          d.gesture === "long-press" ? "deepening vibration" : "single impulse";
+        return `${rhythm}, ${d.points} contact${d.points > 1 ? "s" : ""}`;
+      }
+      const dur = d.duration != null ? `, ${d.duration.toFixed(1)}s` : "";
+      return `tactile: ${d.points} point${d.points > 1 ? "s" : ""}, pressure ${d.pressure != null ? Math.round(d.pressure * 100) + "%" : "binary"}, ${d.gesture}${dur}`;
+    },
+
     proximity: (data, level) => {
       const d = data as ProximitySensorData;
       if (level < PerceptionLevel.Basic) return null;
@@ -365,6 +405,22 @@ function GEOMETRIC_FILTERS(): SpeciesFilterMap {
         return `distance: ${d.distanceCm ?? "unknown"}cm${dur}`;
       }
       return `distance ${d.distanceCm}cm, presence ${d.presenceDuration}s`;
+    },
+
+    touch: (data, level) => {
+      const d = data as TouchSensorData;
+      if (!d.active) return null;
+      if (level === PerceptionLevel.Minimal) return `${d.points} point${d.points > 1 ? "s" : ""} on surface`;
+      if (level === PerceptionLevel.Basic) {
+        const shape = d.points >= 3 ? "polygon" : d.points === 2 ? "line" : "point";
+        return `contact: ${shape}`;
+      }
+      if (level === PerceptionLevel.Structured) {
+        const depth = d.pressure != null ? `, depth ${Math.round(d.pressure * 100)}%` : "";
+        return `${d.points} contact vertex${d.points > 1 ? "es" : ""}${depth}`;
+      }
+      const dur = d.duration != null ? `, ${d.duration.toFixed(1)}s` : "";
+      return `topology: ${d.points} point${d.points > 1 ? "s" : ""}, ${d.gesture}${dur}`;
     },
 
     vibration: (data, level) => {
@@ -447,6 +503,24 @@ function THERMAL_FILTERS(): SpeciesFilterMap {
         `${q}: ${d.quadrantBrightness[i] > 0.6 ? "hot" : d.quadrantBrightness[i] > 0.3 ? "warm" : "cold"}`
       ).join(", ");
       return `thermal map: ${mapping}`;
+    },
+
+    touch: (data, level) => {
+      const d = data as TouchSensorData;
+      if (!d.active) return null;
+      if (level === PerceptionLevel.Minimal) return "warmth received";
+      if (level === PerceptionLevel.Basic) {
+        const intensity = d.pressure != null ? (d.pressure > 0.5 ? "strong warmth" : "gentle warmth") : "warmth";
+        return intensity;
+      }
+      if (level === PerceptionLevel.Structured) {
+        const transfer = d.gesture === "hold" ? "sustained heat transfer" :
+          d.gesture === "long-press" ? "deepening warmth" :
+          d.gesture === "tap" ? "brief thermal contact" : "thermal pulse";
+        return `${transfer}, ${d.points} source${d.points > 1 ? "s" : ""}`;
+      }
+      const dur = d.duration != null ? `, ${d.duration.toFixed(1)}s` : "";
+      return `thermal contact: ${d.points} source${d.points > 1 ? "s" : ""}, intensity ${d.pressure != null ? Math.round(d.pressure * 100) + "%" : "binary"}${dur}`;
     },
 
     pressure: (data, level) => {
@@ -558,6 +632,26 @@ function TEMPORAL_FILTERS(): SpeciesFilterMap {
       return "aperiodic";
     },
 
+    touch: (data, level) => {
+      const d = data as TouchSensorData;
+      if (!d.active && d.gesture === "none") return null;
+      if (level === PerceptionLevel.Minimal) {
+        return d.active ? "contact begun" : "contact ended";
+      }
+      if (level === PerceptionLevel.Basic) {
+        const dur = d.duration != null ? `${d.duration.toFixed(1)}s` : "instant";
+        return `contact: ${dur}`;
+      }
+      if (level === PerceptionLevel.Structured) {
+        const tempo = d.gesture === "double-tap" ? "double-time" :
+          d.gesture === "hold" ? "sustained" :
+          d.gesture === "long-press" ? "fermata" : "staccato";
+        return `touch tempo: ${tempo}`;
+      }
+      const dur = d.duration != null ? `${d.duration.toFixed(1)}s` : "0s";
+      return `contact duration: ${dur}, pattern: ${d.gesture}, ${d.points} point${d.points > 1 ? "s" : ""}`;
+    },
+
     system: (data, level) => {
       const d = data as SystemMetricsData;
       if (level === PerceptionLevel.Minimal) return `uptime: ${d.uptimeHours.toFixed(0)}h`;
@@ -635,6 +729,24 @@ function CHEMICAL_FILTERS(): SpeciesFilterMap {
         return `${d.processCount} molecules, ${reactions} reactions/s`;
       }
       return null;
+    },
+
+    touch: (data, level) => {
+      const d = data as TouchSensorData;
+      if (!d.active) return null;
+      if (level === PerceptionLevel.Minimal) return "catalyst introduced";
+      if (level === PerceptionLevel.Basic) {
+        const reaction = d.pressure != null ? (d.pressure > 0.5 ? "strong reaction" : "mild reaction") : "reaction";
+        return reaction;
+      }
+      if (level === PerceptionLevel.Structured) {
+        const bond = d.gesture === "hold" ? "bonding in progress" :
+          d.gesture === "double-tap" ? "rapid exchange" :
+          d.gesture === "long-press" ? "deep catalysis" : "surface reaction";
+        return `${bond}, ${d.points} reagent${d.points > 1 ? "s" : ""}`;
+      }
+      const dur = d.duration != null ? `, ${d.duration.toFixed(1)}s` : "";
+      return `catalytic contact: ${d.points} reagent${d.points > 1 ? "s" : ""}, intensity ${d.pressure != null ? Math.round(d.pressure * 100) + "%" : "binary"}${dur}`;
     },
 
     audio: (data, level) => {

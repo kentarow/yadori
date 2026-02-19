@@ -89,3 +89,70 @@ export {
   fft,
   estimateBPM,
 } from "./perception/audio-processor.js";
+
+// Perception Pipeline
+export {
+  filterInput,
+  filterInputs,
+  getPerceptibleModalities,
+} from "./perception/perception-filter.js";
+
+export {
+  buildPerceptionContext,
+} from "./perception/perception-context.js";
+
+export {
+  evaluatePerceptionLevel,
+  recordSensoryInput,
+  createInitialPerceptionGrowthState,
+  type PerceptionGrowthState,
+} from "./perception/perception-growth.js";
+
+export {
+  createInputRegistry,
+  registerSensor,
+  unregisterSensor,
+  pushInput,
+  drainInputs,
+  getAvailableModalities,
+  getActiveModalityCount,
+  type InputRegistry,
+} from "./perception/input-registry.js";
+
+// Sensor Driver Interface
+export type {
+  SensorDriver,
+  SensorDriverConfig,
+  SensorDetectionResult,
+} from "./perception/sensor-driver.js";
+
+// Sensor Service
+export {
+  createSensorService,
+  addDriver,
+  startService,
+  stopService,
+  collectPerceptions,
+  pushDirectInput,
+  getModalityCount,
+  getRegisteredModalities,
+  type SensorServiceState,
+} from "./perception/sensor-service.js";
+
+// Perception Types
+export type {
+  InputModality,
+  RawInput,
+  RawInputData,
+  FilteredPerception,
+  TextInputData,
+  ImageInputData,
+  AudioInputData,
+  ScalarSensorData,
+  VibrationSensorData,
+  ColorSensorData,
+  ProximitySensorData,
+  TouchSensorData,
+  SystemMetricsData,
+  SensorRegistration,
+} from "./perception/perception-types.js";

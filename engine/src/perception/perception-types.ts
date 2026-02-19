@@ -20,7 +20,8 @@ export type InputModality =
   | "pressure"       // Barometric pressure (BMP280, BME280)
   | "gas"            // Air quality/gas (CCS811, SGP30, MQ series)
   | "color"          // RGB color sensor (TCS34725)
-  | "proximity"      // Proximity/motion (PIR, HC-SR04)
+  | "proximity"      // Proximity/motion (PIR, HC-SR04, ultrasonic)
+  | "touch"          // Capacitive touch (TTP223, MPR121, capacitive pads)
   | "system";        // System metrics (CPU temp, memory, always available)
 
 /**
@@ -45,6 +46,7 @@ export type RawInputData =
   | VibrationSensorData
   | ColorSensorData
   | ProximitySensorData
+  | TouchSensorData
   | SystemMetricsData;
 
 export interface TextInputData {
@@ -129,6 +131,20 @@ export interface ProximitySensorData {
   distanceCm: number | null;
   /** Time since presence began (seconds, null if not detected) */
   presenceDuration: number | null;
+}
+
+export interface TouchSensorData {
+  type: "touch";
+  /** Is the surface currently being touched? */
+  active: boolean;
+  /** Number of simultaneous touch points (1 for TTP223, up to 12 for MPR121) */
+  points: number;
+  /** Touch pressure/intensity: 0-1 (null if binary sensor like TTP223) */
+  pressure: number | null;
+  /** Duration of current touch in seconds (null if not touching) */
+  duration: number | null;
+  /** Touch pattern: single, double, long-press, etc. */
+  gesture: "none" | "tap" | "double-tap" | "long-press" | "hold";
 }
 
 export interface SystemMetricsData {

@@ -14,6 +14,7 @@
     "lint": "tsc --noEmit",
     "setup": "node --import tsx scripts/setup.ts",
     "heartbeat": "node --import tsx scripts/heartbeat.ts",
+    "sensors": "node --import tsx scripts/sensors.ts",
     "dashboard": "node --import tsx visual/server.ts"
   },
   "devDependencies": {

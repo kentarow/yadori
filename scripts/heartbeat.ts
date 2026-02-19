@@ -5,8 +5,11 @@
  * Or:     npm run heartbeat
  *
  * Runs a persistent process that:
+ *   - Starts sensor service (auto-detects available hardware)
+ *   - Updates PERCEPTION.md every minute (fresh sensory data for LLM)
  *   - Calls processHeartbeat() every 30 minutes during active hours (7:00-23:00)
- *   - Writes updated state to the workspace (.md files + __state.json)
+ *   - Records sensor exposure for perception growth acceleration
+ *   - Writes updated state to the workspace (.md files + state.json)
  *   - Generates diary entries in the evening
  *   - Consolidates memory on Sunday nights
  *   - Manages sulk mode (SOUL_EVIL.md switching)
@@ -22,12 +25,36 @@ import {
 } from "../engine/src/status/status-manager.js";
 import { isActiveHours, shouldPulse } from "../engine/src/rhythm/rhythm-system.js";
 import { formatDiaryMd } from "../engine/src/diary/diary-engine.js";
+import {
+  createSensorService,
+  addDriver,
+  startService,
+  stopService,
+  collectPerceptions,
+  getModalityCount,
+  getRegisteredModalities,
+  type SensorServiceState,
+} from "../engine/src/perception/sensor-service.js";
+import { recordSensoryInput } from "../engine/src/perception/perception-growth.js";
+import { createAllDrivers, type AllDriversConfig } from "../adapters/src/sensors/create-all.js";
+import type { PerceptionMode } from "../engine/src/types.js";
+import { PerceptionLevel } from "../engine/src/types.js";
 
 // --- Config ---
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
-const STATE_PATH = join(WORKSPACE_ROOT, "state.json");
-const INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
-const CHECK_INTERVAL_MS = 60 * 1000; // Check every 1 minute if we should pulse
+const PERCEPTION_PATH = join(WORKSPACE_ROOT, "PERCEPTION.md");
+const SENSORS_CONFIG_PATH = join(WORKSPACE_ROOT, "sensors.json");
+const CHECK_INTERVAL_MS = 60 * 1000; // Check every 1 minute
+
+// --- Sensor exposure accumulator ---
+// Tracks inputs received between heartbeat ticks for perception growth
+let accumulatedInputCount = 0;
+let encounteredModalities = new Set<string>();
+
+// --- Sensor service (initialized in main) ---
+let sensorService: SensorServiceState | null = null;
+let entitySpecies: PerceptionMode = "chromatic";
+let entityPerceptionLevel: PerceptionLevel = PerceptionLevel.Minimal;
 
 // --- State persistence ---
 
@@ -63,6 +90,66 @@ async function saveState(state: EntityState): Promise<void> {
   await writeFile(join(WORKSPACE_ROOT, "growth", "milestones.md"), serialized.milestonesMd, "utf-8");
 }
 
+// --- Sensor service setup ---
+
+async function loadSensorsConfig(): Promise<AllDriversConfig> {
+  try {
+    const content = await readFile(SENSORS_CONFIG_PATH, "utf-8");
+    return JSON.parse(content) as AllDriversConfig;
+  } catch {
+    return {}; // Use defaults
+  }
+}
+
+async function initSensorService(state: EntityState): Promise<void> {
+  entitySpecies = state.seed.perception;
+  entityPerceptionLevel = state.status.perceptionLevel as PerceptionLevel;
+
+  sensorService = createSensorService();
+
+  // Load sensor config (GPIO pins, I2C addresses, disabled drivers)
+  const sensorsConfig = await loadSensorsConfig();
+
+  // Create and register all RPi sensor drivers
+  const drivers = createAllDrivers(sensorsConfig);
+  for (const driver of drivers) {
+    addDriver(sensorService, driver);
+  }
+
+  // Auto-detect and start available sensors
+  const started = await startService(sensorService);
+
+  if (started.length > 0) {
+    log(`Sensors active: ${started.join(", ")}`);
+    const modalities = getRegisteredModalities(sensorService);
+    log(`Modalities: ${modalities.join(", ")}`);
+  } else {
+    log("No hardware sensors detected (system metrics always available)");
+  }
+}
+
+// --- Perception update (runs every 1 minute) ---
+
+async function updatePerception(): Promise<void> {
+  if (!sensorService) return;
+
+  try {
+    const result = collectPerceptions(sensorService, entitySpecies, entityPerceptionLevel);
+
+    // Accumulate for growth tracking
+    accumulatedInputCount += result.inputCount;
+    for (const p of result.perceptions) {
+      encounteredModalities.add(p.sourceModality);
+    }
+
+    // Write PERCEPTION.md — this is what OpenClaw reads
+    const md = `# PERCEPTION\n\n${result.context}\n`;
+    await writeFile(PERCEPTION_PATH, md, "utf-8");
+  } catch {
+    // Silent — perception update failure shouldn't crash heartbeat
+  }
+}
+
 // --- Logging ---
 
 function log(msg: string) {
@@ -77,6 +164,9 @@ let lastPulseTime: Date | null = null;
 async function tick(): Promise<void> {
   const now = new Date();
 
+  // Always update perception (even outside active hours — sensors keep running)
+  await updatePerception();
+
   // Only pulse during active hours
   if (!isActiveHours(now)) {
     return;
@@ -89,11 +179,33 @@ async function tick(): Promise<void> {
 
   try {
     // Load current state
-    const state = await loadState();
+    let state = await loadState();
+
+    // Record accumulated sensor exposure into perception growth state
+    if (accumulatedInputCount > 0) {
+      const currentModalities = state.perception.modalitiesEncountered;
+      const newModalities = Math.max(0, encounteredModalities.size - currentModalities);
+      state = {
+        ...state,
+        perception: recordSensoryInput(
+          state.perception,
+          accumulatedInputCount,
+          newModalities,
+        ),
+      };
+      if (accumulatedInputCount > 10) {
+        log(`Sensor exposure: ${accumulatedInputCount} inputs, ${encounteredModalities.size} modalities`);
+      }
+      accumulatedInputCount = 0;
+      // Don't reset encounteredModalities — it tracks lifetime modalities
+    }
 
     // Process heartbeat
     const result = processHeartbeat(state, now);
     const { updatedState } = result;
+
+    // Keep perception level in sync for sensor filtering
+    entityPerceptionLevel = updatedState.status.perceptionLevel as PerceptionLevel;
 
     // Save updated state
     await saveState(updatedState);
@@ -102,7 +214,7 @@ async function tick(): Promise<void> {
     // Log what happened
     const s = updatedState.status;
     log(
-      `Heartbeat — mood:${s.mood} energy:${s.energy} curiosity:${s.curiosity} comfort:${s.comfort} day:${s.growthDay}`,
+      `Heartbeat — mood:${s.mood} energy:${s.energy} curiosity:${s.curiosity} comfort:${s.comfort} day:${s.growthDay} perception:${s.perceptionLevel}`,
     );
 
     // Write diary if generated
@@ -141,6 +253,7 @@ function printBanner() {
   console.log("  ╭──────────────────────────────────╮");
   console.log("  │       YADORI  Heartbeat           │");
   console.log("  │    Pulse every 30 minutes         │");
+  console.log("  │    Perception every 1 minute       │");
   console.log("  │    Active hours: 07:00 - 23:00    │");
   console.log("  ╰──────────────────────────────────╯");
   console.log("");
@@ -152,13 +265,22 @@ function printBanner() {
 async function main() {
   printBanner();
 
-  // Verify state exists
+  // Verify state exists and load entity info
+  let state: EntityState;
   try {
-    await loadState();
+    state = await loadState();
     log("Entity state loaded");
   } catch (err) {
     console.error(`\n  ${(err as Error).message}`);
     process.exit(1);
+  }
+
+  // Start sensor service
+  try {
+    await initSensorService(state);
+  } catch (err) {
+    log(`Sensor init warning: ${(err as Error).message}`);
+    // Continue without sensors — entity still works
   }
 
   // Run first tick immediately
@@ -168,14 +290,17 @@ async function main() {
   setInterval(tick, CHECK_INTERVAL_MS);
 
   // Handle graceful shutdown
-  process.on("SIGINT", () => {
+  const shutdown = async () => {
     log("Heartbeat stopping...");
+    if (sensorService) {
+      await stopService(sensorService);
+      log("Sensors stopped");
+    }
     process.exit(0);
-  });
-  process.on("SIGTERM", () => {
-    log("Heartbeat stopping...");
-    process.exit(0);
-  });
+  };
+
+  process.on("SIGINT", () => { shutdown(); });
+  process.on("SIGTERM", () => { shutdown(); });
 }
 
 main().catch((err) => {

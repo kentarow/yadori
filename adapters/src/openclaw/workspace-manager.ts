@@ -62,6 +62,10 @@ export class OpenClawWorkspaceManager {
     await writeFile(join(this.root, "growth", "milestones.md"), milestonesMd, "utf-8");
   }
 
+  async writePerception(perceptionMd: string): Promise<void> {
+    await writeFile(join(this.root, "PERCEPTION.md"), perceptionMd, "utf-8");
+  }
+
   async writeSoulEvil(soulEvilMd: string): Promise<void> {
     await writeFile(join(this.root, "SOUL_EVIL.md"), soulEvilMd, "utf-8");
   }

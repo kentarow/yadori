@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdir, cp, access } from "node:fs/promises";
+import { readFile, writeFile, mkdir, cp, access, chmod } from "node:fs/promises";
 import { join } from "node:path";
 import type { Seed, Status, SubTraits } from "../../../engine/src/types.js";
 import type { OpenClawConfig } from "./config.js";
@@ -24,7 +24,7 @@ export class OpenClawWorkspaceManager {
     ];
 
     for (const dir of dirs) {
-      await mkdir(dir, { recursive: true });
+      await mkdir(dir, { recursive: true, mode: 0o700 });
     }
 
     // Copy template files to workspace (skip if entity already exists)
@@ -47,11 +47,11 @@ export class OpenClawWorkspaceManager {
 
   async writeStatus(status: Status): Promise<void> {
     const content = this.formatStatusMd(status);
-    await writeFile(join(this.root, "STATUS.md"), content, "utf-8");
+    await this.writeProtected(join(this.root, "STATUS.md"), content);
   }
 
   async writeMemory(memoryMd: string): Promise<void> {
-    await writeFile(join(this.root, "MEMORY.md"), memoryMd, "utf-8");
+    await this.writeProtected(join(this.root, "MEMORY.md"), memoryMd);
   }
 
   async readMemory(): Promise<string> {
@@ -59,19 +59,19 @@ export class OpenClawWorkspaceManager {
   }
 
   async writeMilestones(milestonesMd: string): Promise<void> {
-    await writeFile(join(this.root, "growth", "milestones.md"), milestonesMd, "utf-8");
+    await this.writeProtected(join(this.root, "growth", "milestones.md"), milestonesMd);
   }
 
   async writePerception(perceptionMd: string): Promise<void> {
-    await writeFile(join(this.root, "PERCEPTION.md"), perceptionMd, "utf-8");
+    await this.writeProtected(join(this.root, "PERCEPTION.md"), perceptionMd);
   }
 
   async writeSoulEvil(soulEvilMd: string): Promise<void> {
-    await writeFile(join(this.root, "SOUL_EVIL.md"), soulEvilMd, "utf-8");
+    await this.writeProtected(join(this.root, "SOUL_EVIL.md"), soulEvilMd);
   }
 
   async writeDiary(date: string, content: string): Promise<void> {
-    await writeFile(join(this.root, "diary", `${date}.md`), content, "utf-8");
+    await this.writeProtected(join(this.root, "diary", `${date}.md`), content);
   }
 
   async readSeed(): Promise<Seed> {
@@ -88,7 +88,13 @@ export class OpenClawWorkspaceManager {
       );
     }
     const content = this.formatSeedMd(seed);
-    await writeFile(seedPath, content, "utf-8");
+    await this.writeProtected(seedPath, content);
+  }
+
+  /** Write file with owner-only permissions (0o600) to protect entity data. */
+  private async writeProtected(path: string, content: string): Promise<void> {
+    await writeFile(path, content, "utf-8");
+    await chmod(path, 0o600);
   }
 
   private async exists(path: string): Promise<boolean> {

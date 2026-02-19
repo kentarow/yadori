@@ -220,6 +220,78 @@
       top: 4px;
       left: 13px;
     }
+
+    /* Senses Panel (left side) */
+    #senses-panel {
+      position: fixed;
+      top: 0; left: 0;
+      width: 280px;
+      height: 100vh;
+      padding: 40px 28px;
+      background: rgba(0, 0, 0, 0.85);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateX(-100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #senses-panel.open { transform: translateX(0); }
+
+    #senses-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 32px;
+    }
+
+    .sense-item {
+      margin-bottom: 14px;
+      padding: 6px 0;
+    }
+    .sense-description {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .sense-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+      line-height: 1.6;
+    }
+    .sense-level {
+      display: flex;
+      gap: 3px;
+      margin-top: 4px;
+    }
+    .sense-level-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .sense-level-dot.active {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    #senses-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #senses-toggle { opacity: 0.3; }
+    #senses-toggle:hover { opacity: 0.6 !important; }
+    #senses-toggle svg { width: 24px; height: 24px; }
   </style>
 </head>
 <body>
@@ -239,6 +311,16 @@
       <line x1="8" y1="12" x2="16" y2="12"/>
       <line x1="8" y1="16" x2="12" y2="16"/>
     </svg>
+  </div>
+  <div id="senses-toggle" title="Senses">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z"/>
+    </svg>
+  </div>
+  <div id="senses-panel">
+    <h2>Senses</h2>
+    <div id="senses-content"><span class="sense-empty">· · ·</span></div>
   </div>
   <div id="sound-toggle" class="muted" title="Toggle sound">
     <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
@@ -1505,6 +1587,63 @@
         fetchCoexistenceLog();
       }
     });
+
+    // --- Senses Panel ---
+    const sensesToggle = document.getElementById('senses-toggle');
+    const sensesPanel = document.getElementById('senses-panel');
+    const sensesContent = document.getElementById('senses-content');
+
+    sensesToggle.addEventListener('click', () => {
+      sensesPanel.classList.toggle('open');
+      if (sensesPanel.classList.contains('open')) {
+        fetchPerception();
+      }
+    });
+
+    async function fetchPerception() {
+      try {
+        const res = await fetch('/api/perception');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        if (!d.hasPerception || d.perceptions.length === 0) {
+          sensesContent.innerHTML = '<span class="sense-empty">No sensors detected.<br>You sense only your own existence.</span>';
+          return;
+        }
+
+        // Build perception level dots (5 levels: 0-4)
+        let levelDots = '<div class="sense-level">';
+        for (let i = 0; i < 5; i++) {
+          levelDots += `<div class="sense-level-dot${i <= d.perceptionLevel ? ' active' : ''}"></div>`;
+        }
+        levelDots += '</div>';
+
+        // Species label
+        const speciesLabel = d.species ? `<div class="log-label" style="margin-bottom:12px">${d.species} · level ${d.perceptionLevel}</div>${levelDots}` : '';
+
+        // Perception items
+        const items = d.perceptions.map(p =>
+          `<div class="sense-item"><div class="sense-description">${escapeHtml(p)}</div></div>`
+        ).join('');
+
+        sensesContent.innerHTML = `${speciesLabel}<div class="log-divider"></div>${items}`;
+      } catch {
+        sensesContent.innerHTML = '<span class="sense-empty">· · ·</span>';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Auto-refresh perception when panel is open
+    setInterval(() => {
+      if (sensesPanel.classList.contains('open')) {
+        fetchPerception();
+      }
+    }, 5000);
 
     async function fetchCoexistenceLog() {
       try {

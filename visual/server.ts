@@ -149,6 +149,60 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  if (req.url === "/api/perception") {
+    try {
+      const md = await readFile(join(WORKSPACE_ROOT, "PERCEPTION.md"), "utf-8");
+
+      // Parse perception context from the markdown
+      const lines = md.split("\n").filter(l => l.startsWith("- ")).map(l => l.slice(2));
+      const hasPerception = lines.length > 0;
+
+      // Read sensors.json for sensor list
+      let sensors: string[] = [];
+      try {
+        const sensorsJson = await readFile(join(WORKSPACE_ROOT, "sensors.json"), "utf-8");
+        const config = JSON.parse(sensorsJson);
+        // sensors.json has a disable list — active sensors are those NOT disabled
+        sensors = []; // We don't know active sensors from config alone
+      } catch { /* no config */ }
+
+      // Get perception level from status
+      let perceptionLevel = 0;
+      try {
+        const statusMd = await readFile(join(WORKSPACE_ROOT, "STATUS.md"), "utf-8");
+        const match = statusMd.match(/\*\*perception_level\*\*:\s*(\d+)/);
+        if (match) perceptionLevel = parseInt(match[1], 10);
+      } catch { /* ok */ }
+
+      // Get species from seed
+      let species = "";
+      try {
+        const seedMd = await readFile(join(WORKSPACE_ROOT, "SEED.md"), "utf-8");
+        const match = seedMd.match(/\*\*Perception\*\*:\s*(.+)/);
+        if (match) species = match[1].trim();
+      } catch { /* ok */ }
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        raw: md,
+        perceptions: lines,
+        hasPerception,
+        perceptionLevel,
+        species,
+      }));
+    } catch {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        raw: "",
+        perceptions: [],
+        hasPerception: false,
+        perceptionLevel: 0,
+        species: "",
+      }));
+    }
+    return;
+  }
+
   // Serve static files from visual/
   const filePath = req.url === "/" ? "/index.html" : req.url!;
   const ext = filePath.substring(filePath.lastIndexOf("."));

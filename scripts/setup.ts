@@ -337,6 +337,7 @@ async function deployWorkspace(seed: Seed): Promise<void> {
   await writeFile(join(WORKSPACE_ROOT, "MEMORY.md"), serialized.memoryMd, "utf-8");
   await writeFile(join(WORKSPACE_ROOT, "LANGUAGE.md"), serialized.languageMd, "utf-8");
   await writeFile(join(WORKSPACE_ROOT, "growth", "milestones.md"), serialized.milestonesMd, "utf-8");
+  await writeFile(join(WORKSPACE_ROOT, "FORM.md"), serialized.formMd, "utf-8");
 
   // Write species-specific SOUL_EVIL.md
   const soulEvilMd = generateSoulEvilMd(seed.perception, "mild");

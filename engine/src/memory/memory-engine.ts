@@ -262,6 +262,25 @@ export function parseMemoryMd(content: string): MemoryState {
 }
 
 /**
+ * Format a single cold memory as a standalone monthly markdown file.
+ * Written to memory/monthly/YYYY-MM.md
+ */
+export function formatColdMemoryMd(cold: ColdMemory): string {
+  const lines: string[] = [
+    `# Monthly Memory — ${cold.month}`,
+    "",
+    `- Weeks consolidated: ${cold.weeks}`,
+    `- Average mood: ${cold.averageMood}`,
+    "",
+    "## Summary",
+    "",
+    cold.summary,
+    "",
+  ];
+  return lines.join("\n");
+}
+
+/**
  * Approximate month from ISO week string. Simple heuristic.
  */
 function getMonthFromWeek(week: string): string {

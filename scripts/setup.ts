@@ -19,6 +19,7 @@ import { generateSeed, createFixedSeed } from "../engine/src/genesis/seed-genera
 import type { Seed } from "../engine/src/types.js";
 import { createEntityState, serializeState, type EntityState } from "../engine/src/status/status-manager.js";
 import { generateSoulEvilMd } from "../engine/src/mood/sulk-engine.js";
+import { applyIdentity } from "./apply-identity.js";
 
 // --- Config ---
 const TEMPLATE_DIR = resolve(import.meta.dirname!, "..", "templates", "workspace");
@@ -179,6 +180,32 @@ const messages = {
   entity_awaits: {
     en: "  Your entity awaits at:",
     ja: "  エンティティはここに宿りました:",
+  },
+  identity_prompt: {
+    en: [
+      "  ── Bot Identity ─────────────────────────────",
+      "",
+      "  Your entity can project its identity onto Discord.",
+      "  This sets the bot's name (native symbols) and avatar",
+      "  (a glow matching its species color).",
+      "",
+      "  If you have a Discord Bot Token ready, enter it now.",
+      "  You can also do this later with: npm run apply-identity",
+    ],
+    ja: [
+      "  ── Bot アイデンティティ ────────────────────",
+      "",
+      "  エンティティは自身の存在を Discord に映し出せます。",
+      "  ネイティブシンボルが Bot 名に、種族の光が",
+      "  アバターになります。",
+      "",
+      "  Discord Bot Token があれば今すぐ適用できます。",
+      "  あとからでも可能: npm run apply-identity",
+    ],
+  },
+  identity_ask: {
+    en: "  Apply now? [y/N]: ",
+    ja: "  今すぐ適用しますか？ [y/N]: ",
   },
   setup_failed: {
     en: "Setup failed:",
@@ -454,7 +481,18 @@ async function main() {
   await deployWorkspace(seed);
   print(t("workspace_created") as string);
 
-  // Step 7: Done
+  // Step 7: Bot identity (optional)
+  print("");
+  for (const line of t("identity_prompt") as readonly string[]) {
+    print(line);
+  }
+  print("");
+  const identityConfirm = await ask(t("identity_ask") as string);
+  if (identityConfirm.toLowerCase() === "y") {
+    await applyIdentity();
+  }
+
+  // Step 8: Done
   printNextSteps();
 
   rl.close();

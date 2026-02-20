@@ -618,6 +618,141 @@
     #milestone-toggle:hover { opacity: 0.6 !important; }
     #milestone-toggle svg { width: 24px; height: 24px; }
 
+    /* Language Panel (left side, slide-up from bottom) */
+    #language-panel {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 320px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #language-panel.open { transform: translateY(0); }
+    #language-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .lang-level-header {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.55);
+      font-family: 'Courier New', monospace;
+      margin-bottom: 8px;
+    }
+    .lang-level-name {
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 11px;
+    }
+    .lang-progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .lang-progress-fill {
+      height: 100%;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+    .lang-stat {
+      margin-bottom: 16px;
+    }
+    .lang-stat-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .lang-stat-value {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .lang-symbols {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .lang-symbol {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1;
+    }
+    .lang-patterns-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .lang-patterns-table th {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .lang-patterns-table td {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      padding: 5px 0;
+      vertical-align: middle;
+    }
+    .lang-patterns-table td:first-child {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.6);
+      width: 36px;
+    }
+    .lang-conf-bar {
+      width: 50px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 1.5px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .lang-conf-fill {
+      height: 100%;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 1.5px;
+    }
+    .lang-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #language-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 100px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #language-toggle { opacity: 0.3; }
+    #language-toggle:hover { opacity: 0.6 !important; }
+    #language-toggle svg { width: 24px; height: 24px; }
+
     /* Dynamics Panel (bottom-left) */
     #dynamics-panel {
       position: fixed;
@@ -748,20 +883,22 @@
       .diary-body { font-size: 12px; }
 
       #errorlog-panel,
-      #milestone-panel {
+      #milestone-panel,
+      #language-panel {
         width: 100vw;
         max-height: 70vh;
         padding: 20px 16px;
       }
 
       /* Toggle buttons always visible on mobile */
-      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #sound-toggle, #sound-growth {
+      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #language-toggle, #sound-toggle, #sound-growth {
         opacity: 0.35 !important;
       }
 
       #log-toggle { top: 10px; right: 10px; }
       #senses-toggle { top: 10px; left: 10px; }
       #diary-toggle { bottom: 10px; left: 50px; }
+      #language-toggle { bottom: 10px; left: 90px; }
       #errorlog-toggle { bottom: 10px; right: 50px; }
       #milestone-toggle { bottom: 10px; right: 90px; }
       #sound-toggle { bottom: 10px; right: 10px; }
@@ -879,6 +1016,18 @@
   <div id="milestone-panel">
     <h2>Milestones</h2>
     <div id="milestone-content"><span class="milestone-empty">No milestones yet.</span></div>
+  </div>
+
+  <div id="language-toggle" title="Language">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      <line x1="8" y1="9" x2="16" y2="9"/>
+      <line x1="8" y1="13" x2="13" y2="13"/>
+    </svg>
+  </div>
+  <div id="language-panel">
+    <h2>Language</h2>
+    <div id="language-content"><span class="lang-empty">No language data.</span></div>
   </div>
 
   <div id="sound-growth" title="Sound growth: Level 1 — Single tone">
@@ -2568,6 +2717,104 @@
         fetchMilestones();
       }
     }, 15000);
+
+    // --- Language Panel ---
+    const languageToggle = document.getElementById('language-toggle');
+    const languagePanel = document.getElementById('language-panel');
+    const languageContent = document.getElementById('language-content');
+
+    languageToggle.addEventListener('click', () => {
+      languagePanel.classList.toggle('open');
+      if (languagePanel.classList.contains('open')) {
+        fetchLanguage();
+      }
+    });
+
+    async function fetchLanguage() {
+      try {
+        const res = await fetch('/api/language');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        const level = d.level ?? 0;
+        const levelName = d.levelName ?? 'Unknown';
+        const totalInteractions = d.totalInteractions ?? 0;
+        const nativeSymbols = d.nativeSymbols ?? [];
+        const patterns = d.patterns ?? [];
+
+        // Level progress bar (0-4 mapped to 0-100%)
+        const progressPct = (level / 4) * 100;
+
+        // Level header
+        let html = `
+          <div class="lang-level-header">
+            Level ${level} <span class="lang-level-name">&mdash; ${escapeHtml(levelName)}</span>
+          </div>
+          <div class="lang-progress-bar">
+            <div class="lang-progress-fill" style="width: ${progressPct}%"></div>
+          </div>
+        `;
+
+        // Total interactions
+        html += `
+          <div class="lang-stat">
+            <div class="lang-stat-label">Total interactions</div>
+            <div class="lang-stat-value">${totalInteractions}</div>
+          </div>
+        `;
+
+        // Native symbols
+        if (nativeSymbols.length > 0) {
+          html += `
+            <div class="lang-stat">
+              <div class="lang-stat-label">Native symbols</div>
+              <div class="lang-symbols">
+                ${nativeSymbols.map(s => `<span class="lang-symbol">${escapeHtml(s)}</span>`).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        // Divider before patterns
+        html += '<div class="log-divider"></div>';
+
+        // Known patterns table
+        if (patterns.length > 0) {
+          html += `
+            <div class="lang-stat-label" style="margin-bottom:8px">Known patterns</div>
+            <table class="lang-patterns-table">
+              <thead>
+                <tr><th></th><th>Meaning</th><th>Confidence</th></tr>
+              </thead>
+              <tbody>
+          `;
+          for (const p of patterns) {
+            const confPct = Math.round((p.confidence ?? 0) * 100);
+            html += `
+              <tr>
+                <td>${escapeHtml(p.symbol)}</td>
+                <td>${escapeHtml(p.meaning)}</td>
+                <td><div class="lang-conf-bar"><div class="lang-conf-fill" style="width:${confPct}%"></div></div></td>
+              </tr>
+            `;
+          }
+          html += '</tbody></table>';
+        } else {
+          html += '<span class="lang-empty">No patterns established yet.</span>';
+        }
+
+        languageContent.innerHTML = html;
+      } catch {
+        languageContent.innerHTML = '<span class="lang-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh language when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (languagePanel.classList.contains('open')) {
+        fetchLanguage();
+      }
+    }, 30000);
 
     async function fetchCoexistenceLog() {
       try {

@@ -121,6 +121,64 @@ export function parseMilestonesMd(content: string): {
 }
 
 /**
+ * Parse LANGUAGE.md content into structured language data.
+ * Expects format like:
+ *   ## Current Level: 0 (Symbols Only)
+ *   Available symbols: ○ ● △ ...
+ *   ## Acquired Patterns
+ *   - ◎ = greeting (Day 3, used 5x)
+ *   ## Stats
+ *   - Total interactions: 42
+ */
+export function parseLanguageMd(content: string): {
+  level: number;
+  levelName: string;
+  totalInteractions: number;
+  nativeSymbols: string[];
+  patterns: { symbol: string; meaning: string; confidence: number }[];
+} {
+  const LEVEL_NAMES = [
+    "Symbols Only",
+    "Pattern Establishment",
+    "Bridge to Language",
+    "Unique Language",
+    "Advanced Operation",
+  ];
+
+  // Extract level number from "## Current Level: 0 (Symbols Only)"
+  const levelMatch = content.match(/## Current Level:\s*(\d+)/);
+  const level = levelMatch ? parseInt(levelMatch[1], 10) : 0;
+  const levelName = LEVEL_NAMES[level] ?? "Unknown";
+
+  // Extract native symbols from "Available symbols: ○ ● △ ..."
+  const symbolsMatch = content.match(/Available symbols:\s*(.+)/);
+  const nativeSymbols = symbolsMatch
+    ? symbolsMatch[1].trim().split(/\s+/).filter(s => s.length > 0)
+    : [];
+
+  // Extract total interactions from "- Total interactions: 42"
+  const interactionsMatch = content.match(/Total interactions:\s*(\d+)/);
+  const totalInteractions = interactionsMatch ? parseInt(interactionsMatch[1], 10) : 0;
+
+  // Extract patterns from "- ◎ = greeting (Day 3, used 5x)"
+  const patterns: { symbol: string; meaning: string; confidence: number }[] = [];
+  const patternRegex = /^- (.+?) = (.+?) \(Day \d+, used (\d+)x\)/gm;
+  let match: RegExpExecArray | null;
+  while ((match = patternRegex.exec(content)) !== null) {
+    const usageCount = parseInt(match[3], 10);
+    // Confidence: map usage count to 0-1 (10+ uses = full confidence)
+    const confidence = Math.min(1, usageCount / 10);
+    patterns.push({
+      symbol: match[1],
+      meaning: match[2],
+      confidence,
+    });
+  }
+
+  return { level, levelName, totalInteractions, nativeSymbols, patterns };
+}
+
+/**
  * Compute coexistence metrics from entity state.
  */
 export function computeCoexistenceMetrics(params: {

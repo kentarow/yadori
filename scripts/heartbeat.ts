@@ -158,6 +158,8 @@ async function saveStateOnce(state: EntityState): Promise<void> {
   await writeFile(join(WORKSPACE_ROOT, "growth", "milestones.md"), serialized.milestonesMd, "utf-8");
   await writeFile(join(WORKSPACE_ROOT, "FORM.md"), serialized.formMd, "utf-8");
   await writeFile(join(WORKSPACE_ROOT, "DYNAMICS.md"), serialized.dynamicsMd, "utf-8");
+  await writeFile(join(WORKSPACE_ROOT, "REVERSALS.md"), serialized.reversalMd, "utf-8");
+  await writeFile(join(WORKSPACE_ROOT, "COEXIST.md"), serialized.coexistMd, "utf-8");
 
   // Write cold memory to monthly files
   for (const cold of state.memory.cold) {
@@ -444,6 +446,11 @@ async function tick(): Promise<void> {
     // Log milestones
     for (const m of result.newMilestones) {
       log(`Milestone: ${m.label}`);
+    }
+
+    // Log new reversal signals
+    for (const r of result.newReversals) {
+      log(`Reversal detected: ${r.type} (strength: ${r.strength}) — ${r.description}`);
     }
 
     // Log memory consolidation

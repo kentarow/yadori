@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, computeCoexistenceMetrics } from "./parsers.js";
+import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, parseLanguageMd, computeCoexistenceMetrics } from "./parsers.js";
 import {
   processInteraction,
   serializeState,
@@ -278,6 +278,57 @@ const server = createServer(async (req, res) => {
       logger.error(`/api/milestones failed: ${(err as Error).message}`);
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ stage: "newborn", milestones: [] }));
+    }
+    return;
+  }
+
+  // --- GET /api/language ---
+  // Returns language acquisition state: level, patterns, symbols, interactions.
+  // Tries state.json first, falls back to LANGUAGE.md.
+  if (req.url === "/api/language") {
+    const LEVEL_NAMES = [
+      "Symbols Only",
+      "Pattern Establishment",
+      "Bridge to Language",
+      "Unique Language",
+      "Advanced Operation",
+    ];
+
+    try {
+      const state = await readJsonState();
+      if (state) {
+        const lang = state.language as Record<string, unknown> | undefined;
+        const level = (lang?.level as number) ?? 0;
+        const patterns = ((lang?.patterns ?? []) as { symbol: string; meaning: string; usageCount?: number; confidence?: number }[]).map(p => ({
+          symbol: p.symbol,
+          meaning: p.meaning,
+          confidence: p.confidence ?? Math.min(1, (p.usageCount ?? 1) / 10),
+        }));
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          level,
+          levelName: LEVEL_NAMES[level] ?? "Unknown",
+          totalInteractions: (lang?.totalInteractions as number) ?? 0,
+          nativeSymbols: (lang?.nativeSymbols as string[]) ?? [],
+          patterns,
+        }));
+      } else {
+        // Fallback: parse LANGUAGE.md
+        const md = await readFile(join(WORKSPACE_ROOT, "LANGUAGE.md"), "utf-8");
+        const parsed = parseLanguageMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch (err) {
+      logger.error(`/api/language failed: ${(err as Error).message}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        level: 0,
+        levelName: "Symbols Only",
+        totalInteractions: 0,
+        nativeSymbols: [],
+        patterns: [],
+      }));
     }
     return;
   }

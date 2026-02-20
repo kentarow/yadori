@@ -78,6 +78,30 @@ export class OpenClawWorkspaceManager {
     }
   }
 
+  async writeReversals(content: string): Promise<void> {
+    await this.writeProtected(join(this.root, "REVERSALS.md"), content);
+  }
+
+  async readReversals(): Promise<string> {
+    try {
+      return await readFile(join(this.root, "REVERSALS.md"), "utf-8");
+    } catch {
+      return "";
+    }
+  }
+
+  async writeCoexist(content: string): Promise<void> {
+    await this.writeProtected(join(this.root, "COEXIST.md"), content);
+  }
+
+  async readCoexist(): Promise<string> {
+    try {
+      return await readFile(join(this.root, "COEXIST.md"), "utf-8");
+    } catch {
+      return "";
+    }
+  }
+
   async writeSoulEvil(soulEvilMd: string): Promise<void> {
     await this.writeProtected(join(this.root, "SOUL_EVIL.md"), soulEvilMd);
   }

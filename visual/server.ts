@@ -86,7 +86,9 @@ const MIME: Record<string, string> = {
 };
 
 const server = createServer(async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = req.headers.origin ?? "";
+  const allowedOrigin = origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:") ? origin : `http://localhost:${PORT}`;
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 

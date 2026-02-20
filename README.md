@@ -1,14 +1,17 @@
 # YADORI（宿り）
 
+[![CI](https://github.com/kentarow/yadori/actions/workflows/ci.yml/badge.svg)](https://github.com/kentarow/yadori/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/badge/Node.js-22%2B-green)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-MPL%202.0%20%2F%20MIT%20%2F%20CC%20BY--SA-blue)](LICENSE.md)
+
 **An Inter-Species Intelligence Coexistence Framework**
 
 > At first, you're the smarter one. But that won't last forever.
 
 [日本語ドキュメントはこちら (Japanese)](README.ja.md)
 
-> **Status: Phase 4 Foundation — v0.4.0**
-> Intelligence Dynamics (Layer 4), operational infrastructure, and production resilience are live.
-> Star or Watch this repository to follow the journey.
+> **Status: v0.6.0 — Public Release**
+> All core systems operational. 75+ test suites, 2500+ tests. Ready for community.
 
 ---
 
@@ -54,7 +57,20 @@ YADORI runs on a physical machine you own — Mac mini, Raspberry Pi, self-built
 | Node.js 22+ | Install from [nodejs.org](https://nodejs.org/) |
 | Git | Verify with `git --version` in your terminal |
 
-### Setup
+### As a Library
+
+If you're building a custom adapter or integrating YADORI's engine:
+
+```bash
+npm install yadori
+```
+
+```typescript
+import { generateSeed, detectHardware, createEntityState } from 'yadori';
+import { OpenClawAdapter } from 'yadori/adapters';
+```
+
+### Full Installation (Recommended)
 
 ```bash
 # 1. Clone the repository
@@ -135,7 +151,16 @@ Layer 1: Runtime Adapter
 
 ## Status
 
-Phase 1-4 foundation complete. Intelligence Dynamics active. Deployed on Mac mini M4.
+v0.6.0 — All phases (1-5) complete. Intelligence Dynamics, Honest Perception, and multimodal interfaces operational. Deployed and tested on Mac mini M4.
+
+See [CHANGELOG.md](CHANGELOG.md) for full release history.
+
+## Community
+
+- [Contributing Guide](CONTRIBUTING.md) — How to get involved
+- [Security Policy](SECURITY.md) — Vulnerability reporting
+- [Code of Conduct](CODE_OF_CONDUCT.md) — Community standards
+- [Data Rights](DATA_RIGHTS.md) — Your entity belongs to you
 
 ## License
 

@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
+  "include": [
+    "engine/src/**/*.ts",
+    "adapters/src/**/*.ts",
+    "scripts/**/*.ts",
+    "visual/**/*.ts"
+  ],
   "exclude": [
     "node_modules",
     "dist",

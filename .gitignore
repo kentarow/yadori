@@ -7,6 +7,10 @@ dist/
 *.js.map
 *.d.ts
 
+# Exceptions: tracked JS files
+!bin/yadori.js
+!scripts/copy-assets.js
+
 # OpenClaw workspace (runtime data, user-owned)
 .openclaw/
 

@@ -174,6 +174,7 @@ function createMockRequest(
   const req = new EventEmitter() as IncomingMessage;
   req.method = method;
   req.url = url;
+  req.headers = {};
 
   // For POST requests, emit data and end events after the handler subscribes
   if (body !== undefined) {
@@ -1267,7 +1268,7 @@ describe("OPTIONS (CORS preflight)", () => {
   it("responds with 204 and CORS headers", async () => {
     const r = await sendRequest("OPTIONS", "/api/status");
     expect(r.statusCode).toBe(204);
-    expect(r.headers["access-control-allow-origin"]).toBe("*");
+    expect(r.headers["access-control-allow-origin"]).toBe("http://localhost:3000");
     expect(r.headers["access-control-allow-methods"]).toContain("GET");
     expect(r.headers["access-control-allow-methods"]).toContain("POST");
     expect(r.headers["access-control-allow-headers"]).toContain("Content-Type");
@@ -1282,7 +1283,7 @@ describe("CORS headers", () => {
   it("includes Access-Control-Allow-Origin on GET responses", async () => {
     mockFiles[`${WORKSPACE}/STATUS.md`] = `**mood**: 50`;
     const r = await sendRequest("GET", "/api/status");
-    expect(r.headers["access-control-allow-origin"]).toBe("*");
+    expect(r.headers["access-control-allow-origin"]).toBe("http://localhost:3000");
   });
 });
 

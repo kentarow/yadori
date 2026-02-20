@@ -1,5 +1,5 @@
 import os from "node:os";
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import type { HardwareBody } from "../types.js";
 
 function detectStorageGB(): number {
@@ -7,14 +7,16 @@ function detectStorageGB(): number {
     const platform = os.platform();
     if (platform === "darwin" || platform === "linux") {
       // df outputs available + used for root partition in 1K blocks
-      const output = execSync("df -k / | tail -1", { timeout: 5000 }).toString();
-      const parts = output.trim().split(/\s+/);
+      const output = execFileSync("df", ["-k", "/"], { timeout: 5000 }).toString();
+      const lines = output.trim().split("\n");
+      const lastLine = lines[lines.length - 1];
+      const parts = lastLine.trim().split(/\s+/);
       // df columns: Filesystem 1K-blocks Used Available Use% Mounted
       const totalKB = parseInt(parts[1], 10);
       if (!isNaN(totalKB)) return Math.round(totalKB / 1024 / 1024);
     }
     if (platform === "win32") {
-      const output = execSync("wmic logicaldisk where \"DeviceID='C:'\" get Size /value", { timeout: 5000 }).toString();
+      const output = execFileSync("wmic", ["logicaldisk", "where", "DeviceID='C:'", "get", "Size", "/value"], { timeout: 5000 }).toString();
       const match = output.match(/Size=(\d+)/);
       if (match) return Math.round(parseInt(match[1], 10) / 1024 ** 3);
     }

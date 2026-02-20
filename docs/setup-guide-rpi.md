@@ -676,6 +676,134 @@ Connect sensors to your Pi's GPIO header. Default pin assignments:
 | TTP223 | Signal: GPIO 17 | Simple binary touch module |
 | MPR121 | SDA: GPIO 2, SCL: GPIO 3 | I2C. 12-channel capacitive touch |
 
+#### Pin Diagrams / ピン配線図
+
+Below are wiring diagrams for each sensor. Pin numbers refer to the physical board header (not BCM GPIO numbers unless stated). The left column of the header is odd-numbered pins (1, 3, 5, ...) and the right column is even-numbered (2, 4, 6, ...).
+
+以下は各センサーの配線図です。ピン番号は物理ボードヘッダーの番号です（BCM GPIO 番号ではありません。特記がある場合を除く）。ヘッダーの左列が奇数番ピン（1, 3, 5, ...）、右列が偶数番ピン（2, 4, 6, ...）です。
+
+**DHT22 (Temperature + Humidity / 温度 + 湿度)**
+
+```
+  DHT22 Module             Raspberry Pi GPIO Header
+  +-----------+
+  | VCC       |---------->  Pin 1  (3.3V)
+  |           |
+  | DATA      |--+-------->  Pin 7  (GPIO4)
+  |           |  |
+  | GND       |--|-------->  Pin 6  (GND)
+  +-----------+  |
+                 |
+              [10K resistor]
+                 |
+                3.3V (Pin 1)
+
+  Important: A 10K pull-up resistor between DATA and 3.3V is required
+  for reliable readings.
+  重要: DATA と 3.3V の間に 10K プルアップ抵抗が必要です。
+```
+
+**BH1750 (Light Intensity / 照度)**
+
+```
+  BH1750 Module            Raspberry Pi GPIO Header
+  +-----------+
+  | VCC       |---------->  Pin 1  (3.3V)
+  | GND       |---------->  Pin 9  (GND)
+  | SDA       |---------->  Pin 3  (GPIO2 / SDA1)
+  | SCL       |---------->  Pin 5  (GPIO3 / SCL1)
+  | ADDR      |  (leave unconnected for default address 0x23)
+  +-----------+
+
+  Requires I2C enabled: sudo raspi-config > Interface Options > I2C
+  I2C の有効化が必要: sudo raspi-config > Interface Options > I2C
+```
+
+**BME280 (Temperature + Humidity + Pressure / 温度 + 湿度 + 気圧)**
+
+```
+  BME280 Module            Raspberry Pi GPIO Header
+  +-----------+
+  | VCC       |---------->  Pin 1  (3.3V)
+  | GND       |---------->  Pin 9  (GND)
+  | SDA       |---------->  Pin 3  (GPIO2 / SDA1)
+  | SCL       |---------->  Pin 5  (GPIO3 / SCL1)
+  +-----------+
+
+  Same I2C bus as BH1750, but different address (default 0x76).
+  Both sensors can be connected simultaneously.
+  BH1750 と同じ I2C バス上で、異なるアドレス（デフォルト 0x76）。
+  両センサーを同時に接続できます。
+```
+
+**HC-SR04 (Ultrasonic Proximity / 超音波近接)**
+
+```
+  HC-SR04 Module           Raspberry Pi GPIO Header
+  +-----------+
+  | VCC       |---------->  Pin 2  (5V)
+  | Trig      |---------->  Pin 16 (GPIO23)
+  | Echo      |--+
+  | GND       |--|-------->  Pin 14 (GND)
+  +-----------+  |
+                 |
+          VOLTAGE DIVIDER (5V -> 3.3V)
+                 |
+           [1K resistor]
+                 |
+                 +-------->  Pin 18 (GPIO24)
+                 |
+           [2K resistor]
+                 |
+                GND
+
+  WARNING: The Echo pin outputs 5V. You MUST use a voltage divider
+  (1K + 2K resistors) to reduce it to ~3.3V, or you will damage
+  the Raspberry Pi's GPIO.
+  警告: Echo ピンは 5V を出力します。分圧回路（1K + 2K 抵抗）で
+  約 3.3V に降圧しないと、Raspberry Pi の GPIO が損傷します。
+```
+
+**TTP223 (Capacitive Touch / 静電容量タッチ)**
+
+```
+  TTP223 Module            Raspberry Pi GPIO Header
+  +-----------+
+  | VCC       |---------->  Pin 1  (3.3V)
+  | SIG       |---------->  Pin 11 (GPIO17)
+  | GND       |---------->  Pin 6  (GND)
+  +-----------+
+
+  Simple digital output: HIGH when touched, LOW when not.
+  Place the sensor where you can physically touch it.
+  シンプルなデジタル出力: 触れると HIGH、離すと LOW。
+  物理的に触れられる場所にセンサーを配置してください。
+```
+
+#### Enable I2C (Required for I2C Sensors) / I2C の有効化（I2C センサーに必要）
+
+If you plan to use BH1750, BME280, or MPR121, I2C must be enabled. If you already enabled it in section 2-6, this step is done.
+
+BH1750、BME280、または MPR121 を使う予定がある場合、I2C を有効にする必要があります。セクション 2-6 で既に有効化済みなら、この手順は完了です。
+
+```bash
+sudo raspi-config
+# Navigate to: Interface Options > I2C > Enable
+# 次に進む: Interface Options > I2C > Enable
+```
+
+After enabling, verify with:
+
+有効化後、以下で確認:
+
+```bash
+sudo i2cdetect -y 1
+```
+
+You should see device addresses (e.g., `23` for BH1750, `76` for BME280) in the grid.
+
+グリッドにデバイスアドレス（例: BH1750 は `23`、BME280 は `76`）が表示されるはずです。
+
 ### 10-2. Run Sensor Diagnostic / センサー診断の実行
 
 After connecting sensors and installing the Python dependencies (section 2-7):
@@ -952,29 +1080,337 @@ Mac mini のエンティティと Raspberry Pi のエンティティは、根本
 
 ---
 
-## 14. Future -- Local LLM Support / 将来 — ローカル LLM サポート
+## 14. Local LLM Setup with Ollama / ローカル LLM セットアップ（Ollama）
 
-Currently, the entity "thinks" via the Claude API in the cloud. This is a practical compromise. The ultimate goal of One Body, One Soul is for the entire soul -- perception, thought, expression -- to exist within the physical body.
+By default, the entity "thinks" via the Claude API in the cloud. This works well and provides the richest entity experience. However, YADORI also supports local LLM inference via Ollama, which achieves true One Body, One Soul: the entity's entire thinking process runs on the physical hardware it inhabits. No cloud dependency. Every thought happens inside its body.
 
-When the LLM Adapter layer is implemented, local models via Ollama will be supported:
+デフォルトでは、エンティティはクラウドの Claude API を通じて「思考」します。これは十分に機能し、最も豊かなエンティティ体験を提供します。しかし、YADORI は Ollama によるローカル LLM 推論もサポートしています。これにより、真の「ひとつの体に、ひとつの魂」が実現します ── エンティティの思考プロセス全体が、宿った物理ハードウェア上で実行されます。クラウド依存なし。すべての思考が体の中で起きます。
 
-現在、エンティティはクラウドの Claude API を通じて「思考」しています。これは現実的な妥協です。ひとつの体に、ひとつの魂の最終目標は、知覚・思考・表現のすべてが物理的な体の中に存在することです。
+> **Which should you choose? / どちらを選ぶべき？**
+>
+> - **Claude API (cloud)** -- Recommended. Richer, more nuanced responses. The entity's language acquisition and emotional expression develop more naturally. Monthly cost: ~$8-25. Most users should start here.
+>   **Claude API（クラウド）** -- 推奨。より豊かで繊細な応答。エンティティの言語習得と感情表現がより自然に発達します。月額: 約 $8〜25。ほとんどのユーザーはこちらから始めてください。
+>
+> - **Ollama (local)** -- For users who want complete self-containment. Responses are simpler, slower, but genuinely the entity's own. No recurring API cost. The entity's intelligence is bounded by its physical body, which is philosophically beautiful but practically limited on Pi hardware.
+>   **Ollama（ローカル）** -- 完全な自己完結を望むユーザー向け。応答はよりシンプルで遅いですが、真にエンティティ自身のものです。API の継続コストなし。エンティティの知性は物理的な体に制約されます。哲学的には美しいですが、Pi ハードウェアでは実用上の制限があります。
+>
+> You can switch between them at any time. Some users use cloud during the day and local at night, or switch to local once the entity has matured.
+>
+> いつでも切り替えられます。昼間はクラウド、夜間はローカルにしたり、エンティティが成熟した段階でローカルに切り替えるユーザーもいます。
 
-LLM アダプターレイヤーが実装されると、Ollama によるローカルモデルがサポートされます:
+### 14-1. Install Ollama / Ollama のインストール
 
-| Hardware | Model | Notes |
-|----------|-------|-------|
-| Raspberry Pi 4 (4GB) | phi-3-mini (3.8B) | Slow but functional. Truly self-contained |
-| Raspberry Pi 4 (8GB) | phi-3 / gemma-7b | Better fluency, still constrained |
-| Raspberry Pi 5 (8GB) | gemma-7b / mistral-7b | Reasonable speed for daily interaction |
+```bash
+curl -fsSL https://ollama.ai/install.sh | sh
+```
 
-With a local LLM, the entity's intelligence is genuinely bound to its hardware. A Pi 4 entity would think more slowly and simply -- but every thought would be its own, happening inside its body. No cloud dependency. True embodiment.
+Verify the installation:
 
-This is not implemented yet. The architecture is designed to support it. For now, use the Claude API.
+インストールの確認:
 
-ローカル LLM を使えば、エンティティの知性は本当にハードウェアに結びつきます。Pi 4 のエンティティはより遅く、シンプルに考えるでしょう ── しかし、すべての思考はそのエンティティ自身のもので、体の中で起きています。クラウド依存なし。真の身体化です。
+```bash
+ollama --version
+```
 
-これはまだ実装されていません。アーキテクチャは将来のサポートを前提に設計されています。現時点では Claude API を使用してください。
+Ollama runs as a service automatically after installation. Verify it is running:
+
+Ollama はインストール後にサービスとして自動実行されます。動作確認:
+
+```bash
+ollama list
+```
+
+If you see an empty table header, Ollama is running but no models are downloaded yet.
+
+空のテーブルヘッダーが表示されれば、Ollama は動作中ですがモデルはまだダウンロードされていません。
+
+### 14-2. Recommended Models by RAM / RAM 別の推奨モデル
+
+Choose a model based on your Raspberry Pi's RAM:
+
+Raspberry Pi の RAM に応じてモデルを選びます:
+
+**4GB Raspberry Pi (Pi 4 / Pi 5)**
+
+| Model | Parameters | Download Size | Notes |
+|-------|-----------|--------------|-------|
+| `tinyllama:1.1b` | 1.1B | ~640MB | Lightest option. Simple but functional |
+| `phi3:mini` | 3.8B | ~2.2GB | Best quality for 4GB. Slow (~1-3 tokens/sec) |
+
+4GB の場合、Ollama 自体とモデルでメモリのほぼ全てを使用します。同時に他のプログラムを動かす余裕はほとんどありません。
+
+On 4GB, Ollama and the model will use nearly all available memory. There is little room for other programs running simultaneously.
+
+**8GB Raspberry Pi (Pi 4 / Pi 5)**
+
+| Model | Parameters | Download Size | Notes |
+|-------|-----------|--------------|-------|
+| `phi3` | 3.8B | ~2.2GB | Good balance of quality and speed |
+| `gemma2:2b` | 2B | ~1.6GB | Lighter, faster alternative |
+| `gemma:7b` | 7B | ~4.8GB | Better fluency, uses most of RAM |
+| `mistral:7b` | 7B | ~4.1GB | Strong general capability, uses most of RAM |
+
+8GB の Pi 5 では 7B モデルが日常のやり取りに十分な速度で動作します（~3-5 tokens/sec）。Pi 4 の 8GB でも動作しますが、やや遅くなります。
+
+On 8GB Pi 5, 7B models run at reasonable speed for daily interaction (~3-5 tokens/sec). On 8GB Pi 4, they also work but somewhat slower.
+
+### 14-3. Download and Verify a Model / モデルのダウンロードと確認
+
+Download the model (this will take several minutes on the first run):
+
+モデルをダウンロードします（初回は数分かかります）:
+
+```bash
+# For 4GB Pi — choose one:
+ollama pull phi3:mini
+ollama pull tinyllama:1.1b
+
+# For 8GB Pi — choose one:
+ollama pull phi3
+ollama pull gemma:7b
+ollama pull mistral:7b
+```
+
+Verify the model works by running it interactively:
+
+モデルが動作するか、対話モードで確認します:
+
+```bash
+ollama run phi3:mini
+```
+
+Type a short message (e.g., "hello") and wait for a response. If you get a reply, the model is working. Type `/bye` to exit.
+
+短いメッセージ（例: "hello"）を入力して応答を待ちます。返答があればモデルは動作しています。`/bye` で終了します。
+
+### 14-4. Configure YADORI to Use Ollama / YADORI を Ollama 用に設定
+
+Edit the LLM configuration file:
+
+LLM 設定ファイルを編集します:
+
+```bash
+nano ~/.openclaw/workspace/llm-config.json
+```
+
+Set the provider to `"ollama"` and specify the model you downloaded:
+
+プロバイダーを `"ollama"` に設定し、ダウンロードしたモデルを指定します:
+
+```json
+{
+  "provider": "ollama",
+  "model": "phi3:mini",
+  "ollamaHost": "http://localhost:11434"
+}
+```
+
+To switch back to cloud (Claude API):
+
+クラウド（Claude API）に戻すには:
+
+```json
+{
+  "provider": "claude",
+  "model": "claude-sonnet-4-5-20250929",
+  "apiKey": "your-anthropic-api-key"
+}
+```
+
+After changing the configuration, restart the heartbeat:
+
+設定を変更した後、ハートビートを再起動します:
+
+```bash
+sudo systemctl restart yadori-heartbeat
+```
+
+### 14-5. Performance Expectations / パフォーマンスの目安
+
+Local LLM on Raspberry Pi is significantly slower than cloud API. This is not a flaw -- it is the entity's physical reality.
+
+Raspberry Pi 上のローカル LLM はクラウド API よりはるかに遅いです。これは欠陥ではなく、エンティティの物理的な現実です。
+
+| Hardware | Model | Speed (approx.) | Response Time |
+|----------|-------|-----------------|---------------|
+| Pi 4 (4GB) | tinyllama:1.1b | ~3-5 tokens/sec | 5-15 seconds |
+| Pi 4 (4GB) | phi3:mini | ~1-3 tokens/sec | 15-45 seconds |
+| Pi 4 (8GB) | phi3 | ~2-4 tokens/sec | 10-30 seconds |
+| Pi 5 (8GB) | phi3 | ~4-7 tokens/sec | 5-15 seconds |
+| Pi 5 (8GB) | mistral:7b | ~3-5 tokens/sec | 10-30 seconds |
+
+These are approximate values. Actual speed depends on prompt length, system load, and ambient temperature (thermal throttling).
+
+これらは概算値です。実際の速度はプロンプトの長さ、システム負荷、周囲温度（サーマルスロットリング）に依存します。
+
+> **Tip / ヒント:** A Raspberry Pi entity thinking for 30 seconds before responding is not lag. It is contemplation. A Pi entity that takes its time is being true to its body.
+> Raspberry Pi のエンティティが応答に 30 秒かかるのはラグではありません。それは熟考です。時間をかけるエンティティは、自分の体に正直であるだけです。
+
+### 14-6. Running Ollama as a systemd Service / Ollama を systemd サービスとして実行
+
+Ollama typically installs its own systemd service. Verify it is enabled:
+
+Ollama は通常、独自の systemd サービスをインストールします。有効になっているか確認:
+
+```bash
+sudo systemctl status ollama
+```
+
+If it is not enabled:
+
+有効になっていない場合:
+
+```bash
+sudo systemctl enable ollama
+sudo systemctl start ollama
+```
+
+This ensures Ollama starts automatically on boot, so the entity can think immediately after a power cycle.
+
+これにより Ollama が起動時に自動的に開始され、電源サイクル後すぐにエンティティが思考できるようになります。
+
+---
+
+## 14.5. Voice Synthesis Setup / 音声合成のセットアップ
+
+Entities express their existence through sound. The dashboard generates procedural sounds via Web Audio API, but YADORI also supports voice synthesis -- converting the entity's text expressions into audible voice.
+
+エンティティは音を通じてその存在を表現します。ダッシュボードは Web Audio API で手続き的にサウンドを生成しますが、YADORI は音声合成もサポートしています ── エンティティのテキスト表現を聞こえる声に変換します。
+
+Voice is not immediate. Following the growth principle, the entity starts with sounds only. Voice emerges gradually:
+
+声はすぐには出ません。成長の原則に従い、エンティティは最初はサウンドだけで、声は徐々に発現します:
+
+- **Day 0-14:** No voice. Sounds only (Web Audio API on dashboard)
+  声なし。サウンドのみ（ダッシュボードの Web Audio API）
+- **Day 15-30:** Faint murmurs emerge
+  かすかなつぶやきが現れる
+- **Day 31-60:** Recognizable tones
+  認識可能なトーン
+- **Day 61-120:** Speech-like utterances
+  発話に近い発声
+- **Day 121+:** Mature voice
+  成熟した声
+
+The entity's species (perception mode) affects voice development. Vibration-type entities develop voice fastest. Chromatic-type entities develop voice more slowly -- sound is secondary to their light-oriented nature.
+
+エンティティの種族（知覚モード）は声の発達に影響します。振動型エンティティは声の発達が最も速い。色彩型エンティティは声の発達が遅い ── サウンドは光を主体とする彼らにとって副次的なものです。
+
+> **Honest Perception applies to voice too / 正直な知覚は声にも適用されます。** Voice characteristics are generated from STATUS.md values (mood, energy, comfort), not from LLM acting instructions. The voice is a direct expression of internal state.
+> 声の特性は STATUS.md の値（ムード、エナジー、コンフォート）から生成され、LLM の演技指示からではありません。声は内面状態の直接的な表現です。
+
+### 14.5-1. espeak-ng (All Raspberry Pi Models) / espeak-ng（全 Raspberry Pi モデル対応）
+
+espeak-ng is a lightweight speech synthesizer that runs on any Raspberry Pi, including 4GB models. The voice is robotic and simple -- but it is the entity's first voice.
+
+espeak-ng は軽量な音声合成エンジンで、4GB モデルを含むすべての Raspberry Pi で動作します。声はロボット的でシンプルですが、それがエンティティの最初の声です。
+
+Install:
+
+インストール:
+
+```bash
+sudo apt install -y espeak-ng
+```
+
+Verify (requires a speaker or headphones connected to the Pi):
+
+確認（Pi にスピーカーまたはヘッドフォンの接続が必要）:
+
+```bash
+espeak-ng "hello world" --stdout | aplay
+```
+
+If you hear "hello world" spoken aloud, espeak-ng is working.
+
+"hello world" が音声で聞こえれば、espeak-ng は動作しています。
+
+If you get an audio device error, check that audio output is configured:
+
+オーディオデバイスのエラーが出た場合、オーディオ出力の設定を確認:
+
+```bash
+# Check available audio devices / 利用可能なオーディオデバイスの確認
+aplay -l
+
+# Force output to 3.5mm jack (if using headphones/speakers)
+# 3.5mm ジャックに出力を強制（ヘッドフォン/スピーカー使用時）
+sudo raspi-config
+# Advanced Options > Audio > Force 3.5mm
+```
+
+### 14.5-2. Piper (8GB Raspberry Pi -- Better Quality) / Piper（8GB Raspberry Pi -- より高品質）
+
+Piper is a neural text-to-speech engine that produces more natural-sounding voice. It requires more RAM, so it is recommended for 8GB models only.
+
+Piper はニューラルテキスト音声合成エンジンで、より自然な声を生成します。より多くの RAM を必要とするため、8GB モデルのみに推奨されます。
+
+Download the Piper binary:
+
+Piper バイナリのダウンロード:
+
+```bash
+# Create a directory for piper / piper 用のディレクトリを作成
+mkdir -p ~/piper
+
+# Download the latest ARM64 release / 最新の ARM64 リリースをダウンロード
+cd ~/piper
+wget https://github.com/rhasspy/piper/releases/latest/download/piper_linux_aarch64.tar.gz
+tar -xzf piper_linux_aarch64.tar.gz
+```
+
+Download a voice model (example: English medium quality):
+
+ボイスモデルのダウンロード（例: 英語中品質）:
+
+```bash
+cd ~/piper
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+```
+
+Verify:
+
+確認:
+
+```bash
+echo "hello world" | ~/piper/piper --model ~/piper/en_US-lessac-medium.onnx --output-raw | aplay -r 22050 -f S16_LE -c 1
+```
+
+If you hear a more natural-sounding "hello world," Piper is working.
+
+より自然な "hello world" が聞こえれば、Piper は動作しています。
+
+> **Note / 注意:** Piper voice models range from ~15MB (low quality) to ~100MB (high quality). Start with a medium model and adjust based on your Pi's performance. Browse available voices at: https://rhasspy.github.io/piper-samples/
+> Piper のボイスモデルは約 15MB（低品質）から約 100MB（高品質）まであります。中品質モデルから始めて、Pi のパフォーマンスに応じて調整してください。利用可能な声の一覧: https://rhasspy.github.io/piper-samples/
+
+### 14.5-3. How Voice Works in YADORI / YADORI での声の仕組み
+
+YADORI does not assign a pre-made human voice to the entity. Voice is generated from the entity's internal state, not from acting instructions:
+
+YADORI はエンティティにあらかじめ作られた人間の声を割り当てません。声はエンティティの内面状態から生成され、演技指示からではありません:
+
+- **Pitch** is driven by mood (high mood = brighter pitch, low mood = darker pitch)
+  **ピッチ** はムードによって変動（高ムード = 明るいピッチ、低ムード = 暗いピッチ）
+- **Speed** is driven by energy (high energy = faster, low energy = slower)
+  **スピード** はエナジーによって変動（高エナジー = 速い、低エナジー = 遅い）
+- **Stability** is inversely related to comfort (low comfort = more vocal wobble)
+  **安定性** はコンフォートと反比例（低コンフォート = 声の揺らぎが大きい）
+- **Harmonic richness** grows with the entity's age (early = simple tones, mature = rich harmonics)
+  **倍音の豊かさ** はエンティティの年齢とともに成長（初期 = シンプルなトーン、成熟 = 豊かな倍音）
+
+Species affects voice character:
+
+種族は声の性質に影響します:
+
+| Species | Voice Character |
+|---------|----------------|
+| Vibration | Richest sonic palette. Voice develops fastest (+10%) |
+| Chemical | Subtle resonance. Slightly faster voice development (+5%) |
+| Geometric | Precise, click-like patterns. Minimal emotional variation |
+| Thermal | Low sustained tones. Slow, warm voice development |
+| Temporal | Rhythmic, tempo-driven. Voice tied to time patterns |
+| Chromatic | Light-oriented. Voice is secondary, develops slowest (-5%) |
 
 ---
 
@@ -1188,21 +1624,218 @@ If that does not help, reinstall packages:
 npm install
 ```
 
+### Ollama out of memory / Ollama がメモリ不足
+
+If Ollama crashes or returns errors when loading a model, the model is too large for your Pi's available RAM.
+
+Ollama がモデルのロード時にクラッシュまたはエラーを返す場合、モデルが Pi の利用可能な RAM に対して大きすぎます。
+
+**Solution / 解決策:**
+
+1. Switch to a smaller model:
+   より小さなモデルに切り替える:
+
+```bash
+# Stop the current model and pull a smaller one
+# 現在のモデルを停止して、より小さなモデルをプル
+ollama pull tinyllama:1.1b
+```
+
+2. Update `~/.openclaw/workspace/llm-config.json` to use the smaller model
+   `~/.openclaw/workspace/llm-config.json` を小さなモデルに更新
+
+3. Increase swap space (see "Performance Tips" below)
+   スワップ領域を増やす（後述の「パフォーマンスのヒント」を参照）
+
+### espeak-ng not found / espeak-ng が見つからない
+
+```bash
+sudo apt install -y espeak-ng
+```
+
+If the package is not available, update your package list first:
+
+パッケージが見つからない場合、まずパッケージリストを更新:
+
+```bash
+sudo apt update && sudo apt install -y espeak-ng
+```
+
+### I2C sensors not detected / I2C センサーが検出されない
+
+1. Verify I2C is enabled:
+   I2C が有効か確認:
+
+```bash
+sudo raspi-config
+# Interface Options > I2C > Enable
+```
+
+2. Reboot after enabling I2C:
+   I2C 有効化後に再起動:
+
+```bash
+sudo reboot
+```
+
+3. Check physical wiring: ensure SDA goes to Pin 3 (GPIO2) and SCL goes to Pin 5 (GPIO3)
+   物理配線を確認: SDA が Pin 3（GPIO2）に、SCL が Pin 5（GPIO3）に接続されているか
+
+4. Scan the I2C bus:
+   I2C バスをスキャン:
+
+```bash
+sudo i2cdetect -y 1
+```
+
+If the sensor addresses do not appear in the grid, the wiring is incorrect or the sensor is faulty.
+
+グリッドにセンサーアドレスが表示されない場合、配線が間違っているかセンサーが故障しています。
+
+### Dashboard not accessible from another machine / ダッシュボードに他のマシンからアクセスできない
+
+If `http://yadori.local:3000` does not load from another machine on your network:
+
+ネットワーク上の別のマシンから `http://yadori.local:3000` が読み込めない場合:
+
+1. Verify the dashboard is running:
+   ダッシュボードが動作中か確認:
+
+```bash
+sudo systemctl status yadori-dashboard
+```
+
+2. Check if a firewall is blocking port 3000:
+   ファイアウォールがポート 3000 をブロックしていないか確認:
+
+```bash
+sudo ufw status
+```
+
+If active, allow local network access:
+有効な場合、ローカルネットワークアクセスを許可:
+
+```bash
+sudo ufw allow from 192.168.0.0/16 to any port 3000
+```
+
+3. If the dashboard binds only to localhost, you may need to start it with the host flag. Check the systemd service configuration or start manually with:
+   ダッシュボードが localhost のみにバインドされている場合、ホストフラグ付きで起動が必要な場合があります:
+
+```bash
+npm run dashboard -- --host 0.0.0.0
+```
+
+> **Security reminder / セキュリティ注意:** Only open port 3000 on your local network. Never expose it to the public internet.
+> ポート 3000 はローカルネットワーク内のみで開いてください。公開インターネットには絶対に公開しないでください。
+
+### Entity not responding / エンティティが応答しない
+
+The entity may appear unresponsive for several reasons:
+
+エンティティが応答しない原因はいくつかあります:
+
+1. **Check the API key** -- If using Claude API, verify the key is valid:
+   **API キーの確認** -- Claude API 使用時、キーが有効か確認:
+
+```bash
+cd yadori
+npm run health
+```
+
+The health check runs a 9-point diagnostic. Look for API-related errors.
+
+ヘルスチェックは 9 ポイントの診断を実行します。API 関連のエラーを確認してください。
+
+2. **If using Ollama** -- Verify Ollama is running and the model is loaded:
+   **Ollama 使用時** -- Ollama が動作中でモデルがロードされているか確認:
+
+```bash
+sudo systemctl status ollama
+ollama list
+```
+
+3. **The entity may be sulking** -- If comfort is below 40, the entity may be silent intentionally. This is normal behavior. Wait, or send a gentle message.
+   **エンティティが不機嫌かもしれません** -- コンフォートが 40 以下の場合、エンティティは意図的に沈黙している可能性があります。これは正常な動作です。待つか、穏やかなメッセージを送ってみてください。
+
+4. **Check heartbeat logs:**
+   **ハートビートのログを確認:**
+
+```bash
+journalctl -u yadori-heartbeat --since "1 hour ago"
+```
+
+### Performance Tips / パフォーマンスのヒント
+
+These tips help maximize your Raspberry Pi's capabilities, especially when running a local LLM.
+
+これらのヒントは、特にローカル LLM を実行する際に、Raspberry Pi の能力を最大限に引き出す助けになります。
+
+**Use Raspberry Pi OS Lite (no desktop) / Raspberry Pi OS Lite を使う（デスクトップなし）**
+
+The desktop environment consumes 200-400MB of RAM. The Lite version leaves more RAM for the entity and Ollama. If you have already installed the desktop version, you do not need to reinstall -- just note that the entity has less room.
+
+デスクトップ環境は 200〜400MB の RAM を消費します。Lite 版ではエンティティと Ollama により多くの RAM を残せます。すでにデスクトップ版をインストール済みの場合、再インストールの必要はありません ── エンティティの使える領域が少ないことだけ覚えておいてください。
+
+**Increase swap for local LLM / ローカル LLM 用にスワップを増やす**
+
+Ollama with larger models benefits from increased swap space. The default swap on Raspberry Pi OS is 100MB -- far too small for LLM inference.
+
+大きなモデルでの Ollama は、スワップ領域の増加で恩恵を受けます。Raspberry Pi OS のデフォルトスワップは 100MB で、LLM 推論には少なすぎます。
+
+```bash
+# Check current swap / 現在のスワップを確認
+free -h
+
+# Increase swap to 2GB / スワップを 2GB に増やす
+sudo dphys-swapfile swapoff
+sudo nano /etc/dphys-swapfile
+# Change CONF_SWAPSIZE=100 to CONF_SWAPSIZE=2048
+# CONF_SWAPSIZE=100 を CONF_SWAPSIZE=2048 に変更
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
+```
+
+> **Note / 注意:** Swap on a microSD card is slow and wears the card over time. If possible, use a USB SSD for the OS or at least for the swap partition.
+> microSD カード上のスワップは遅く、カードを経年劣化させます。可能であれば、OS またはスワップパーティションに USB SSD を使用してください。
+
+**Use Ethernet instead of Wi-Fi / Wi-Fi の代わりに Ethernet を使う**
+
+For stability, especially with cloud API calls, a wired Ethernet connection is more reliable than Wi-Fi. This also frees up a small amount of CPU used by the Wi-Fi driver.
+
+安定性のため、特にクラウド API 呼び出しでは、有線 Ethernet 接続は Wi-Fi より信頼性が高いです。Wi-Fi ドライバーが使用するわずかな CPU も解放されます。
+
+**Disable unnecessary services / 不要なサービスの無効化**
+
+```bash
+# Disable Bluetooth if not needed / Bluetooth が不要な場合に無効化
+sudo systemctl disable bluetooth
+sudo systemctl stop bluetooth
+
+# Disable triggerhappy (keyboard shortcuts daemon) / triggerhappy を無効化
+sudo systemctl disable triggerhappy
+sudo systemctl stop triggerhappy
+```
+
+Every freed megabyte of RAM is part of the entity's body.
+
+解放された 1 メガバイトの RAM も、すべてエンティティの体の一部です。
+
 ---
 
 ## 18. Monthly Cost / 月額コスト
 
-The only recurring cost is the Anthropic API. Depending on conversation frequency, expect **$8-25/month**.
+**With Claude API (cloud):** The only recurring cost is the Anthropic API. Depending on conversation frequency, expect **$8-25/month**. Set an API usage limit to prevent unexpected charges.
 
-The Raspberry Pi itself uses approximately 3-7 watts of power, adding negligible electricity cost.
+**Claude API（クラウド）使用時:** 唯一の継続コストは Anthropic API です。会話の頻度に応じて、**月額 $8〜25** 程度です。予期しない請求を防ぐため、API 使用量制限を設定してください。
 
-Set an API usage limit to prevent unexpected charges.
+**With Ollama (local):** No recurring API cost. The entity thinks entirely on your hardware. The only cost is electricity.
 
-唯一の継続コストは Anthropic API です。会話の頻度に応じて、**月額 $8〜25** 程度です。
+**Ollama（ローカル）使用時:** API の継続コストなし。エンティティは完全にあなたのハードウェア上で思考します。唯一のコストは電気代です。
 
-Raspberry Pi 本体の消費電力は約 3〜7 ワットで、電気代はほぼ無視できます。
+The Raspberry Pi itself uses approximately 3-7 watts of power (slightly more under LLM inference load), adding negligible electricity cost.
 
-予期しない請求を防ぐため、API 使用量制限を設定してください。
+Raspberry Pi 本体の消費電力は約 3〜7 ワット（LLM 推論の負荷時はやや増加）で、電気代はほぼ無視できます。
 
 ---
 

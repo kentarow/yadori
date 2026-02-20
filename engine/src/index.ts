@@ -259,7 +259,7 @@ export {
   type CoexistContext,
 } from "./dynamics/coexist-engine.js";
 
-// LLM Adapter (interface only — implementation future)
+// LLM Adapter
 export {
   estimateLocalModelCapacity,
   type LLMAdapter,
@@ -272,7 +272,15 @@ export {
   type LLMHealthStatus,
 } from "./llm/llm-adapter.js";
 
-// Voice Adapter (interface only — Phase 4 preparation)
+export { createClaudeAdapter, ClaudeAdapterError } from "./llm/claude-adapter.js";
+export { createOllamaAdapter } from "./llm/ollama-adapter.js";
+export {
+  createLLMAdapter,
+  detectRecommendedConfig,
+  validateConfig,
+} from "./llm/llm-factory.js";
+
+// Voice Adapter
 export {
   computeVoiceMaturity,
   estimateLocalVoiceCapacity,
@@ -283,3 +291,25 @@ export {
   type VoiceAdapter,
   type LocalVoiceCapacity,
 } from "./voice/voice-adapter.js";
+
+export { createEspeakAdapter } from "./voice/espeak-adapter.js";
+export { createPiperAdapter } from "./voice/piper-adapter.js";
+export {
+  SPECIES_VOICE_PROFILES,
+  computeVoiceParams,
+  type SpeciesVoiceProfile,
+  type ComputedVoiceParams,
+} from "./voice/voice-params.js";
+export {
+  createVoiceAdapter,
+  NoneVoiceAdapter,
+  type VoiceFactoryOptions,
+} from "./voice/voice-factory.js";
+
+// Perception Pipeline (unified)
+export {
+  processPerceptionPipeline,
+  describePerceptionState,
+  type PerceptionPipelineInput,
+  type PerceptionPipelineOutput,
+} from "./perception/perception-pipeline.js";

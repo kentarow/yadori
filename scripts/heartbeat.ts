@@ -41,7 +41,12 @@ import { createAllDrivers, type AllDriversConfig } from "../adapters/src/sensors
 import type { PerceptionMode } from "../engine/src/types.js";
 import { PerceptionLevel } from "../engine/src/types.js";
 import { generateSnapshot } from "../engine/src/identity/snapshot-generator.js";
-import { sendWebhookMessage } from "../adapters/src/discord/webhook.js";
+import {
+  loadMessengerConfig,
+  isMessengerConfigured,
+  sendMessage,
+  type MessengerConfig,
+} from "../adapters/src/messenger.js";
 import {
   generateHeartbeatMessages,
   generateEveningReflection,
@@ -188,23 +193,24 @@ async function updatePerception(): Promise<void> {
   }
 }
 
-// --- Daily snapshot ---
+// --- Messenger (Discord + Telegram) ---
 
-async function loadWebhookUrl(): Promise<string | null> {
-  if (process.env.YADORI_DISCORD_WEBHOOK) {
-    return process.env.YADORI_DISCORD_WEBHOOK;
+let messengerConfig: MessengerConfig | null = null;
+
+async function initMessenger(): Promise<void> {
+  messengerConfig = await loadMessengerConfig(WORKSPACE_ROOT);
+  if (isMessengerConfigured(messengerConfig)) {
+    const platforms: string[] = [];
+    if (messengerConfig.discord) platforms.push("Discord");
+    if (messengerConfig.telegram) platforms.push("Telegram");
+    log(`Messenger: ${platforms.join(" + ")}`);
+  } else {
+    log("No messaging configured — run npm run setup-webhook to enable proactive messages");
   }
-  try {
-    const content = await readFile(join(WORKSPACE_ROOT, "webhook.json"), "utf-8");
-    const config = JSON.parse(content);
-    if (config.discord) return config.discord as string;
-  } catch { /* no config */ }
-  return null;
 }
 
 async function sendDailySnapshot(state: EntityState): Promise<void> {
-  const webhookUrl = await loadWebhookUrl();
-  if (!webhookUrl) return; // Webhook not configured — skip silently
+  if (!messengerConfig || !isMessengerConfigured(messengerConfig)) return;
 
   try {
     const { seed, status, form } = state;
@@ -222,16 +228,19 @@ async function sendDailySnapshot(state: EntityState): Promise<void> {
     const caption = `mood ${moodBar} ${status.mood}  energy ${energyBar} ${status.energy}  day ${status.growthDay}`;
 
     const dateStr = new Date().toISOString().split("T")[0];
-    const result = await sendWebhookMessage(webhookUrl, {
+    const result = await sendMessage(messengerConfig, {
       content: caption,
       image: png,
       filename: `yadori-${dateStr}.png`,
     });
 
     if (result.success) {
-      log("Daily snapshot sent to Discord");
+      log("Daily snapshot sent");
     } else {
-      log(`Snapshot send failed: ${result.error}`);
+      const errors: string[] = [];
+      if (result.discord?.error) errors.push(`Discord: ${result.discord.error}`);
+      if (result.telegram?.error) errors.push(`Telegram: ${result.telegram.error}`);
+      log(`Snapshot send failed: ${errors.join(", ")}`);
     }
   } catch (err) {
     log(`Snapshot error: ${(err as Error).message}`);
@@ -306,8 +315,7 @@ async function tick(): Promise<void> {
     );
 
     // --- Proactive messaging ---
-    const webhookUrl = await loadWebhookUrl();
-    if (webhookUrl && heartbeatMessageState) {
+    if (messengerConfig && isMessengerConfigured(messengerConfig) && heartbeatMessageState) {
       const lastInteractionTime = updatedState.status.lastInteraction;
       const minutesSince = lastInteractionTime === "never"
         ? 999
@@ -330,7 +338,7 @@ async function tick(): Promise<void> {
       );
 
       for (const msg of messages) {
-        const sendResult = await sendWebhookMessage(webhookUrl, { content: msg.content });
+        const sendResult = await sendMessage(messengerConfig, { content: msg.content });
         if (sendResult.success) {
           log(`Message sent (${msg.trigger}): ${msg.content}`);
         }
@@ -350,7 +358,7 @@ async function tick(): Promise<void> {
       log(`Diary written: ${result.diary.date}`);
 
       // Send evening reflection message alongside diary
-      if (webhookUrl && heartbeatMessageState) {
+      if (messengerConfig && isMessengerConfigured(messengerConfig) && heartbeatMessageState) {
         const msgContext: HeartbeatMessageContext = {
           seed: updatedState.seed,
           status: updatedState.status,
@@ -366,7 +374,7 @@ async function tick(): Promise<void> {
           msgContext, heartbeatMessageState, now,
         );
         if (message) {
-          const sendResult = await sendWebhookMessage(webhookUrl, { content: message.content });
+          const sendResult = await sendMessage(messengerConfig, { content: message.content });
           if (sendResult.success) {
             log(`Message sent (${message.trigger}): ${message.content}`);
           }
@@ -437,6 +445,9 @@ async function main() {
     log(`Sensor init warning: ${(err as Error).message}`);
     // Continue without sensors — entity still works
   }
+
+  // Initialize messenger (Discord + Telegram)
+  await initMessenger();
 
   // Initialize proactive messaging state
   heartbeatMessageState = await loadHeartbeatMessageState(new Date());

@@ -46,7 +46,11 @@ The entity gains full relationship dynamics, reversal detection, and the dashboa
 
 #### Quality
 - **Species coverage test** — 65 tests verifying all 6 species across entire engine
-- 43 test suites, 875+ tests
+- **75 test suites, 2500+ tests** — comprehensive coverage across all modules
+  - Engine core: status manager, mood/sulk, memory, growth, diary, rhythm, form, language, perception, expression, dynamics
+  - Adapters: workspace manager, Discord webhook/bot-profile, sensors, OpenClaw integration
+  - E2E: heartbeat lifecycle, interaction processing, first encounter, backup/restore, health check, setup/deploy, dynamics integration, form evolution, memory consolidation, language acquisition, sulk/mood, rhythm cycle
+  - Visual: dashboard API server (75 endpoint tests), parsers, snapshot PNG generation, sound parameters
 - Heartbeat error recovery with auto-retry
 - Workspace manager support for DYNAMICS/REVERSALS/COEXIST
 

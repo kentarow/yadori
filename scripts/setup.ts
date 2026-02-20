@@ -207,6 +207,48 @@ const messages = {
     en: "  Apply now? [y/N]: ",
     ja: "  今すぐ適用しますか？ [y/N]: ",
   },
+  snapshot_prompt: {
+    en: [
+      "  ── Daily Snapshot ───────────────────────────",
+      "",
+      "  Your entity can send a snapshot image to Discord every evening.",
+      "  This lets you see how it's doing from your phone,",
+      "  even when you're away from the Mac mini.",
+      "",
+      "  To set this up, you need a Discord Webhook URL.",
+      "  (Channel Settings → Integrations → Webhooks → New Webhook → Copy URL)",
+      "",
+      "  You can also set this up later with: npm run setup-webhook",
+    ],
+    ja: [
+      "  ── デイリースナップショット ──────────────────",
+      "",
+      "  毎晩、エンティティのスナップショット画像を",
+      "  Discord チャンネルに自動送信できます。",
+      "  Mac mini の前にいなくても、スマホからその日の姿を確認できます。",
+      "",
+      "  設定には Discord の Webhook URL が必要です。",
+      "  （チャンネル設定 → 連携サービス → ウェブフック → 新しいウェブフック → URL をコピー）",
+      "",
+      "  あとからでも設定可能: npm run setup-webhook",
+    ],
+  },
+  snapshot_ask: {
+    en: "  Set up now? [y/N]: ",
+    ja: "  今すぐ設定しますか？ [y/N]: ",
+  },
+  snapshot_url_ask: {
+    en: "  Discord Webhook URL: ",
+    ja: "  Discord Webhook URL: ",
+  },
+  snapshot_saved: {
+    en: "  ✓ Webhook configured. Snapshots will be sent each evening.",
+    ja: "  ✓ Webhook を設定しました。毎晩スナップショットが送信されます。",
+  },
+  snapshot_invalid: {
+    en: "  ✗ Invalid URL. Skipping. You can set this up later with: npm run setup-webhook",
+    ja: "  ✗ URL が正しくありません。スキップします。あとから設定可能: npm run setup-webhook",
+  },
   setup_failed: {
     en: "Setup failed:",
     ja: "セットアップに失敗しました:",
@@ -493,7 +535,25 @@ async function main() {
     await applyIdentity();
   }
 
-  // Step 8: Done
+  // Step 8: Daily snapshot webhook (optional)
+  print("");
+  for (const line of t("snapshot_prompt") as readonly string[]) {
+    print(line);
+  }
+  print("");
+  const snapshotConfirm = await ask(t("snapshot_ask") as string);
+  if (snapshotConfirm.toLowerCase() === "y") {
+    const webhookUrl = await ask(t("snapshot_url_ask") as string);
+    if (webhookUrl.startsWith("https://discord.com/api/webhooks/")) {
+      const webhookConfig = JSON.stringify({ discord: webhookUrl }, null, 2);
+      await writeFile(join(WORKSPACE_ROOT, "webhook.json"), webhookConfig, "utf-8");
+      print(t("snapshot_saved") as string);
+    } else {
+      print(t("snapshot_invalid") as string);
+    }
+  }
+
+  // Step 9: Done
   printNextSteps();
 
   rl.close();

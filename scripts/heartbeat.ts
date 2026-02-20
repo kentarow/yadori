@@ -40,6 +40,8 @@ import { recordSensoryInput } from "../engine/src/perception/perception-growth.j
 import { createAllDrivers, type AllDriversConfig } from "../adapters/src/sensors/create-all.js";
 import type { PerceptionMode } from "../engine/src/types.js";
 import { PerceptionLevel } from "../engine/src/types.js";
+import { generateSnapshot } from "../engine/src/identity/snapshot-generator.js";
+import { sendWebhookMessage } from "../adapters/src/discord/webhook.js";
 
 // --- Config ---
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
@@ -158,6 +160,56 @@ async function updatePerception(): Promise<void> {
   }
 }
 
+// --- Daily snapshot ---
+
+async function loadWebhookUrl(): Promise<string | null> {
+  if (process.env.YADORI_DISCORD_WEBHOOK) {
+    return process.env.YADORI_DISCORD_WEBHOOK;
+  }
+  try {
+    const content = await readFile(join(WORKSPACE_ROOT, "webhook.json"), "utf-8");
+    const config = JSON.parse(content);
+    if (config.discord) return config.discord as string;
+  } catch { /* no config */ }
+  return null;
+}
+
+async function sendDailySnapshot(state: EntityState): Promise<void> {
+  const webhookUrl = await loadWebhookUrl();
+  if (!webhookUrl) return; // Webhook not configured — skip silently
+
+  try {
+    const { seed, status, form } = state;
+    const png = generateSnapshot(seed.perception, seed.form, {
+      mood: status.mood,
+      energy: status.energy,
+      curiosity: status.curiosity,
+      comfort: status.comfort,
+      density: form.density,
+      complexity: form.complexity,
+    });
+
+    const moodBar = "●".repeat(Math.round(status.mood / 10)) + "○".repeat(10 - Math.round(status.mood / 10));
+    const energyBar = "●".repeat(Math.round(status.energy / 10)) + "○".repeat(10 - Math.round(status.energy / 10));
+    const caption = `mood ${moodBar} ${status.mood}  energy ${energyBar} ${status.energy}  day ${status.growthDay}`;
+
+    const dateStr = new Date().toISOString().split("T")[0];
+    const result = await sendWebhookMessage(webhookUrl, {
+      content: caption,
+      image: png,
+      filename: `yadori-${dateStr}.png`,
+    });
+
+    if (result.success) {
+      log("Daily snapshot sent to Discord");
+    } else {
+      log(`Snapshot send failed: ${result.error}`);
+    }
+  } catch (err) {
+    log(`Snapshot error: ${(err as Error).message}`);
+  }
+}
+
 // --- Logging ---
 
 function log(msg: string) {
@@ -225,11 +277,14 @@ async function tick(): Promise<void> {
       `Heartbeat — mood:${s.mood} energy:${s.energy} curiosity:${s.curiosity} comfort:${s.comfort} day:${s.growthDay} perception:${s.perceptionLevel}`,
     );
 
-    // Write diary if generated
+    // Write diary if generated (evening)
     if (result.diary) {
       const diaryPath = join(WORKSPACE_ROOT, "diary", `${result.diary.date}.md`);
       await writeFile(diaryPath, formatDiaryMd(result.diary), "utf-8");
       log(`Diary written: ${result.diary.date}`);
+
+      // Send daily snapshot alongside diary (same evening timing)
+      await sendDailySnapshot(updatedState);
     }
 
     // Update SOUL_EVIL.md if sulking

@@ -292,6 +292,155 @@
     body:hover #senses-toggle { opacity: 0.3; }
     #senses-toggle:hover { opacity: 0.6 !important; }
     #senses-toggle svg { width: 24px; height: 24px; }
+
+    /* Diary Panel (bottom-left slide-up) */
+    #diary-panel {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 340px;
+      max-height: 60vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #diary-panel.open { transform: translateY(0); }
+    #diary-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .diary-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .diary-nav-btn {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 14px;
+      padding: 2px 10px;
+      cursor: pointer;
+      font-family: monospace;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .diary-nav-btn:hover {
+      color: rgba(255, 255, 255, 0.7);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .diary-nav-btn:disabled {
+      opacity: 0.2;
+      cursor: default;
+    }
+    .diary-date {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .diary-body {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.55);
+      font-family: 'Courier New', monospace;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .diary-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #diary-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 60px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #diary-toggle { opacity: 0.3; }
+    #diary-toggle:hover { opacity: 0.6 !important; }
+    #diary-toggle svg { width: 24px; height: 24px; }
+
+    /* Error Log Panel (bottom-right slide-up) */
+    #errorlog-panel {
+      position: fixed;
+      bottom: 0; right: 0;
+      width: 380px;
+      max-height: 50vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #errorlog-panel.open { transform: translateY(0); }
+    #errorlog-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .log-entry {
+      margin-bottom: 8px;
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+      line-height: 1.5;
+    }
+    .log-entry-time {
+      color: rgba(255, 255, 255, 0.2);
+    }
+    .log-entry-level {
+      font-weight: bold;
+      margin: 0 4px;
+    }
+    .log-entry-level.ERROR { color: rgba(255, 80, 80, 0.7); }
+    .log-entry-level.WARN  { color: rgba(255, 200, 80, 0.7); }
+    .log-entry-level.INFO  { color: rgba(100, 200, 255, 0.4); }
+    .log-entry-msg {
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .errorlog-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #errorlog-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 60px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #errorlog-toggle { opacity: 0.3; }
+    #errorlog-toggle:hover { opacity: 0.6 !important; }
+    #errorlog-toggle svg { width: 24px; height: 24px; }
   </style>
 </head>
 <body>
@@ -322,6 +471,31 @@
     <h2>Senses</h2>
     <div id="senses-content"><span class="sense-empty">· · ·</span></div>
   </div>
+  <div id="diary-toggle" title="Diary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+      <line x1="8" y1="7" x2="16" y2="7"/>
+      <line x1="8" y1="11" x2="13" y2="11"/>
+    </svg>
+  </div>
+  <div id="diary-panel">
+    <h2>Diary</h2>
+    <div id="diary-content"><span class="diary-empty">No entries yet.</span></div>
+  </div>
+
+  <div id="errorlog-toggle" title="System Log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <path d="M12 9v4"/>
+      <circle cx="12" cy="16" r="0.5" fill="rgba(255,255,255,0.6)"/>
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    </svg>
+  </div>
+  <div id="errorlog-panel">
+    <h2>System Log</h2>
+    <div id="errorlog-content"><span class="errorlog-empty">No log entries.</span></div>
+  </div>
+
   <div id="sound-toggle" class="muted" title="Toggle sound">
     <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
       <path d="M11 5L6 9H2v6h4l5 4V5z"/>
@@ -1644,6 +1818,120 @@
         fetchPerception();
       }
     }, 5000);
+
+    // --- Diary Panel ---
+    const diaryToggle = document.getElementById('diary-toggle');
+    const diaryPanel = document.getElementById('diary-panel');
+    const diaryContent = document.getElementById('diary-content');
+    let diaryDates = [];
+    let diaryIndex = 0; // index into diaryDates (0 = newest)
+
+    diaryToggle.addEventListener('click', () => {
+      diaryPanel.classList.toggle('open');
+      if (diaryPanel.classList.contains('open')) {
+        fetchDiaryList();
+      }
+    });
+
+    async function fetchDiaryList() {
+      try {
+        const res = await fetch('/api/diary');
+        if (!res.ok) return;
+        const d = await res.json();
+        diaryDates = d.dates || [];
+        diaryIndex = 0;
+        if (diaryDates.length > 0) {
+          fetchDiaryEntry(diaryDates[0]);
+        } else {
+          diaryContent.innerHTML = '<span class="diary-empty">No entries yet.</span>';
+        }
+      } catch {
+        diaryContent.innerHTML = '<span class="diary-empty">· · ·</span>';
+      }
+    }
+
+    async function fetchDiaryEntry(date) {
+      try {
+        const res = await fetch(`/api/diary?date=${date}`);
+        if (!res.ok) {
+          diaryContent.innerHTML = '<span class="diary-empty">No entry for this date.</span>';
+          return;
+        }
+        const d = await res.json();
+
+        // Strip markdown headings for cleaner display, keep the raw symbol content
+        const body = (d.content || '')
+          .replace(/^# .+$/gm, '')
+          .replace(/^## .+$/gm, '')
+          .replace(/<!-- .+ -->/g, '')
+          .trim();
+
+        const hasPrev = diaryIndex < diaryDates.length - 1;
+        const hasNext = diaryIndex > 0;
+
+        diaryContent.innerHTML = `
+          <div class="diary-nav">
+            <button class="diary-nav-btn" id="diary-prev" ${hasPrev ? '' : 'disabled'}>&larr;</button>
+            <span class="diary-date">${escapeHtml(date)}</span>
+            <button class="diary-nav-btn" id="diary-next" ${hasNext ? '' : 'disabled'}>&rarr;</button>
+          </div>
+          <div class="diary-body">${escapeHtml(body) || '<span class="diary-empty">Empty entry.</span>'}</div>
+        `;
+
+        document.getElementById('diary-prev')?.addEventListener('click', () => {
+          if (diaryIndex < diaryDates.length - 1) {
+            diaryIndex++;
+            fetchDiaryEntry(diaryDates[diaryIndex]);
+          }
+        });
+        document.getElementById('diary-next')?.addEventListener('click', () => {
+          if (diaryIndex > 0) {
+            diaryIndex--;
+            fetchDiaryEntry(diaryDates[diaryIndex]);
+          }
+        });
+      } catch {
+        diaryContent.innerHTML = '<span class="diary-empty">Failed to load diary.</span>';
+      }
+    }
+
+    // --- Error Log Panel ---
+    const errorlogToggle = document.getElementById('errorlog-toggle');
+    const errorlogPanel = document.getElementById('errorlog-panel');
+    const errorlogContent = document.getElementById('errorlog-content');
+
+    errorlogToggle.addEventListener('click', () => {
+      errorlogPanel.classList.toggle('open');
+      if (errorlogPanel.classList.contains('open')) {
+        fetchErrorLog();
+      }
+    });
+
+    async function fetchErrorLog() {
+      try {
+        const res = await fetch('/api/logs?limit=50');
+        if (!res.ok) return;
+        const d = await res.json();
+        const entries = d.entries || [];
+        if (entries.length === 0) {
+          errorlogContent.innerHTML = '<span class="errorlog-empty">No log entries.</span>';
+          return;
+        }
+        errorlogContent.innerHTML = entries.map(e => {
+          const time = e.timestamp ? e.timestamp.replace('T', ' ').slice(0, 19) : '—';
+          return `<div class="log-entry"><span class="log-entry-time">${escapeHtml(time)}</span><span class="log-entry-level ${escapeHtml(e.level)}">${escapeHtml(e.level)}</span><span class="log-entry-msg">${escapeHtml(e.message)}</span></div>`;
+        }).join('');
+      } catch {
+        errorlogContent.innerHTML = '<span class="errorlog-empty">· · ·</span>';
+      }
+    }
+
+    // Auto-refresh error log when panel is open
+    setInterval(() => {
+      if (errorlogPanel.classList.contains('open')) {
+        fetchErrorLog();
+      }
+    }, 10000);
 
     async function fetchCoexistenceLog() {
       try {

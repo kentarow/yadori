@@ -23,7 +23,7 @@ import {
   serializeState,
   type EntityState,
 } from "../engine/src/status/status-manager.js";
-import { isActiveHours, shouldPulse } from "../engine/src/rhythm/rhythm-system.js";
+import { isActiveHours, shouldPulse, getTimeOfDay } from "../engine/src/rhythm/rhythm-system.js";
 import { formatDiaryMd } from "../engine/src/diary/diary-engine.js";
 import { formatColdMemoryMd } from "../engine/src/memory/memory-engine.js";
 import {
@@ -42,6 +42,15 @@ import type { PerceptionMode } from "../engine/src/types.js";
 import { PerceptionLevel } from "../engine/src/types.js";
 import { generateSnapshot } from "../engine/src/identity/snapshot-generator.js";
 import { sendWebhookMessage } from "../adapters/src/discord/webhook.js";
+import {
+  generateHeartbeatMessages,
+  generateEveningReflection,
+  createInitialMessageState,
+  type HeartbeatMessageContext,
+  type HeartbeatMessageState,
+} from "../engine/src/expression/heartbeat-messages.js";
+import type { SulkState } from "../engine/src/mood/sulk-engine.js";
+import type { Status } from "../engine/src/types.js";
 
 // --- Config ---
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
@@ -58,6 +67,25 @@ let encounteredModalities = new Set<string>();
 let sensorService: SensorServiceState | null = null;
 let entitySpecies: PerceptionMode = "chromatic";
 let entityPerceptionLevel: PerceptionLevel = PerceptionLevel.Minimal;
+
+// --- Proactive messaging state ---
+let heartbeatMessageState: HeartbeatMessageState | null = null;
+let previousStatus: Status | null = null;
+let previousSulk: SulkState | null = null;
+const HEARTBEAT_MSG_STATE_PATH = join(WORKSPACE_ROOT, "heartbeat-messages.json");
+
+async function loadHeartbeatMessageState(now: Date): Promise<HeartbeatMessageState> {
+  try {
+    const content = await readFile(HEARTBEAT_MSG_STATE_PATH, "utf-8");
+    return JSON.parse(content) as HeartbeatMessageState;
+  } catch {
+    return createInitialMessageState(now);
+  }
+}
+
+async function saveHeartbeatMessageState(state: HeartbeatMessageState): Promise<void> {
+  await writeFile(HEARTBEAT_MSG_STATE_PATH, JSON.stringify(state, null, 2), "utf-8");
+}
 
 // --- State persistence ---
 
@@ -277,11 +305,75 @@ async function tick(): Promise<void> {
       `Heartbeat — mood:${s.mood} energy:${s.energy} curiosity:${s.curiosity} comfort:${s.comfort} day:${s.growthDay} perception:${s.perceptionLevel}`,
     );
 
+    // --- Proactive messaging ---
+    const webhookUrl = await loadWebhookUrl();
+    if (webhookUrl && heartbeatMessageState) {
+      const lastInteractionTime = updatedState.status.lastInteraction;
+      const minutesSince = lastInteractionTime === "never"
+        ? 999
+        : (now.getTime() - new Date(lastInteractionTime).getTime()) / 60_000;
+
+      const msgContext: HeartbeatMessageContext = {
+        seed: updatedState.seed,
+        status: updatedState.status,
+        language: updatedState.language,
+        sulk: updatedState.sulk,
+        timeOfDay: getTimeOfDay(now),
+        hourOfDay: now.getHours(),
+        minutesSinceLastInteraction: minutesSince,
+        previousStatus,
+        previousSulk,
+      };
+
+      const { messages, updatedMessageState } = generateHeartbeatMessages(
+        msgContext, heartbeatMessageState, now,
+      );
+
+      for (const msg of messages) {
+        const sendResult = await sendWebhookMessage(webhookUrl, { content: msg.content });
+        if (sendResult.success) {
+          log(`Message sent (${msg.trigger}): ${msg.content}`);
+        }
+      }
+
+      heartbeatMessageState = updatedMessageState;
+      await saveHeartbeatMessageState(heartbeatMessageState);
+    }
+
+    previousStatus = { ...updatedState.status };
+    previousSulk = { ...updatedState.sulk };
+
     // Write diary if generated (evening)
     if (result.diary) {
       const diaryPath = join(WORKSPACE_ROOT, "diary", `${result.diary.date}.md`);
       await writeFile(diaryPath, formatDiaryMd(result.diary), "utf-8");
       log(`Diary written: ${result.diary.date}`);
+
+      // Send evening reflection message alongside diary
+      if (webhookUrl && heartbeatMessageState) {
+        const msgContext: HeartbeatMessageContext = {
+          seed: updatedState.seed,
+          status: updatedState.status,
+          language: updatedState.language,
+          sulk: updatedState.sulk,
+          timeOfDay: getTimeOfDay(now),
+          hourOfDay: now.getHours(),
+          minutesSinceLastInteraction: 0,
+          previousStatus,
+          previousSulk,
+        };
+        const { message, updatedMessageState } = generateEveningReflection(
+          msgContext, heartbeatMessageState, now,
+        );
+        if (message) {
+          const sendResult = await sendWebhookMessage(webhookUrl, { content: message.content });
+          if (sendResult.success) {
+            log(`Message sent (${message.trigger}): ${message.content}`);
+          }
+        }
+        heartbeatMessageState = updatedMessageState;
+        await saveHeartbeatMessageState(heartbeatMessageState);
+      }
 
       // Send daily snapshot alongside diary (same evening timing)
       await sendDailySnapshot(updatedState);
@@ -345,6 +437,10 @@ async function main() {
     log(`Sensor init warning: ${(err as Error).message}`);
     // Continue without sensors — entity still works
   }
+
+  // Initialize proactive messaging state
+  heartbeatMessageState = await loadHeartbeatMessageState(new Date());
+  log("Proactive messaging ready");
 
   // Run first tick immediately
   await tick();

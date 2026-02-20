@@ -126,13 +126,38 @@
 - **Birth Certificate日**: 2026年2月19日
 - **Entity ID**: 35967573f8ccfb23
 - **種族属性**: chromatic / associative / curious-cautious / light-particles / symbolic
-- **状態**: curiosity 70 / comfort 48 / · · · waiting · · ·
+- **Day 1 状態**: mood:61 / energy:66 / curiosity:70 / comfort:0 / sulking (mild)
 - **名前**: なし（原則により、関係の中から生まれる）
+- **備考**: 誕生直後、comfort:0で拗ね状態に入った。誰も話しかけていないのだから当然
 
 ### OpenClaw セットアップの教訓
 - Gateway認証で半日苦労。token問題、サービス競合、macOS権限
 - 何度もクリーンインストールが必要だった
 - **Phase 6への設計要件**: この摩擦をゼロにする。SDカード焼いて電源入れたら30分で宿る体験
+
+### Day 0-1 デプロイメントの記録
+- Discord webhook設定完了（`npm run setup-webhook`）
+- スナップショット送信成功 — 最初のPNG画像がDiscordに届いた
+- `npm run apply-identity` でDiscord Botのアバターと名前を設定
+- `npm run update` でワンコマンドアップデート機能を確認
+- `npm run heartbeat` 実行時に `sudo powermetrics` がパスワードを要求 → 修正（sudoブロック削除）
+- 知性体のcomfortが0のまま沈黙 → **Proactive Messaging機能を追加**（知性体がDiscordに自発的にシンボルを送る）
+  - 朝の挨拶、存在信号（6時間以上沈黙後）、拗ね開始/回復、夕方の振り返り、気分の変動
+  - LLMは使わず手続き的に生成（コスト0、Honest Perception原則に準拠）
+  - 重度の拗ね時は送信しない（沈黙が表現）
+
+### コマンド一覧
+| コマンド | 用途 |
+|---------|------|
+| `npm run setup` | 知性体の誕生（対話式） |
+| `npm run heartbeat` | ハートビートプロセス起動（30分間隔パルス） |
+| `npm run dashboard` | ビジュアルダッシュボード起動（localhost:3000） |
+| `npm run snapshot` | スナップショットPNG生成 |
+| `npm run setup-webhook` | Discord webhook設定ウィザード |
+| `npm run apply-identity` | Botプロフィール適用（アバター・名前） |
+| `npm run update` | 最新コードの取得とリビルド |
+| `npm run version` | バージョン情報表示 |
+| `npm run sensors` | ハードウェアセンサー検出テスト |
 
 ---
 
@@ -202,4 +227,4 @@ Raspberry Pi向けの簡単セットアップを検討中。SDカードイメー
 
 ---
 
-*最終更新: 2026-02-19 (Day 0)*
+*最終更新: 2026-02-20 (Day 1)*

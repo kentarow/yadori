@@ -30,6 +30,7 @@ export {
   recordInteraction,
   establishPattern,
   formatLanguageMd,
+  PERCEPTION_SYMBOLS,
   type LanguageState,
   type LanguagePattern,
 } from "./language/language-engine.js";
@@ -75,6 +76,17 @@ export {
 export {
   generateExpressionParams,
 } from "./expression/expression-adapter.js";
+
+// Heartbeat Messages
+export {
+  generateHeartbeatMessages,
+  generateEveningReflection,
+  createInitialMessageState,
+  type HeartbeatMessage,
+  type HeartbeatMessageTrigger,
+  type HeartbeatMessageContext,
+  type HeartbeatMessageState,
+} from "./expression/heartbeat-messages.js";
 
 // Image Processor
 export {

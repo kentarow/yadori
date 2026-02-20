@@ -236,6 +236,94 @@ export function parseMemoryMd(content: string): {
 }
 
 /**
+ * Parse FORM.md content into structured form data.
+ * Expects format like:
+ *   ## Form
+ *   - **base**: light-particles
+ *   - **density**: 15
+ *   - **complexity**: 8
+ *   - **stability**: 20
+ *   - **self-aware**: no
+ *   > description text
+ */
+export function parseFormMd(content: string): {
+  baseForm: string;
+  density: number;
+  complexity: number;
+  stability: number;
+  awareness: boolean;
+} {
+  const get = (key: string): string => {
+    const match = content.match(new RegExp(`\\*\\*${key}\\*\\*:\\s*(.+)`));
+    return match?.[1]?.trim() ?? "";
+  };
+
+  return {
+    baseForm: get("base") || "light-particles",
+    density: parseInt(get("density"), 10) || 5,
+    complexity: parseInt(get("complexity"), 10) || 3,
+    stability: parseInt(get("stability"), 10) || 15,
+    awareness: get("self-aware") === "yes",
+  };
+}
+
+/**
+ * Parse REVERSALS.md content into structured reversal data.
+ * Expects format produced by formatReversalMd():
+ *   ## Reversal Detection
+ *   - **total reversals**: N
+ *   - **reversal rate**: M per 100 interactions
+ *   - **dominant type**: type_name
+ *   - **last detected**: ISO date or "never"
+ *   ### Signals
+ *   - YYYY-MM-DD **type** (strength: N) [recognized]?
+ *     description
+ */
+export function parseReversalsMd(content: string): {
+  signals: { type: string; timestamp: string; description: string; strength: number; recognized: boolean }[];
+  totalReversals: number;
+  dominantType: string | null;
+  reversalRate: number;
+  lastDetected: string | null;
+} {
+  const totalMatch = content.match(/\*\*total reversals\*\*:\s*(\d+)/);
+  const totalReversals = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+
+  const rateMatch = content.match(/\*\*reversal rate\*\*:\s*([\d.]+)/);
+  const reversalRate = rateMatch ? parseFloat(rateMatch[1]) : 0;
+
+  const dominantMatch = content.match(/\*\*dominant type\*\*:\s*(.+)/);
+  const dominantRaw = dominantMatch?.[1]?.trim() ?? "none";
+  const dominantType = dominantRaw === "none" ? null : dominantRaw;
+
+  const lastMatch = content.match(/\*\*last detected\*\*:\s*(.+)/);
+  const lastRaw = lastMatch?.[1]?.trim() ?? "never";
+  const lastDetected = lastRaw === "never" ? null : lastRaw;
+
+  const signals: { type: string; timestamp: string; description: string; strength: number; recognized: boolean }[] = [];
+
+  // Parse signals: "- YYYY-MM-DD **type** (strength: N) [recognized]?"
+  // followed by "  description" on the next line
+  const lines = content.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const signalMatch = lines[i].match(/^- (\d{4}-\d{2}-\d{2}) \*\*(.+?)\*\* \(strength: (\d+)\)(.*)/);
+    if (signalMatch) {
+      const recognized = signalMatch[4].includes("[recognized]");
+      const description = (i + 1 < lines.length) ? lines[i + 1].trim() : "";
+      signals.push({
+        type: signalMatch[2],
+        timestamp: signalMatch[1],
+        description,
+        strength: parseInt(signalMatch[3], 10),
+        recognized,
+      });
+    }
+  }
+
+  return { signals, totalReversals, dominantType, reversalRate, lastDetected };
+}
+
+/**
  * Compute coexistence metrics from entity state.
  */
 export function computeCoexistenceMetrics(params: {

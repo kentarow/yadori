@@ -927,6 +927,256 @@
     #memory-toggle:hover { opacity: 0.6 !important; }
     #memory-toggle svg { width: 24px; height: 24px; }
 
+    /* Reversals Panel (bottom-right slide-up) */
+    #reversals-panel {
+      position: fixed;
+      bottom: 0; right: 0;
+      width: 340px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #reversals-panel.open { transform: translateY(0); }
+    #reversals-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .reversal-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .reversal-stat {
+      text-align: center;
+    }
+    .reversal-stat-count {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .reversal-stat-label {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .reversal-signal {
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      border-left: 2px solid rgba(255, 255, 255, 0.08);
+    }
+    .reversal-signal-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .reversal-signal-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .reversal-signal-type {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+    .reversal-signal-time {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      font-family: 'Courier New', monospace;
+      margin-left: auto;
+    }
+    .reversal-signal-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+    .reversal-strength-bar {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 1.5px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .reversal-strength-fill {
+      height: 100%;
+      background: rgba(255, 200, 80, 0.5);
+      border-radius: 1.5px;
+      transition: width 0.5s ease;
+    }
+    .reversal-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #reversals-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 180px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #reversals-toggle { opacity: 0.3; }
+    #reversals-toggle:hover { opacity: 0.6 !important; }
+    #reversals-toggle svg { width: 24px; height: 24px; }
+
+    /* Form Panel (bottom-left slide-up) */
+    #form-panel {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 300px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #form-panel.open { transform: translateY(0); }
+    #form-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .form-type-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .form-type-icon {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1;
+    }
+    .form-type-name {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.55);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .form-bar-group {
+      margin-bottom: 14px;
+    }
+    .form-bar-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-bar-value {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.35);
+    }
+    .form-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .form-bar-fill {
+      height: 100%;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+    .form-awareness {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-awareness-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: background 0.5s, border-color 0.5s;
+    }
+    .form-awareness-dot.aware {
+      background: rgba(255, 255, 255, 0.5);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+    .form-awareness-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .form-visual {
+      margin-top: 20px;
+      width: 100%;
+      height: 80px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.02);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .form-visual-orb {
+      border-radius: 50%;
+      transition: width 1s ease, height 1s ease, opacity 1s ease, box-shadow 1s ease;
+    }
+    .form-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #form-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 140px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #form-toggle { opacity: 0.3; }
+    #form-toggle:hover { opacity: 0.6 !important; }
+    #form-toggle svg { width: 24px; height: 24px; }
+
     /* Dynamics Panel (bottom-left) */
     #dynamics-panel {
       position: fixed;
@@ -1059,14 +1309,16 @@
       #errorlog-panel,
       #milestone-panel,
       #language-panel,
-      #memory-panel {
+      #memory-panel,
+      #reversals-panel,
+      #form-panel {
         width: 100vw;
         max-height: 70vh;
         padding: 20px 16px;
       }
 
       /* Toggle buttons always visible on mobile */
-      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #language-toggle, #memory-toggle, #sound-toggle, #sound-growth {
+      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #language-toggle, #memory-toggle, #reversals-toggle, #form-toggle, #sound-toggle, #sound-growth {
         opacity: 0.35 !important;
       }
 
@@ -1074,9 +1326,11 @@
       #senses-toggle { top: 10px; left: 10px; }
       #diary-toggle { bottom: 10px; left: 50px; }
       #language-toggle { bottom: 10px; left: 90px; }
+      #form-toggle { bottom: 10px; left: 130px; }
       #errorlog-toggle { bottom: 10px; right: 50px; }
       #milestone-toggle { bottom: 10px; right: 90px; }
       #memory-toggle { bottom: 10px; right: 130px; }
+      #reversals-toggle { bottom: 10px; right: 170px; }
       #sound-toggle { bottom: 10px; right: 10px; }
       #sound-growth { bottom: 40px; right: 10px; }
 
@@ -1220,6 +1474,27 @@
   <div id="memory-panel">
     <h2>Memory</h2>
     <div id="memory-content"><span class="memory-empty">No memories yet.</span></div>
+  </div>
+
+  <div id="reversals-toggle" title="Reversals">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+    </svg>
+  </div>
+  <div id="reversals-panel">
+    <h2>Reversals</h2>
+    <div id="reversals-content"><span class="reversal-empty">No reversals detected yet.</span></div>
+  </div>
+
+  <div id="form-toggle" title="Form">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <polygon points="12,2 22,12 12,22 2,12"/>
+      <polygon points="12,7 17,12 12,17 7,12" fill="rgba(255,255,255,0.15)"/>
+    </svg>
+  </div>
+  <div id="form-panel">
+    <h2>Form</h2>
+    <div id="form-content"><span class="form-empty">No form data.</span></div>
   </div>
 
   <div id="sound-growth" title="Sound growth: Level 1 — Single tone">
@@ -3162,6 +3437,236 @@
     setInterval(() => {
       if (memoryPanel.classList.contains('open')) {
         fetchMemory();
+      }
+    }, 30000);
+
+    // --- Reversals Panel ---
+    const reversalsToggle = document.getElementById('reversals-toggle');
+    const reversalsPanel = document.getElementById('reversals-panel');
+    const reversalsContent = document.getElementById('reversals-content');
+
+    const REVERSAL_ICONS = {
+      novel_expression: '\u2728',  // sparkles
+      anticipation: '\u{1F52E}',   // crystal ball
+      concept_creation: '\u{1F4A1}', // light bulb
+      emotional_depth: '\u{1F30A}',  // wave
+      initiative: '\u26A1',          // lightning
+      meta_awareness: '\u{1F441}',   // eye
+    };
+
+    function formatReversalType(type) {
+      return type.replace(/_/g, ' ');
+    }
+
+    reversalsToggle.addEventListener('click', () => {
+      reversalsPanel.classList.toggle('open');
+      if (reversalsPanel.classList.contains('open')) {
+        fetchReversals();
+      }
+    });
+
+    async function fetchReversals() {
+      try {
+        const res = await fetch('/api/reversals');
+        if (!res.ok) return;
+        const d = await res.json();
+        const signals = d.signals || [];
+        const total = d.totalReversals || 0;
+        const rate = d.reversalRate || 0;
+        const dominant = d.dominantType || null;
+
+        if (total === 0) {
+          reversalsContent.innerHTML = '<span class="reversal-empty">No reversals detected yet. These emerge when the entity exceeds expectations.</span>';
+          return;
+        }
+
+        let html = '';
+
+        // Summary stats
+        html += `
+          <div class="reversal-stats">
+            <div class="reversal-stat">
+              <div class="reversal-stat-count">${total}</div>
+              <div class="reversal-stat-label">Total</div>
+            </div>
+            <div class="reversal-stat">
+              <div class="reversal-stat-count">${rate.toFixed(1)}</div>
+              <div class="reversal-stat-label">Per 100</div>
+            </div>
+            <div class="reversal-stat">
+              <div class="reversal-stat-count">${dominant ? formatReversalType(dominant) : '\u2014'}</div>
+              <div class="reversal-stat-label">Dominant</div>
+            </div>
+          </div>
+          <div class="log-divider"></div>
+        `;
+
+        // Signal timeline (newest first)
+        const sorted = [...signals].reverse();
+        for (const signal of sorted) {
+          const icon = REVERSAL_ICONS[signal.type] || '\u26A1';
+          const typeLabel = formatReversalType(signal.type);
+          const time = signal.timestamp ? signal.timestamp.split('T')[0] : '';
+          const strength = Math.max(0, Math.min(100, signal.strength || 0));
+
+          html += `
+            <div class="reversal-signal">
+              <div class="reversal-signal-header">
+                <span class="reversal-signal-icon">${icon}</span>
+                <span class="reversal-signal-type">${escapeHtml(typeLabel)}</span>
+                <span class="reversal-signal-time">${escapeHtml(time)}</span>
+              </div>
+              <div class="reversal-signal-desc">${escapeHtml(signal.description || '')}</div>
+              <div class="reversal-strength-bar">
+                <div class="reversal-strength-fill" style="width:${strength}%"></div>
+              </div>
+            </div>
+          `;
+        }
+
+        reversalsContent.innerHTML = html;
+      } catch {
+        reversalsContent.innerHTML = '<span class="reversal-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh reversals when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (reversalsPanel.classList.contains('open')) {
+        fetchReversals();
+      }
+    }, 30000);
+
+    // --- Form Panel ---
+    const formToggle = document.getElementById('form-toggle');
+    const formPanel = document.getElementById('form-panel');
+    const formContent = document.getElementById('form-content');
+
+    const FORM_ICONS = {
+      'light-particles': '\u2729',
+      'fluid': '\u224B',
+      'crystal': '\u25C7',
+      'sound-echo': '\u223F',
+      'mist': '\u2601',
+      'geometric-cluster': '\u2B23',
+    };
+
+    formToggle.addEventListener('click', () => {
+      formPanel.classList.toggle('open');
+      if (formPanel.classList.contains('open')) {
+        fetchForm();
+      }
+    });
+
+    async function fetchForm() {
+      try {
+        const res = await fetch('/api/form');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        const baseForm = d.baseForm || 'light-particles';
+        const density = d.density ?? 5;
+        const complexity = d.complexity ?? 3;
+        const stability = d.stability ?? 15;
+        const awareness = d.awareness ?? false;
+
+        const icon = FORM_ICONS[baseForm] || '\u25C7';
+        const formName = baseForm.replace(/-/g, ' ');
+
+        // Get entity color for the visual orb
+        const pal = PALETTES[entity.seed.perception] || PALETTES.chromatic;
+        const hue = pal.hueBase + (entity.status.mood / 100) * pal.hueRange;
+        const sat = pal.satBase + 20;
+
+        // Orb size based on density (10px to 50px)
+        const orbSize = 10 + (density / 100) * 40;
+        // Orb opacity based on density
+        const orbOpacity = 0.15 + (density / 100) * 0.55;
+        // Glow spread based on complexity
+        const glowSpread = 5 + (complexity / 100) * 25;
+        // Glow alpha based on stability
+        const glowAlpha = 0.3 + (stability / 100) * 0.4;
+
+        let html = '';
+
+        // Form type header
+        html += `
+          <div class="form-type-header">
+            <span class="form-type-icon">${icon}</span>
+            <span class="form-type-name">${escapeHtml(formName)}</span>
+          </div>
+        `;
+
+        // Density bar
+        html += `
+          <div class="form-bar-group">
+            <div class="form-bar-label">
+              <span>Density</span>
+              <span class="form-bar-value">${density}</span>
+            </div>
+            <div class="form-bar">
+              <div class="form-bar-fill" style="width: ${density}%"></div>
+            </div>
+          </div>
+        `;
+
+        // Complexity bar
+        html += `
+          <div class="form-bar-group">
+            <div class="form-bar-label">
+              <span>Complexity</span>
+              <span class="form-bar-value">${complexity}</span>
+            </div>
+            <div class="form-bar">
+              <div class="form-bar-fill" style="width: ${complexity}%"></div>
+            </div>
+          </div>
+        `;
+
+        // Stability bar
+        html += `
+          <div class="form-bar-group">
+            <div class="form-bar-label">
+              <span>Stability</span>
+              <span class="form-bar-value">${stability}</span>
+            </div>
+            <div class="form-bar">
+              <div class="form-bar-fill" style="width: ${stability}%"></div>
+            </div>
+          </div>
+        `;
+
+        // Self-awareness status
+        html += `
+          <div class="form-awareness">
+            <span class="form-awareness-dot${awareness ? ' aware' : ''}"></span>
+            <span class="form-awareness-label">${awareness ? 'Self-aware' : 'Unaware of own form'}</span>
+          </div>
+        `;
+
+        // Visual representation: orb with density-driven opacity
+        html += `
+          <div class="form-visual">
+            <div class="form-visual-orb" style="
+              width: ${orbSize}px;
+              height: ${orbSize}px;
+              opacity: ${orbOpacity};
+              background: hsla(${hue}, ${sat}%, 55%, ${glowAlpha});
+              box-shadow: 0 0 ${glowSpread}px ${glowSpread / 2}px hsla(${hue}, ${sat}%, 55%, ${glowAlpha * 0.5});
+            "></div>
+          </div>
+        `;
+
+        formContent.innerHTML = html;
+      } catch {
+        formContent.innerHTML = '<span class="form-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh form when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (formPanel.classList.contains('open')) {
+        fetchForm();
       }
     }, 30000);
 

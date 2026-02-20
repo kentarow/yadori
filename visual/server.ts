@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, parseLanguageMd, parseMemoryMd, computeCoexistenceMetrics } from "./parsers.js";
+import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, parseLanguageMd, parseMemoryMd, parseFormMd, parseReversalsMd, computeCoexistenceMetrics } from "./parsers.js";
 import {
   processInteraction,
   serializeState,
@@ -251,6 +251,43 @@ const server = createServer(async (req, res) => {
       // DYNAMICS.md doesn't exist yet — return defaults
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ phase: "alpha", score: 0, signals: [] }));
+    }
+    return;
+  }
+
+  // --- GET /api/reversals ---
+  // Returns reversal detection signals — moments where the entity exceeded expectations.
+  // Tries state.json first, falls back to REVERSALS.md.
+  if (req.url === "/api/reversals") {
+    try {
+      const state = await readJsonState();
+      if (state && state.reversal) {
+        const rev = state.reversal as Record<string, unknown>;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          signals: (rev.signals ?? []) as unknown[],
+          totalReversals: (rev.totalReversals as number) ?? 0,
+          dominantType: (rev.dominantType as string | null) ?? null,
+          reversalRate: (rev.reversalRate as number) ?? 0,
+          lastDetected: (rev.lastDetected as string | null) ?? null,
+        }));
+      } else {
+        // Fallback: parse REVERSALS.md
+        const md = await readFile(join(WORKSPACE_ROOT, "REVERSALS.md"), "utf-8");
+        const parsed = parseReversalsMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch {
+      // No reversal data yet — return empty defaults
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        signals: [],
+        totalReversals: 0,
+        dominantType: null,
+        reversalRate: 0,
+        lastDetected: null,
+      }));
     }
     return;
   }
@@ -599,6 +636,43 @@ const server = createServer(async (req, res) => {
         : (err as Error).message;
       res.writeHead(404, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: msg }));
+    }
+    return;
+  }
+
+  // --- GET /api/form ---
+  // Returns the entity's self-perceived form state.
+  // Tries state.json first, falls back to FORM.md.
+  if (req.url === "/api/form") {
+    try {
+      const state = await readJsonState();
+      if (state && state.form) {
+        const form = state.form as Record<string, unknown>;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          baseForm: (form.baseForm as string) ?? "light-particles",
+          density: (form.density as number) ?? 5,
+          complexity: (form.complexity as number) ?? 3,
+          stability: (form.stability as number) ?? 15,
+          awareness: (form.awareness as boolean) ?? false,
+        }));
+      } else {
+        // Fallback: parse FORM.md
+        const md = await readFile(join(WORKSPACE_ROOT, "FORM.md"), "utf-8");
+        const parsed = parseFormMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch (err) {
+      logger.error(`/api/form failed: ${(err as Error).message}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        baseForm: "light-particles",
+        density: 5,
+        complexity: 3,
+        stability: 15,
+        awareness: false,
+      }));
     }
     return;
   }

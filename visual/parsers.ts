@@ -179,6 +179,63 @@ export function parseLanguageMd(content: string): {
 }
 
 /**
+ * Parse MEMORY.md content into structured memory data for the dashboard.
+ * Extracts hot (recent), warm (weekly), cold (monthly), and notes.
+ *
+ * Hot format:   - [timestamp] summary (mood:N)
+ * Warm format:  ### YYYY-Www (N interactions, avg mood: M)\n\nsummary
+ * Notes format: - note text (under ## Notes section)
+ * Cold memories are stored in separate monthly files, not in MEMORY.md.
+ */
+export function parseMemoryMd(content: string): {
+  hot: { timestamp: string; summary: string; mood: number }[];
+  warm: { week: string; entries: number; summary: string; averageMood: number }[];
+  cold: { month: string; weeks: number; summary: string; averageMood: number }[];
+  notes: string[];
+} {
+  const hot: { timestamp: string; summary: string; mood: number }[] = [];
+  const warm: { week: string; entries: number; summary: string; averageMood: number }[] = [];
+  const cold: { month: string; weeks: number; summary: string; averageMood: number }[] = [];
+  const notes: string[] = [];
+
+  // Parse hot memories: "- [timestamp] summary (mood:N)"
+  const hotRegex = /^- \[(.+?)\] (.+?) \(mood:(\d+)\)$/gm;
+  let match: RegExpExecArray | null;
+  while ((match = hotRegex.exec(content)) !== null) {
+    hot.push({
+      timestamp: match[1],
+      summary: match[2],
+      mood: parseInt(match[3], 10),
+    });
+  }
+
+  // Parse warm memories: "### YYYY-Www (N interactions, avg mood: M)"
+  const warmRegex = /^### (\d{4}-W\d{2}) \((\d+) interactions, avg mood: (\d+)\)\n\n(.+?)$/gm;
+  while ((match = warmRegex.exec(content)) !== null) {
+    warm.push({
+      week: match[1],
+      entries: parseInt(match[2], 10),
+      averageMood: parseInt(match[3], 10),
+      summary: match[4],
+    });
+  }
+
+  // Parse notes: lines after "## Notes" matching "- note"
+  const notesSection = content.split("## Notes")[1];
+  if (notesSection) {
+    const noteRegex = /^- (.+)$/gm;
+    while ((match = noteRegex.exec(notesSection)) !== null) {
+      // Skip hot memory pattern lines
+      if (!match[1].startsWith("[")) {
+        notes.push(match[1]);
+      }
+    }
+  }
+
+  return { hot, warm, cold, notes };
+}
+
+/**
  * Compute coexistence metrics from entity state.
  */
 export function computeCoexistenceMetrics(params: {

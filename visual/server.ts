@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, parseLanguageMd, computeCoexistenceMetrics } from "./parsers.js";
+import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, parseLanguageMd, parseMemoryMd, computeCoexistenceMetrics } from "./parsers.js";
 import {
   processInteraction,
   serializeState,
@@ -329,6 +329,37 @@ const server = createServer(async (req, res) => {
         nativeSymbols: [],
         patterns: [],
       }));
+    }
+    return;
+  }
+
+  // --- GET /api/memory ---
+  // Returns the entity's 3-tier memory system: hot, warm, cold, and notes.
+  // Tries state.json first, falls back to MEMORY.md.
+  if (req.url === "/api/memory") {
+    try {
+      const state = await readJsonState();
+      if (state && state.memory) {
+        const mem = state.memory as Record<string, unknown>;
+        const hot = (mem.hot ?? []) as { timestamp: string; summary: string; mood: number }[];
+        const warm = (mem.warm ?? []) as { week: string; entries: number; summary: string; averageMood: number }[];
+        const cold = (mem.cold ?? []) as { month: string; weeks: number; summary: string; averageMood: number }[];
+        const notes = (mem.notes ?? []) as string[];
+        const totalItems = hot.length + warm.length + cold.length + notes.length;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ hot, warm, cold, notes, totalItems }));
+      } else {
+        // Fallback: parse MEMORY.md
+        const md = await readFile(join(WORKSPACE_ROOT, "MEMORY.md"), "utf-8");
+        const parsed = parseMemoryMd(md);
+        const totalItems = parsed.hot.length + parsed.warm.length + parsed.cold.length + parsed.notes.length;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ...parsed, totalItems }));
+      }
+    } catch (err) {
+      logger.error(`/api/memory failed: ${(err as Error).message}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ hot: [], warm: [], cold: [], notes: [], totalItems: 0 }));
     }
     return;
   }

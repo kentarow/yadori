@@ -753,6 +753,180 @@
     #language-toggle:hover { opacity: 0.6 !important; }
     #language-toggle svg { width: 24px; height: 24px; }
 
+    /* Memory Panel (bottom-right slide-up) */
+    #memory-panel {
+      position: fixed;
+      bottom: 0; right: 0;
+      width: 360px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #memory-panel.open { transform: translateY(0); }
+    #memory-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .memory-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .memory-stat {
+      text-align: center;
+    }
+    .memory-stat-count {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .memory-stat-label {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .memory-section-title {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 16px 0 8px 0;
+    }
+    .memory-hot-item {
+      margin-bottom: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .memory-hot-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .memory-mood-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .memory-hot-time {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      font-family: 'Courier New', monospace;
+    }
+    .memory-hot-summary {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .memory-warm-card {
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      border-left: 2px solid rgba(255, 255, 255, 0.08);
+    }
+    .memory-warm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .memory-warm-week {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .memory-warm-meta {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+    }
+    .memory-warm-summary {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .memory-cold-item {
+      margin-bottom: 10px;
+      padding: 6px 0;
+    }
+    .memory-cold-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .memory-cold-month {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .memory-cold-meta {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+    }
+    .memory-cold-summary {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .memory-note-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .memory-note-pin {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+    .memory-note-text {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .memory-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #memory-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 140px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #memory-toggle { opacity: 0.3; }
+    #memory-toggle:hover { opacity: 0.6 !important; }
+    #memory-toggle svg { width: 24px; height: 24px; }
+
     /* Dynamics Panel (bottom-left) */
     #dynamics-panel {
       position: fixed;
@@ -884,14 +1058,15 @@
 
       #errorlog-panel,
       #milestone-panel,
-      #language-panel {
+      #language-panel,
+      #memory-panel {
         width: 100vw;
         max-height: 70vh;
         padding: 20px 16px;
       }
 
       /* Toggle buttons always visible on mobile */
-      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #language-toggle, #sound-toggle, #sound-growth {
+      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #language-toggle, #memory-toggle, #sound-toggle, #sound-growth {
         opacity: 0.35 !important;
       }
 
@@ -901,6 +1076,7 @@
       #language-toggle { bottom: 10px; left: 90px; }
       #errorlog-toggle { bottom: 10px; right: 50px; }
       #milestone-toggle { bottom: 10px; right: 90px; }
+      #memory-toggle { bottom: 10px; right: 130px; }
       #sound-toggle { bottom: 10px; right: 10px; }
       #sound-growth { bottom: 40px; right: 10px; }
 
@@ -1028,6 +1204,22 @@
   <div id="language-panel">
     <h2>Language</h2>
     <div id="language-content"><span class="lang-empty">No language data.</span></div>
+  </div>
+
+  <div id="memory-toggle" title="Memory">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <circle cx="12" cy="12" r="9"/>
+      <circle cx="12" cy="12" r="5"/>
+      <circle cx="12" cy="12" r="1.5" fill="rgba(255,255,255,0.6)"/>
+      <line x1="12" y1="3" x2="12" y2="7"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+      <line x1="3" y1="12" x2="7" y2="12"/>
+      <line x1="17" y1="12" x2="21" y2="12"/>
+    </svg>
+  </div>
+  <div id="memory-panel">
+    <h2>Memory</h2>
+    <div id="memory-content"><span class="memory-empty">No memories yet.</span></div>
   </div>
 
   <div id="sound-growth" title="Sound growth: Level 1 — Single tone">
@@ -2813,6 +3005,163 @@
     setInterval(() => {
       if (languagePanel.classList.contains('open')) {
         fetchLanguage();
+      }
+    }, 30000);
+
+    // --- Memory Panel ---
+    const memoryToggle = document.getElementById('memory-toggle');
+    const memoryPanel = document.getElementById('memory-panel');
+    const memoryContent = document.getElementById('memory-content');
+
+    memoryToggle.addEventListener('click', () => {
+      memoryPanel.classList.toggle('open');
+      if (memoryPanel.classList.contains('open')) {
+        fetchMemory();
+      }
+    });
+
+    function moodColor(mood) {
+      if (mood >= 70) return 'rgba(100, 200, 120, 0.7)';
+      if (mood >= 40) return 'rgba(160, 160, 160, 0.5)';
+      return 'rgba(200, 100, 100, 0.7)';
+    }
+
+    function formatMemoryTime(timestamp) {
+      try {
+        const d = new Date(timestamp);
+        if (isNaN(d.getTime())) return timestamp;
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const mins = String(d.getMinutes()).padStart(2, '0');
+        return `${month}-${day} ${hours}:${mins}`;
+      } catch {
+        return timestamp;
+      }
+    }
+
+    async function fetchMemory() {
+      try {
+        const res = await fetch('/api/memory');
+        if (!res.ok) return;
+        const d = await res.json();
+        const hot = d.hot || [];
+        const warm = d.warm || [];
+        const cold = d.cold || [];
+        const notes = d.notes || [];
+        const totalItems = d.totalItems || 0;
+
+        if (totalItems === 0) {
+          memoryContent.innerHTML = '<span class="memory-empty">No memories yet. This entity has just been born.</span>';
+          return;
+        }
+
+        let html = '';
+
+        // Summary stats
+        html += `
+          <div class="memory-stats">
+            <div class="memory-stat">
+              <div class="memory-stat-count">${totalItems}</div>
+              <div class="memory-stat-label">Total</div>
+            </div>
+            <div class="memory-stat">
+              <div class="memory-stat-count">${hot.length}</div>
+              <div class="memory-stat-label">Hot</div>
+            </div>
+            <div class="memory-stat">
+              <div class="memory-stat-count">${warm.length}</div>
+              <div class="memory-stat-label">Warm</div>
+            </div>
+            <div class="memory-stat">
+              <div class="memory-stat-count">${cold.length}</div>
+              <div class="memory-stat-label">Cold</div>
+            </div>
+            <div class="memory-stat">
+              <div class="memory-stat-count">${notes.length}</div>
+              <div class="memory-stat-label">Notes</div>
+            </div>
+          </div>
+          <div class="log-divider"></div>
+        `;
+
+        // Notes (pinned items, shown first)
+        if (notes.length > 0) {
+          html += '<div class="memory-section-title">Pinned Notes</div>';
+          for (const note of notes) {
+            html += `
+              <div class="memory-note-item">
+                <span class="memory-note-pin">&#9670;</span>
+                <span class="memory-note-text">${escapeHtml(note)}</span>
+              </div>
+            `;
+          }
+          html += '<div class="log-divider"></div>';
+        }
+
+        // Hot memories (newest first)
+        if (hot.length > 0) {
+          html += '<div class="memory-section-title">Recent</div>';
+          const sorted = [...hot].reverse();
+          for (const entry of sorted) {
+            html += `
+              <div class="memory-hot-item">
+                <div class="memory-hot-header">
+                  <span class="memory-mood-dot" style="background:${moodColor(entry.mood)}"></span>
+                  <span class="memory-hot-time">${escapeHtml(formatMemoryTime(entry.timestamp))}</span>
+                </div>
+                <div class="memory-hot-summary">${escapeHtml(entry.summary)}</div>
+              </div>
+            `;
+          }
+        }
+
+        // Warm memories (weekly cards)
+        if (warm.length > 0) {
+          html += '<div class="log-divider"></div>';
+          html += '<div class="memory-section-title">Weekly</div>';
+          const sortedWarm = [...warm].reverse();
+          for (const w of sortedWarm) {
+            html += `
+              <div class="memory-warm-card" style="border-left-color:${moodColor(w.averageMood)}">
+                <div class="memory-warm-header">
+                  <span class="memory-warm-week">${escapeHtml(w.week)}</span>
+                  <span class="memory-warm-meta">${w.entries} entries &middot; mood ${w.averageMood}</span>
+                </div>
+                <div class="memory-warm-summary">${escapeHtml(w.summary)}</div>
+              </div>
+            `;
+          }
+        }
+
+        // Cold memories (monthly summaries)
+        if (cold.length > 0) {
+          html += '<div class="log-divider"></div>';
+          html += '<div class="memory-section-title">Monthly Archive</div>';
+          const sortedCold = [...cold].reverse();
+          for (const c of sortedCold) {
+            html += `
+              <div class="memory-cold-item">
+                <div class="memory-cold-header">
+                  <span class="memory-cold-month">${escapeHtml(c.month)}</span>
+                  <span class="memory-cold-meta">${c.weeks} weeks &middot; mood ${c.averageMood}</span>
+                </div>
+                <div class="memory-cold-summary">${escapeHtml(c.summary)}</div>
+              </div>
+            `;
+          }
+        }
+
+        memoryContent.innerHTML = html;
+      } catch {
+        memoryContent.innerHTML = '<span class="memory-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh memory when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (memoryPanel.classList.contains('open')) {
+        fetchMemory();
       }
     }, 30000);
 

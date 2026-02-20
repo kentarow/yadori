@@ -1,0 +1,9 @@
+# CODEOWNERS -- YADORI
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# All pull requests require review from the project owner.
+# Since Kentaro reviews with Claude's assistance, this ensures
+# no PR is merged without explicit approval.
+
+# Default: all files require owner review
+* @kentarow

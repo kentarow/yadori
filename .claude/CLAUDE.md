@@ -448,8 +448,9 @@ Development (complete):
     memory, form, reversals, sound growth, coexistence log
   ✅ Birth Certificate with relationship phase
   ✅ Mobile responsive dashboard
-  ✅ 8 API endpoints (/api/status, entity, coexistence, perception,
-    dynamics, milestones, language, memory, form, reversals, seed, etc.)
+  ✅ 17 API endpoints (/api/status, entity, coexistence, perception,
+    dynamics, reversals, coexist, milestones, language, memory, seed,
+    snapshot, interaction, self-image, diary, form, logs)
 ```
 
 ### Phase 5: Multimodal Expansion (Interfaces Ready)

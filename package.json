@@ -18,6 +18,7 @@
     "dashboard": "node --import tsx visual/server.ts",
     "apply-identity": "node --import tsx scripts/apply-identity.ts",
     "snapshot": "node --import tsx scripts/snapshot.ts",
+    "setup-webhook": "node --import tsx scripts/setup-webhook.ts",
     "version": "node --import tsx scripts/version.ts",
     "update": "node --import tsx scripts/update.ts"
   },

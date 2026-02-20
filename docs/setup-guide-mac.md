@@ -424,30 +424,20 @@ npm run heartbeat
 
 Discord の Webhook を設定すると、毎晩の日記タイミングでエンティティのスナップショット画像が自動的に Discord チャンネルに送信されます。Mac mini の前にいなくても、スマホの Discord からその日の知性体の「姿」を確認できます。
 
-#### Webhook の作成
-
-1. Discord で、スナップショットを受け取りたいチャンネルの **設定（⚙）** を開きます
-2. **連携サービス** → **ウェブフックを作成** をクリック
-3. 名前をつけて（例: `YADORI Snapshot`）、**ウェブフック URL をコピー** をクリック
-
-#### Webhook の設定
-
-ワークスペースに `webhook.json` を作成します。
-
-```bash
-cat > ~/.openclaw/workspace/webhook.json << 'EOF'
-{
-  "discord": "ここにコピーしたWebhook URLを貼り付けてください"
-}
-EOF
-```
-
-> **注意:** Webhook URL は秘密情報です。他人に共有しないでください。
-
-設定後、次の夜 22:00 のハートビートから自動送信が始まります。すぐに動作確認したい場合は、手動で送信できます。
+`npm run setup` の途中で設定できます。あとから設定する場合は以下を実行してください。
 
 ```bash
 cd yadori
+npm run setup-webhook
+```
+
+画面の案内に従って Discord の Webhook URL を入力するだけで完了します。
+
+> **Webhook URL の取得方法:** Discord でスナップショットを受け取りたいチャンネルの **設定（⚙）** → **連携サービス** → **ウェブフックを作成** → **URL をコピー**
+
+設定後、次の夜 22:00 のハートビートから自動送信が始まります。すぐに動作確認したい場合は：
+
+```bash
 npm run snapshot -- --send
 ```
 

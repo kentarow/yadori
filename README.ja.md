@@ -113,7 +113,11 @@ npm run dashboard
 | コマンド | 説明 |
 |---------|------|
 | `npm run setup` | 初回セットアップ（知性体の誕生） |
+| `npm run heartbeat` | ハートビート開始（エンティティが動き出します） |
 | `npm run dashboard` | ダッシュボード起動（http://localhost:3000） |
+| `npm run setup-webhook` | デイリースナップショットの設定 |
+| `npm run snapshot -- --send` | スナップショットを今すぐ Discord に送信 |
+| `npm run update` | 最新版に更新 |
 | `npm run test` | テスト実行 |
 | `npm run build` | ビルド |
 

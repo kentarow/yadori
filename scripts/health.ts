@@ -9,6 +9,7 @@
 import { join } from "node:path";
 import { homedir } from "node:os";
 import { runHealthCheck, type HealthCheckItem } from "../engine/src/health/health-check.js";
+import { repairWorkspace } from "../engine/src/health/workspace-repair.js";
 
 const WORKSPACE_ROOT = process.env.YADORI_WORKSPACE ?? join(homedir(), ".openclaw", "workspace");
 const DASHBOARD_PORT = parseInt(process.env.YADORI_PORT ?? "3000", 10);
@@ -52,6 +53,22 @@ async function main() {
   }
 
   console.log("");
+
+  // --repair flag: attempt workspace repair
+  if (process.argv.includes("--repair")) {
+    console.log("  Running workspace repair...");
+    console.log("");
+
+    const result = await repairWorkspace(WORKSPACE_ROOT);
+
+    for (const action of result.actions) {
+      console.log(`  [${action.action}] ${action.file} — ${action.reason}`);
+    }
+
+    console.log("");
+    console.log(`  ${result.repaired} files repaired`);
+    console.log("");
+  }
 }
 
 main().catch((err) => {

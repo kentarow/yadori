@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { parseStatusMd, parseSeedMd, parsePerceptionMd, computeCoexistenceMetrics } from "./parsers.js";
+import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, computeCoexistenceMetrics } from "./parsers.js";
 import {
   processInteraction,
   serializeState,
@@ -234,6 +234,42 @@ const server = createServer(async (req, res) => {
         perceptionLevel: 0,
         species: "",
       }));
+    }
+    return;
+  }
+
+  // --- GET /api/dynamics ---
+  // Returns intelligence dynamics phase and score from DYNAMICS.md.
+  // Falls back to default values if the file doesn't exist yet.
+  if (req.url === "/api/dynamics") {
+    try {
+      const md = await readFile(join(WORKSPACE_ROOT, "DYNAMICS.md"), "utf-8");
+      const dynamics = parseDynamicsMd(md);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(dynamics));
+    } catch {
+      // DYNAMICS.md doesn't exist yet — return defaults
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ phase: "alpha", score: 0, signals: [] }));
+    }
+    return;
+  }
+
+  // --- GET /api/seed ---
+  // Returns parsed seed data including birth date.
+  if (req.url === "/api/seed") {
+    try {
+      const md = await readFile(join(WORKSPACE_ROOT, "SEED.md"), "utf-8");
+      const seed = parseSeedMd(md);
+      // Also extract Born date which parseSeedMd doesn't capture
+      const bornMatch = md.match(/\*\*Born\*\*:\s*(.+)/);
+      const born = bornMatch?.[1]?.trim() ?? "";
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ...seed, born }));
+    } catch (err) {
+      logger.error(`/api/seed failed: ${(err as Error).message}`);
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Seed not found. Run 'npm run setup' first." }));
     }
     return;
   }

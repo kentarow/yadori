@@ -54,6 +54,12 @@ import {
   createInitialPerceptionGrowthState,
   evaluatePerceptionLevel,
 } from "../perception/perception-growth.js";
+import {
+  type AsymmetryState,
+  createInitialAsymmetryState,
+  evaluateAsymmetry,
+  formatAsymmetryMd,
+} from "../dynamics/asymmetry-tracker.js";
 
 export interface EntityState {
   seed: Seed;
@@ -64,6 +70,7 @@ export interface EntityState {
   sulk: SulkState;
   form: FormState;
   perception: PerceptionGrowthState;
+  asymmetry: AsymmetryState;
 }
 
 export interface HeartbeatResult {
@@ -109,6 +116,7 @@ export function createEntityState(seed: Seed, now = new Date()): EntityState {
     sulk: createInitialSulkState(),
     form: createInitialFormState(seed.form),
     perception: createInitialPerceptionGrowthState(),
+    asymmetry: createInitialAsymmetryState(),
   };
 }
 
@@ -178,6 +186,17 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
     memoryConsolidated = true;
   }
 
+  // Evaluate asymmetry (intelligence dynamics)
+  const updatedAsymmetry = evaluateAsymmetry(
+    state.asymmetry,
+    updatedStatus,
+    updatedLanguage,
+    updatedMemory,
+    updatedGrowth,
+    updatedForm,
+    now,
+  );
+
   // Generate diary if it's evening
   let diary: DiaryEntry | null = null;
   if (pulse.shouldDiary) {
@@ -199,6 +218,7 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
       sulk: updatedSulk,
       form: updatedForm,
       perception: updatedPerception,
+      asymmetry: updatedAsymmetry,
     },
     diary,
     wakeSignal: pulse.shouldWake,
@@ -288,6 +308,7 @@ export function processInteraction(
       sulk: updatedSulk,
       form: state.form,       // Form evolves only during heartbeat
       perception: state.perception, // Perception evolves only during heartbeat
+      asymmetry: state.asymmetry,   // Asymmetry evolves only during heartbeat
     },
     newMilestones,
     activeSoulFile: getActiveSoulFile(updatedSulk),
@@ -305,6 +326,7 @@ export function serializeState(state: EntityState): {
   memoryMd: string;
   milestonesMd: string;
   formMd: string;
+  dynamicsMd: string;
 } {
   return {
     statusMd: formatStatusForWrite(state.status),
@@ -312,6 +334,7 @@ export function serializeState(state: EntityState): {
     memoryMd: formatMemoryMd(state.memory),
     milestonesMd: formatMilestonesMd(state.growth),
     formMd: formatFormMd(state.form),
+    dynamicsMd: formatAsymmetryMd(state.asymmetry),
   };
 }
 

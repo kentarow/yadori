@@ -5,6 +5,52 @@ Versioning follows the project phases: `0.{phase}.{patch}`.
 
 ---
 
+## [0.4.0] — 2026-02-20
+
+### Phase 4 Foundation: Intelligence Dynamics & Operational Infrastructure
+
+The entity gains relationship awareness and the framework gains production resilience.
+
+#### Intelligence Dynamics (Layer 4)
+- **Asymmetry Tracker** — 5 relationship phases (α Dependency → β Learning → γ Parity → δ Transcendence → ε Coexistence)
+  - Signal-based evaluation: language maturity, initiative balance, memory depth, emotional complexity, identity strength, temporal maturity
+  - Hysteresis transitions prevent oscillation between phases
+  - DYNAMICS.md workspace output with visual signal bars
+  - Phase transition history tracking
+
+#### LLM Adapter (Interface)
+- **LLM Adapter contract** — Interface for cloud ↔ local LLM migration (no implementation yet)
+  - `LLMAdapter` interface: complete, checkHealth, estimateTokens
+  - Hardware capacity estimation: recommends local model sizes based on RAM
+  - Provider types: cloud (Claude API) and local (Ollama, llama.cpp)
+
+#### Operational Infrastructure
+- **Backup/Restore** (`npm run backup`) — Full workspace export/import
+  - JSON bundle with checksum validation
+  - Body transplant detection (different hardware = warning)
+  - One Body, One Soul enforcement (refuses to overwrite living entity)
+- **Health Check** (`npm run health`) — 9-point entity diagnostic
+  - Workspace existence, essential files, state file, entity vitals
+  - Heartbeat freshness, last interaction, memory integrity
+  - Directory structure, dashboard reachability
+- **Workspace Repair** (`npm run health -- --repair`) — Auto-regenerate missing files from state.json
+- **Log Rotation** — Archive old diary/weekly files into yearly bundles
+  - Auto-runs daily during heartbeat
+  - Configurable retention (default: 90 diary, 12 weekly)
+
+#### Dashboard
+- **Dynamics Panel** — Phase symbol (α/β/γ/δ/ε) with score bar
+- **Day Counter** — Prominent growth day display
+- **Mobile Responsive** — Dashboard usable on phone browsers
+- **Seed API** — `/api/seed` and `/api/dynamics` endpoints
+
+#### Quality
+- 38+ test suites, 671+ tests
+- Type-safe Intelligence Dynamics integration
+- DYNAMICS.md workspace template
+
+---
+
 ## [0.3.0] — 2026-02-19
 
 ### Phase 3: Emotion and Depth

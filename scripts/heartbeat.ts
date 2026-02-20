@@ -54,6 +54,7 @@ import {
   type HeartbeatMessageContext,
   type HeartbeatMessageState,
 } from "../engine/src/expression/heartbeat-messages.js";
+import { rotateWorkspaceLogs } from "../engine/src/memory/log-rotation.js";
 import type { SulkState } from "../engine/src/mood/sulk-engine.js";
 import type { Status } from "../engine/src/types.js";
 
@@ -72,6 +73,9 @@ let encounteredModalities = new Set<string>();
 let sensorService: SensorServiceState | null = null;
 let entitySpecies: PerceptionMode = "chromatic";
 let entityPerceptionLevel: PerceptionLevel = PerceptionLevel.Minimal;
+
+// --- Log rotation state ---
+let lastRotationDate = "";
 
 // --- Proactive messaging state ---
 let heartbeatMessageState: HeartbeatMessageState | null = null;
@@ -125,6 +129,7 @@ async function saveState(state: EntityState): Promise<void> {
   await writeFile(join(WORKSPACE_ROOT, "LANGUAGE.md"), serialized.languageMd, "utf-8");
   await writeFile(join(WORKSPACE_ROOT, "growth", "milestones.md"), serialized.milestonesMd, "utf-8");
   await writeFile(join(WORKSPACE_ROOT, "FORM.md"), serialized.formMd, "utf-8");
+  await writeFile(join(WORKSPACE_ROOT, "DYNAMICS.md"), serialized.dynamicsMd, "utf-8");
 
   // Write cold memory to monthly files
   for (const cold of state.memory.cold) {
@@ -401,6 +406,20 @@ async function tick(): Promise<void> {
     // Log memory consolidation
     if (result.memoryConsolidated) {
       log(`Memory consolidated (weekly summary created)`);
+    }
+
+    // Daily log rotation (runs once per day)
+    const today = now.toISOString().split("T")[0];
+    if (today !== lastRotationDate) {
+      try {
+        const rotationResult = await rotateWorkspaceLogs(WORKSPACE_ROOT);
+        if (rotationResult.diaryArchived > 0 || rotationResult.weeklyArchived > 0) {
+          log(`Log rotation: ${rotationResult.diaryArchived} diary, ${rotationResult.weeklyArchived} weekly archived`);
+        }
+        lastRotationDate = today;
+      } catch (rotErr) {
+        log(`Log rotation error: ${(rotErr as Error).message}`);
+      }
     }
 
     // Log form state

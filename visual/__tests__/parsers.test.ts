@@ -11,6 +11,7 @@ import {
   parseStatusMd,
   parseSeedMd,
   parsePerceptionMd,
+  parseDynamicsMd,
   computeCoexistenceMetrics,
 } from "../parsers.js";
 
@@ -236,6 +237,77 @@ Darkness. Only your own faint glow.
     const { perceptions, hasPerception } = parsePerceptionMd(md);
     expect(hasPerception).toBe(true);
     expect(perceptions).toHaveLength(4);
+  });
+});
+
+// ============================================================
+// parseDynamicsMd
+// ============================================================
+
+describe("parseDynamicsMd", () => {
+  it("parses a complete DYNAMICS.md", () => {
+    const md = `# Intelligence Dynamics
+
+**phase**: beta
+**score**: 35
+**signals**: curious about user habits, asked a question
+`;
+    const d = parseDynamicsMd(md);
+    expect(d.phase).toBe("beta");
+    expect(d.score).toBe(35);
+    expect(d.signals).toEqual(["curious about user habits", "asked a question"]);
+  });
+
+  it("returns defaults for empty content", () => {
+    const d = parseDynamicsMd("");
+    expect(d.phase).toBe("alpha");
+    expect(d.score).toBe(0);
+    expect(d.signals).toEqual([]);
+  });
+
+  it("handles phase only", () => {
+    const md = `**phase**: gamma`;
+    const d = parseDynamicsMd(md);
+    expect(d.phase).toBe("gamma");
+    expect(d.score).toBe(0);
+    expect(d.signals).toEqual([]);
+  });
+
+  it("handles all five phases", () => {
+    for (const phase of ["alpha", "beta", "gamma", "delta", "epsilon"]) {
+      const md = `**phase**: ${phase}`;
+      expect(parseDynamicsMd(md).phase).toBe(phase);
+    }
+  });
+
+  it("handles score of 0", () => {
+    const md = `**phase**: alpha\n**score**: 0`;
+    const d = parseDynamicsMd(md);
+    expect(d.score).toBe(0);
+  });
+
+  it("handles score of 100", () => {
+    const md = `**phase**: epsilon\n**score**: 100`;
+    const d = parseDynamicsMd(md);
+    expect(d.score).toBe(100);
+  });
+
+  it("handles empty signals string", () => {
+    const md = `**phase**: alpha\n**score**: 10\n**signals**: `;
+    const d = parseDynamicsMd(md);
+    expect(d.signals).toEqual([]);
+  });
+
+  it("handles single signal", () => {
+    const md = `**signals**: first contact`;
+    const d = parseDynamicsMd(md);
+    expect(d.signals).toEqual(["first contact"]);
+  });
+
+  it("trims whitespace in signals", () => {
+    const md = `**signals**:  signal one ,  signal two  , signal three `;
+    const d = parseDynamicsMd(md);
+    expect(d.signals).toEqual(["signal one", "signal two", "signal three"]);
   });
 });
 

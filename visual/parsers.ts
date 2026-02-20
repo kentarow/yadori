@@ -60,6 +60,33 @@ export function parsePerceptionMd(content: string): {
 }
 
 /**
+ * Parse DYNAMICS.md content into intelligence dynamics data.
+ * Expects format like:
+ *   **phase**: alpha
+ *   **score**: 15
+ *   **signals**: curious about user habits, asked a question
+ */
+export function parseDynamicsMd(content: string): {
+  phase: string;
+  score: number;
+  signals: string[];
+} {
+  const phaseMatch = content.match(/\*\*phase\*\*:\s*(.+)/);
+  const phase = phaseMatch?.[1]?.trim() ?? "alpha";
+
+  const scoreMatch = content.match(/\*\*score\*\*:\s*(\d+)/);
+  const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+
+  const signalsMatch = content.match(/\*\*signals\*\*:\s*(.+)/);
+  const signalsRaw = signalsMatch?.[1]?.trim() ?? "";
+  const signals = signalsRaw
+    ? signalsRaw.split(",").map(s => s.trim()).filter(s => s.length > 0)
+    : [];
+
+  return { phase, score, signals };
+}
+
+/**
  * Compute coexistence metrics from entity state.
  */
 export function computeCoexistenceMetrics(params: {

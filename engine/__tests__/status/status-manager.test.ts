@@ -38,13 +38,16 @@ describe("createEntityState", () => {
     expect(state.language.nativeSymbols.length).toBeGreaterThan(0);
   });
 
-  it("initializes memory, growth, sulk, and form", () => {
+  it("initializes memory, growth, sulk, form, and asymmetry", () => {
     const state = createEntityState(makeSeed(), NOW);
     expect(state.memory.hot).toEqual([]);
     expect(state.growth.milestones.length).toBeGreaterThan(0); // first_breath
     expect(state.sulk.isSulking).toBe(false);
     expect(state.form.baseForm).toBe("light-particles"); // from fixed seed
     expect(state.form.awareness).toBe(false);
+    expect(state.asymmetry.phase).toBe("alpha");
+    expect(state.asymmetry.score).toBe(0);
+    expect(state.asymmetry.transitions).toEqual([]);
   });
 });
 
@@ -141,6 +144,30 @@ describe("processHeartbeat", () => {
     const result = processHeartbeat(state, wedNight);
     expect(result.memoryConsolidated).toBe(false);
     expect(result.updatedState.memory.hot).toHaveLength(1);
+  });
+
+  it("updates asymmetry state during heartbeat", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const now = new Date("2026-02-18T12:00:00Z");
+    const result = processHeartbeat(state, now);
+    expect(result.updatedState.asymmetry).toBeDefined();
+    // At day 48, temporal maturity may push phase beyond alpha
+    expect(["alpha", "beta"]).toContain(result.updatedState.asymmetry.phase);
+    expect(result.updatedState.asymmetry.signals).toBeDefined();
+    expect(result.updatedState.asymmetry.signals.temporalMaturity).toBeGreaterThan(0);
+    expect(result.updatedState.asymmetry.score).toBeGreaterThanOrEqual(0);
+  });
+
+  it("asymmetry score increases with growth day", () => {
+    const seed = makeSeed();
+    // Simulate an entity created 90 days ago
+    const oldSeed = { ...seed, createdAt: "2025-11-20T00:00:00Z" };
+    const state = createEntityState(oldSeed, NOW);
+    const now = new Date("2026-02-18T12:00:00Z");
+    const result = processHeartbeat(state, now);
+    // 90 days of temporal maturity should push score above 0
+    expect(result.updatedState.asymmetry.score).toBeGreaterThan(0);
+    expect(result.updatedState.asymmetry.signals.temporalMaturity).toBeGreaterThan(0);
   });
 });
 
@@ -291,5 +318,14 @@ describe("serializeState", () => {
     const { formMd } = serializeState(state);
     expect(formMd).toContain("light-particles");
     expect(formMd).toContain("**density**");
+  });
+
+  it("produces dynamicsMd with phase and signals", () => {
+    const state = createEntityState(makeSeed(), NOW);
+    const { dynamicsMd } = serializeState(state);
+    expect(dynamicsMd).toContain("# DYNAMICS");
+    expect(dynamicsMd).toContain("Relationship Phase");
+    expect(dynamicsMd).toContain("Dependency");
+    expect(dynamicsMd).toContain("Signals");
   });
 });

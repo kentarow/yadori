@@ -5,6 +5,35 @@ Versioning follows the project phases: `0.{phase}.{patch}`.
 
 ---
 
+## [0.6.0] — 2026-02-20
+
+### Phase 6: Public Release
+
+YADORI is ready for the community. npm package publication, CLI tooling, security hardening, and documentation polish.
+
+#### npm Package
+- **Public package** — `npm install yadori` for library consumers
+- **Dual exports** — `yadori` (engine) and `yadori/adapters` (runtime adapters) with full TypeScript declarations
+- **CLI binary** — `npx yadori <command>` entry point for all operations
+- **Asset pipeline** — `postbuild` copies static dashboard assets to dist/
+
+#### Security Hardening
+- **CORS restriction** — Dashboard API now restricts origins to localhost/127.0.0.1 (was `*`)
+- **execFileSync** — Hardware detector uses `execFileSync` with argument arrays instead of `execSync` with shell strings
+
+#### Documentation
+- **README badges** — CI status, Node.js version, license
+- **npm installation guide** — Library usage with import examples
+- **Community section** — Links to CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, DATA_RIGHTS
+- **Status update** — Reflects v0.6.0 public release
+
+#### Quality
+- 75+ test suites, 2500+ tests maintained
+- Full CI pipeline (lint → test → build)
+- `prepublishOnly` gate ensures quality before npm publish
+
+---
+
 ## [0.5.0] — 2026-02-20
 
 ### Layer 4 Complete: Full Intelligence Dynamics & Dashboard Expansion

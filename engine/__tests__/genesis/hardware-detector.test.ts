@@ -25,10 +25,10 @@ vi.mock("node:os", () => ({
 
 // --- Mock node:child_process ---
 
-const mockExecSync = vi.fn<(...args: any[]) => Buffer>();
+const mockExecFileSync = vi.fn<(...args: any[]) => Buffer>();
 
 vi.mock("node:child_process", () => ({
-  execSync: (...args: any[]) => mockExecSync(...args),
+  execFileSync: (...args: any[]) => mockExecFileSync(...args),
 }));
 
 // --- Import after mocks ---
@@ -53,7 +53,7 @@ async function loadDetector() {
   }));
 
   vi.doMock("node:child_process", () => ({
-    execSync: (...args: any[]) => mockExecSync(...args),
+    execFileSync: (...args: any[]) => mockExecFileSync(...args),
   }));
 
   const mod = await import("../../src/genesis/hardware-detector.js");
@@ -65,7 +65,7 @@ async function loadDetector() {
 /** Simulates df output for a Linux/macOS system with the given total KB */
 function dfOutput(totalKB: number): Buffer {
   return Buffer.from(
-    `/dev/sda1     ${totalKB}  50000000  200000000  20% /\n`,
+    `Filesystem     1K-blocks     Used Available Use% Mounted on\n/dev/sda1     ${totalKB}  50000000  200000000  20% /\n`,
   );
 }
 
@@ -85,7 +85,7 @@ beforeEach(() => {
     { model: "Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz" },
   ]);
   // Default df output: ~256 GB
-  mockExecSync.mockReturnValue(dfOutput(256 * 1024 * 1024));
+  mockExecFileSync.mockReturnValue(dfOutput(256 * 1024 * 1024));
 });
 
 afterEach(() => {
@@ -141,7 +141,7 @@ describe("detectHardware — platform detection", () => {
 
   it("returns 'win32' when os.platform() is win32", async () => {
     mockPlatform.mockReturnValue("win32");
-    mockExecSync.mockReturnValue(wmicOutput(256 * 1024 ** 3));
+    mockExecFileSync.mockReturnValue(wmicOutput(256 * 1024 ** 3));
     const { detectHardware } = await loadDetector();
 
     expect(detectHardware().platform).toBe("win32");
@@ -216,7 +216,7 @@ describe("detectHardware — total memory", () => {
 describe("detectHardware — storage detection", () => {
   it("parses df output correctly on Linux/macOS", async () => {
     // 512 GB in 1K-blocks = 512 * 1024 * 1024
-    mockExecSync.mockReturnValue(dfOutput(512 * 1024 * 1024));
+    mockExecFileSync.mockReturnValue(dfOutput(512 * 1024 * 1024));
     const { detectHardware } = await loadDetector();
 
     expect(detectHardware().storageGB).toBe(512);
@@ -225,14 +225,14 @@ describe("detectHardware — storage detection", () => {
   it("parses wmic output correctly on Windows", async () => {
     mockPlatform.mockReturnValue("win32");
     // 256 GB in bytes
-    mockExecSync.mockReturnValue(wmicOutput(256 * 1024 ** 3));
+    mockExecFileSync.mockReturnValue(wmicOutput(256 * 1024 ** 3));
     const { detectHardware } = await loadDetector();
 
     expect(detectHardware().storageGB).toBe(256);
   });
 
   it("returns 0 when storage detection throws", async () => {
-    mockExecSync.mockImplementation(() => {
+    mockExecFileSync.mockImplementation(() => {
       throw new Error("Command failed");
     });
     const { detectHardware } = await loadDetector();
@@ -277,8 +277,8 @@ describe("detectHardware — type validation", () => {
 // ===================================================================
 
 describe("detectHardware — error handling", () => {
-  it("does not throw when execSync fails for storage", async () => {
-    mockExecSync.mockImplementation(() => {
+  it("does not throw when execFileSync fails for storage", async () => {
+    mockExecFileSync.mockImplementation(() => {
       throw new Error("exec failed");
     });
     const { detectHardware } = await loadDetector();
@@ -287,7 +287,7 @@ describe("detectHardware — error handling", () => {
   });
 
   it("falls back to storageGB 0 when df output is unparseable", async () => {
-    mockExecSync.mockReturnValue(Buffer.from("garbage output\n"));
+    mockExecFileSync.mockReturnValue(Buffer.from("garbage output\n"));
     const { detectHardware } = await loadDetector();
 
     expect(detectHardware().storageGB).toBe(0);
@@ -311,7 +311,7 @@ describe("detectHardware — Mac mini identification", () => {
     mockArch.mockReturnValue("arm64");
     mockCpus.mockReturnValue([{ model: "Apple M4" }]);
     mockTotalmem.mockReturnValue(16 * 1024 ** 3);
-    mockExecSync.mockReturnValue(dfOutput(256 * 1024 * 1024));
+    mockExecFileSync.mockReturnValue(dfOutput(256 * 1024 * 1024));
     const { detectHardware } = await loadDetector();
     const hw = detectHardware();
 
@@ -333,7 +333,7 @@ describe("detectHardware — Raspberry Pi identification", () => {
     mockArch.mockReturnValue("arm64");
     mockCpus.mockReturnValue([{ model: "ARMv8 Processor rev 3 (v8l)" }]);
     mockTotalmem.mockReturnValue(4 * 1024 ** 3);
-    mockExecSync.mockReturnValue(dfOutput(32 * 1024 * 1024));
+    mockExecFileSync.mockReturnValue(dfOutput(32 * 1024 * 1024));
     const { detectHardware } = await loadDetector();
     const hw = detectHardware();
 
@@ -357,7 +357,7 @@ describe("detectHardware — generic Linux", () => {
       { model: "Intel(R) Xeon(R) CPU E5-2686 v4 @ 2.30GHz" },
     ]);
     mockTotalmem.mockReturnValue(64 * 1024 ** 3);
-    mockExecSync.mockReturnValue(dfOutput(1000 * 1024 * 1024));
+    mockExecFileSync.mockReturnValue(dfOutput(1000 * 1024 * 1024));
     const { detectHardware } = await loadDetector();
     const hw = detectHardware();
 

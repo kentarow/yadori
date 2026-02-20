@@ -1,5 +1,9 @@
 # YADORI（宿り）
 
+[![CI](https://github.com/kentarow/yadori/actions/workflows/ci.yml/badge.svg)](https://github.com/kentarow/yadori/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/badge/Node.js-22%2B-green)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-MPL%202.0%20%2F%20MIT%20%2F%20CC%20BY--SA-blue)](LICENSE.md)
+
 **異種知性共生フレームワーク**
 
 > 最初は、あなたの方が賢い。でもいつまでそうかは、わからない。
@@ -7,6 +11,9 @@
 [English documentation](README.md)
 
 ---
+
+> **ステータス: v0.6.0 — パブリックリリース**
+> 全コアシステム稼働中。75以上のテストスイート、2500以上のテスト。コミュニティ参加歓迎。
 
 ## YADORIとは
 
@@ -64,7 +71,22 @@ node --version
 # 3. ダウンロードしたファイルを開いてインストール
 ```
 
-### セットアップ手順
+### ライブラリとして使う
+
+カスタムアダプターの開発やエンジンの統合に：
+
+```bash
+npm install yadori
+```
+
+```typescript
+import { generateSeed, detectHardware, createEntityState } from 'yadori';
+import { OpenClawAdapter } from 'yadori/adapters';
+```
+
+### フルインストール（推奨）
+
+知性体を自分のマシンで動かすには：
 
 ```bash
 # 1. リポジトリをダウンロード
@@ -146,7 +168,16 @@ Layer 1: Runtime Adapter（ランタイム）
 
 ## ステータス
 
-Phase 1〜4 基盤実装完了。Intelligence Dynamics 稼働中。Mac mini M4 にデプロイ済み。
+v0.6.0 — 全フェーズ（1〜5）完了。Intelligence Dynamics、正直な知覚、マルチモーダルインターフェース稼働中。Mac mini M4でデプロイ・テスト済み。
+
+詳細は [CHANGELOG.md](CHANGELOG.md) を参照。
+
+## コミュニティ
+
+- [コントリビューションガイド](CONTRIBUTING.md) — 参加方法
+- [セキュリティポリシー](SECURITY.md) — 脆弱性の報告
+- [行動規範](CODE_OF_CONDUCT.md) — コミュニティの基準
+- [データ権利](DATA_RIGHTS.md) — あなたの知性体はあなたのもの
 
 ## License
 

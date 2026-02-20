@@ -174,3 +174,65 @@ export {
   generateAvatar,
   generateBotName,
 } from "./identity/avatar-generator.js";
+
+// Health Check
+export {
+  runHealthCheck,
+  type HealthReport,
+  type HealthCheckItem,
+  type CheckStatus,
+} from "./health/health-check.js";
+
+// Backup
+export {
+  createBackup,
+  serializeBackup,
+  deserializeBackup,
+  validateBackup,
+  restoreBackup,
+  generateBackupFilename,
+  type BackupManifest,
+  type BackupBundle,
+  type RestoreValidation,
+} from "./backup/backup-engine.js";
+
+// Workspace Repair
+export {
+  repairWorkspace,
+  type RepairResult,
+  type RepairAction,
+} from "./health/workspace-repair.js";
+
+// Log Rotation
+export {
+  rotateWorkspaceLogs,
+  estimateWorkspaceSize,
+  type RotationConfig,
+  type RotationResult,
+} from "./memory/log-rotation.js";
+
+// Intelligence Dynamics (Layer 4)
+export {
+  createInitialAsymmetryState,
+  evaluateAsymmetry,
+  getPhaseLabel,
+  getPhaseSymbol,
+  formatAsymmetryMd,
+  type RelationPhase,
+  type AsymmetryState,
+  type AsymmetrySignals,
+  type PhaseTransition,
+} from "./dynamics/asymmetry-tracker.js";
+
+// LLM Adapter (interface only — implementation future)
+export {
+  estimateLocalModelCapacity,
+  type LLMAdapter,
+  type LLMAdapterConfig,
+  type LLMProviderType,
+  type LLMCapabilities,
+  type LLMMessage,
+  type LLMCompletionRequest,
+  type LLMCompletionResponse,
+  type LLMHealthStatus,
+} from "./llm/llm-adapter.js";

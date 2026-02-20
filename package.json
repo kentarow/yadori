@@ -20,7 +20,9 @@
     "snapshot": "node --import tsx scripts/snapshot.ts",
     "setup-webhook": "node --import tsx scripts/setup-webhook.ts",
     "version": "node --import tsx scripts/version.ts",
-    "update": "node --import tsx scripts/update.ts"
+    "update": "node --import tsx scripts/update.ts",
+    "backup": "node --import tsx scripts/backup.ts",
+    "health": "node --import tsx scripts/health.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

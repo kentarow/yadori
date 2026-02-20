@@ -115,6 +115,22 @@ describe("OpenClawWorkspaceManager", () => {
     });
   });
 
+  describe("writeDynamics / readDynamics", () => {
+    it("writes and reads DYNAMICS.md", async () => {
+      const dynamicsMd = "# DYNAMICS\n\n## Current Phase\n\nPhase α (Dependency)\n";
+      await manager.writeDynamics(dynamicsMd);
+      const content = await readFile(join(tempDir, "DYNAMICS.md"), "utf-8");
+      expect(content).toContain("# DYNAMICS");
+      const read = await manager.readDynamics();
+      expect(read).toContain("Phase α (Dependency)");
+    });
+
+    it("returns empty string when DYNAMICS.md does not exist", async () => {
+      const read = await manager.readDynamics();
+      expect(read).toBe("");
+    });
+  });
+
   describe("writeMilestones", () => {
     it("writes to growth/milestones.md", async () => {
       await mkdir(join(tempDir, "growth"), { recursive: true });

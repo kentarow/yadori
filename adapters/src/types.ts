@@ -10,6 +10,8 @@ export interface RuntimeAdapter {
   writeStatus(status: Status): Promise<void>;
   readSeed(): Promise<Seed>;
   writeSeed(seed: Seed): Promise<void>;
+  writeDynamics(dynamicsMd: string): Promise<void>;
+  readDynamics(): Promise<string>;
 }
 
 export interface RuntimeConfig {

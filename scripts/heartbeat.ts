@@ -21,8 +21,10 @@ import { homedir } from "node:os";
 import {
   processHeartbeat,
   serializeState,
+  createEntityState,
   type EntityState,
 } from "../engine/src/status/status-manager.js";
+import { OpenClawWorkspaceManager } from "../adapters/src/openclaw/workspace-manager.js";
 import { isActiveHours, shouldPulse, getTimeOfDay } from "../engine/src/rhythm/rhythm-system.js";
 import { formatDiaryMd } from "../engine/src/diary/diary-engine.js";
 import { formatColdMemoryMd } from "../engine/src/memory/memory-engine.js";
@@ -77,6 +79,10 @@ let entityPerceptionLevel: PerceptionLevel = PerceptionLevel.Minimal;
 // --- Log rotation state ---
 let lastRotationDate = "";
 
+// --- Error recovery state ---
+let consecutiveErrors = 0;
+const MAX_CONSECUTIVE_ERRORS = 5;
+
 // --- Proactive messaging state ---
 let heartbeatMessageState: HeartbeatMessageState | null = null;
 let previousStatus: Status | null = null;
@@ -108,13 +114,35 @@ async function loadState(): Promise<EntityState> {
       continue;
     }
   }
+
+  // State files are missing or corrupt — attempt recovery from SEED.md + STATUS.md
+  try {
+    log("State file corrupted or missing — attempting recovery from SEED.md + STATUS.md");
+    const wsManager = new OpenClawWorkspaceManager({ workspaceRoot: WORKSPACE_ROOT });
+    const seed = await wsManager.readSeed();
+    const recoveredState = createEntityState(seed, new Date());
+
+    // Override defaults with whatever STATUS.md has (preserves growthDay, mood, etc.)
+    try {
+      const status = await wsManager.readStatus();
+      recoveredState.status = status;
+    } catch {
+      log("STATUS.md also unreadable — using defaults for status");
+    }
+
+    log("State recovered from workspace .md files (memory/language/growth reset to defaults)");
+    return recoveredState;
+  } catch {
+    // SEED.md is also missing or corrupt — truly unrecoverable
+  }
+
   throw new Error(
     `No entity state found at ${WORKSPACE_ROOT}.\n` +
     `Run 'npm run setup' first to create an entity.`,
   );
 }
 
-async function saveState(state: EntityState): Promise<void> {
+async function saveStateOnce(state: EntityState): Promise<void> {
   // Write JSON state
   await writeFile(
     join(WORKSPACE_ROOT, "state.json"),
@@ -135,6 +163,21 @@ async function saveState(state: EntityState): Promise<void> {
   for (const cold of state.memory.cold) {
     const monthlyPath = join(WORKSPACE_ROOT, "memory", "monthly", `${cold.month}.md`);
     await writeFile(monthlyPath, formatColdMemoryMd(cold), "utf-8");
+  }
+}
+
+async function saveState(state: EntityState): Promise<void> {
+  try {
+    await saveStateOnce(state);
+  } catch (firstErr) {
+    log(`State save failed, retrying in 1s: ${(firstErr as Error).message}`);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await saveStateOnce(state);
+    } catch (retryErr) {
+      log(`WARNING: State save failed after retry: ${(retryErr as Error).message}`);
+      // Don't crash — state will be retried on next heartbeat tick
+    }
   }
 }
 
@@ -425,8 +468,15 @@ async function tick(): Promise<void> {
     // Log form state
     const f = updatedState.form;
     log(`Form: ${f.baseForm} density:${f.density} complexity:${f.complexity} stability:${f.stability}`);
+
+    // Reset consecutive error counter on success
+    consecutiveErrors = 0;
   } catch (err) {
+    consecutiveErrors++;
     log(`Error: ${(err as Error).message}`);
+    if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+      log(`CRITICAL: Heartbeat has failed ${consecutiveErrors} times in a row. Run 'npm run health --repair' to diagnose.`);
+    }
   }
 }
 

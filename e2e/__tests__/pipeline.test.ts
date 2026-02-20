@@ -17,7 +17,7 @@ import {
   processInteraction,
   serializeState,
 } from "../../engine/src/status/status-manager.js";
-import { parseStatusMd, parseSeedMd, computeCoexistenceMetrics } from "../../visual/parsers.js";
+import { parseStatusMd, parseSeedMd, parseDynamicsMd, computeCoexistenceMetrics } from "../../visual/parsers.js";
 import type { HardwareBody, PerceptionMode, Temperament, SelfForm } from "../../engine/src/types.js";
 
 const TEST_HW: HardwareBody = {
@@ -335,5 +335,82 @@ describe("entity lifecycle: birth → interactions → heartbeats → dashboard"
     expect(parsed.growthDay).toBe(0); // Same day as birth
     expect(parsed.languageLevel).toBe(0); // Day 0: symbols only
     expect(state.language.totalInteractions).toBe(2);
+  });
+});
+
+// ============================================================
+// Dynamics round-trip: EntityState → DYNAMICS.md → parseDynamicsMd
+// ============================================================
+
+describe("dynamics round-trip: engine state → DYNAMICS.md → dashboard parser", () => {
+  it("initial state serializes dynamicsMd with phase α and DYNAMICS header", () => {
+    const seed = createFixedSeed({ hardwareBody: TEST_HW });
+    const state = createEntityState(seed, NOW);
+    const { dynamicsMd } = serializeState(state);
+
+    // dynamicsMd must contain the DYNAMICS header
+    expect(dynamicsMd).toContain("DYNAMICS");
+    // dynamicsMd must contain the phase symbol α (alpha)
+    expect(dynamicsMd).toContain("α");
+    // dynamicsMd must contain score
+    expect(dynamicsMd).toContain("**score**");
+  });
+
+  it("post-heartbeat state includes asymmetry in result", () => {
+    const seed = createFixedSeed({
+      hardwareBody: TEST_HW,
+      createdAt: "2026-02-01T00:00:00Z",
+    });
+    const state = createEntityState(seed, new Date("2026-02-01T00:00:00Z"));
+
+    // Process a heartbeat
+    const result = processHeartbeat(state, NOW);
+
+    // The updated state must have an asymmetry field
+    expect(result.updatedState.asymmetry).toBeDefined();
+    expect(result.updatedState.asymmetry.phase).toBeDefined();
+    expect(result.updatedState.asymmetry.score).toBeGreaterThanOrEqual(0);
+    expect(result.updatedState.asymmetry.score).toBeLessThanOrEqual(100);
+
+    // Serialize and verify dynamicsMd round-trips
+    const { dynamicsMd } = serializeState(result.updatedState);
+    expect(dynamicsMd).toContain("DYNAMICS");
+    expect(dynamicsMd).toContain("α");
+  });
+
+  it("parseDynamicsMd round-trips correctly from serializeState output", () => {
+    const seed = createFixedSeed({ hardwareBody: TEST_HW });
+    const state = createEntityState(seed, NOW);
+    const { dynamicsMd } = serializeState(state);
+
+    // Parse with the dashboard parser
+    const parsed = parseDynamicsMd(dynamicsMd);
+
+    // The parsed phase should start with the α symbol (since it's alpha phase)
+    expect(parsed.phase).toContain("α");
+    // Score should match the engine state
+    expect(parsed.score).toBe(state.asymmetry.score);
+  });
+
+  it("parseDynamicsMd extracts correct values after heartbeats evolve the entity", () => {
+    const seed = createFixedSeed({
+      hardwareBody: TEST_HW,
+      createdAt: "2026-02-01T00:00:00Z",
+    });
+    let state = createEntityState(seed, new Date("2026-02-01T00:00:00Z"));
+
+    // Process several heartbeats to evolve the entity
+    for (let i = 0; i < 5; i++) {
+      const result = processHeartbeat(state, new Date(NOW.getTime() + i * 30 * 60_000));
+      state = result.updatedState;
+    }
+
+    const { dynamicsMd } = serializeState(state);
+    const parsed = parseDynamicsMd(dynamicsMd);
+
+    // Score from parser must match engine state
+    expect(parsed.score).toBe(state.asymmetry.score);
+    // Phase string must contain a Greek letter (α, β, γ, δ, or ε)
+    expect(parsed.phase).toMatch(/[αβγδε]/);
   });
 });

@@ -152,11 +152,39 @@
       chemical:   { h: 90,  s: 50 },
     };
 
+    const PHASE_MAP = {
+      alpha:   { symbol: '\u03B1', label: 'Dependency' },
+      beta:    { symbol: '\u03B2', label: 'Learning' },
+      gamma:   { symbol: '\u03B3', label: 'Parity' },
+      delta:   { symbol: '\u03B4', label: 'Transcendence' },
+      epsilon: { symbol: '\u03B5', label: 'Coexistence' },
+    };
+
+    function resolvePhase(raw) {
+      // raw may be "alpha", "α Dependency (entity <<< user)", etc.
+      if (!raw) return { key: 'alpha', symbol: '\u03B1', label: 'Dependency' };
+      const lower = raw.toLowerCase();
+      for (const [key, info] of Object.entries(PHASE_MAP)) {
+        if (lower === key || lower.startsWith(key) || raw.startsWith(info.symbol)) {
+          return { key, ...info };
+        }
+      }
+      return { key: 'alpha', symbol: '\u03B1', label: 'Dependency' };
+    }
+
     async function load() {
       try {
-        const res = await fetch('/api/entity');
-        if (!res.ok) throw new Error();
-        const data = await res.json();
+        const [entityRes, dynamicsRes] = await Promise.all([
+          fetch('/api/entity'),
+          fetch('/api/dynamics'),
+        ]);
+        if (!entityRes.ok) throw new Error();
+        const data = await entityRes.json();
+
+        let dynamics = { phase: 'alpha', score: 0, signals: [] };
+        if (dynamicsRes.ok) {
+          dynamics = await dynamicsRes.json();
+        }
 
         const seed = data.seed || {};
         const perception = seed.perception || 'chromatic';
@@ -169,6 +197,9 @@
           : '—';
 
         const hw = seed.hardwareBody || {};
+
+        const phase = resolvePhase(dynamics.phase);
+        const score = dynamics.score ?? 0;
 
         document.getElementById('cert').innerHTML = `
           <div class="header">
@@ -193,6 +224,10 @@
           <div class="field"><span class="label">Architecture</span><span class="value">${hw.arch || '—'}</span></div>
           <div class="field"><span class="label">Memory</span><span class="value">${hw.totalMemoryGB ? hw.totalMemoryGB + ' GB' : '—'}</span></div>
           <div class="field"><span class="label">CPU</span><span class="value">${hw.cpuModel || '—'}</span></div>
+
+          <div class="section-title">Relationship</div>
+          <div class="field"><span class="label">Phase</span><span class="value">${phase.symbol} ${phase.label}</span></div>
+          <div class="field"><span class="label">Score</span><span class="value">${score} / 100</span></div>
 
           <div class="accent-line" style="background: linear-gradient(90deg, transparent, ${accentColor}, transparent)"></div>
 

@@ -221,6 +221,32 @@
       left: 13px;
     }
 
+    /* Sound growth level indicator */
+    #sound-growth {
+      position: fixed;
+      bottom: 50px;
+      right: 20px;
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+      cursor: default;
+    }
+    body:hover #sound-growth { opacity: 0.3; }
+    #sound-growth:hover { opacity: 0.6 !important; }
+    .sound-growth-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      transition: background 0.5s;
+    }
+    .sound-growth-dot.filled {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
     /* Senses Panel (left side) */
     #senses-panel {
       position: fixed;
@@ -567,7 +593,7 @@
       }
 
       /* Toggle buttons always visible on mobile */
-      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #sound-toggle {
+      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #sound-toggle, #sound-growth {
         opacity: 0.35 !important;
       }
 
@@ -576,6 +602,7 @@
       #diary-toggle { bottom: 10px; left: 50px; }
       #errorlog-toggle { bottom: 10px; right: 50px; }
       #sound-toggle { bottom: 10px; right: 10px; }
+      #sound-growth { bottom: 40px; right: 10px; }
 
       #encounter-expression {
         font-size: 22px;
@@ -674,6 +701,13 @@
     <div id="errorlog-content"><span class="errorlog-empty">No log entries.</span></div>
   </div>
 
+  <div id="sound-growth" title="Sound growth: Level 1 — Single tone">
+    <span class="sound-growth-dot"></span>
+    <span class="sound-growth-dot"></span>
+    <span class="sound-growth-dot"></span>
+    <span class="sound-growth-dot"></span>
+    <span class="sound-growth-dot"></span>
+  </div>
   <div id="sound-toggle" class="muted" title="Toggle sound">
     <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
       <path d="M11 5L6 9H2v6h4l5 4V5z"/>
@@ -1971,6 +2005,7 @@
         checkMoodTransition,
         onAwakening,
         onMilestone,
+        growthSoundLevel,
       };
     })();
 
@@ -1983,11 +2018,34 @@
       soundToggle.title = enabled ? 'Mute sound' : 'Toggle sound';
     });
 
+    // --- Sound Growth Level Indicator ---
+    const soundGrowthEl = document.getElementById('sound-growth');
+    const soundGrowthDots = soundGrowthEl.querySelectorAll('.sound-growth-dot');
+    const SOUND_LEVEL_LABELS = [
+      'Single tone',
+      'Single tone',
+      'Pitch variety',
+      'Rhythm + cries',
+      'Sound vocabulary',
+      'Sound-language correspondence',
+    ];
+
+    function updateSoundGrowthIndicator() {
+      const level = SoundEngine.growthSoundLevel();
+      const displayLevel = Math.max(level, 1); // Show at least level 1
+      soundGrowthDots.forEach((dot, i) => {
+        dot.classList.toggle('filled', i < displayLevel);
+      });
+      soundGrowthEl.title = 'Sound growth: Level ' + displayLevel + ' \u2014 ' + SOUND_LEVEL_LABELS[level];
+    }
+    updateSoundGrowthIndicator();
+
     // Hook mood transition checks into the fetch cycle
     const _origFetchState = fetchState;
     fetchState = async function() {
       await _origFetchState();
       SoundEngine.checkMoodTransition();
+      updateSoundGrowthIndicator();
     };
 
     // Hook awakening sound into the existing triggerAwakening

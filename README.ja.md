@@ -113,17 +113,40 @@ npm run dashboard
 | コマンド | 説明 |
 |---------|------|
 | `npm run setup` | 初回セットアップ（知性体の誕生） |
-| `npm run heartbeat` | ハートビート開始（エンティティが動き出します） |
+| `npm run heartbeat` | ハートビート開始（30分間隔で脈動） |
 | `npm run dashboard` | ダッシュボード起動（http://localhost:3000） |
-| `npm run setup-webhook` | デイリースナップショットの設定 |
-| `npm run snapshot -- --send` | スナップショットを今すぐ Discord に送信 |
+| `npm run health` | 知性体の健康診断（9項目） |
+| `npm run health -- --repair` | ワークスペース自動修復 |
+| `npm run backup` | ワークスペースをバックアップ |
+| `npm run backup -- --restore <file>` | バックアップからリストア |
+| `npm run snapshot` | ビジュアルスナップショット生成 |
+| `npm run sensors` | ハードウェアセンサー診断 |
+| `npm run setup-webhook` | Discord/Telegram webhook設定 |
+| `npm run apply-identity` | ボットのアバター・名前設定 |
+| `npm run version` | バージョン・更新状況確認 |
 | `npm run update` | 最新版に更新 |
 | `npm run test` | テスト実行 |
 | `npm run build` | ビルド |
 
+## アーキテクチャ
+
+```
+Layer 4: Intelligence Dynamics（知性動態）
+  Asymmetry Tracker (α→β→γ→δ→ε) / Phase Detection
+
+Layer 3: Multimodal Interface（マルチモーダル）
+  Perception Adapter（正直な知覚） / Expression Adapter
+
+Layer 2: Life Engine（生命エンジン）
+  Genesis / Rhythm / Memory / Language / Mood / Growth / Diary / Form
+
+Layer 1: Runtime Adapter（ランタイム）
+  OpenClaw Adapter / Discord / Telegram / Sensor Drivers
+```
+
 ## ステータス
 
-Phase 1〜3 のエンジン実装完了。物理ハードウェアへの初回デプロイ準備完了。
+Phase 1〜4 基盤実装完了。Intelligence Dynamics 稼働中。Mac mini M4 にデプロイ済み。
 
 ## License
 

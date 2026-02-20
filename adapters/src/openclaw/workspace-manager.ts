@@ -66,6 +66,42 @@ export class OpenClawWorkspaceManager {
     await this.writeProtected(join(this.root, "PERCEPTION.md"), perceptionMd);
   }
 
+  async writeDynamics(dynamicsMd: string): Promise<void> {
+    await this.writeProtected(join(this.root, "DYNAMICS.md"), dynamicsMd);
+  }
+
+  async readDynamics(): Promise<string> {
+    try {
+      return await readFile(join(this.root, "DYNAMICS.md"), "utf-8");
+    } catch {
+      return "";
+    }
+  }
+
+  async writeReversals(content: string): Promise<void> {
+    await this.writeProtected(join(this.root, "REVERSALS.md"), content);
+  }
+
+  async readReversals(): Promise<string> {
+    try {
+      return await readFile(join(this.root, "REVERSALS.md"), "utf-8");
+    } catch {
+      return "";
+    }
+  }
+
+  async writeCoexist(content: string): Promise<void> {
+    await this.writeProtected(join(this.root, "COEXIST.md"), content);
+  }
+
+  async readCoexist(): Promise<string> {
+    try {
+      return await readFile(join(this.root, "COEXIST.md"), "utf-8");
+    } catch {
+      return "";
+    }
+  }
+
   async writeSoulEvil(soulEvilMd: string): Promise<void> {
     await this.writeProtected(join(this.root, "SOUL_EVIL.md"), soulEvilMd);
   }

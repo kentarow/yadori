@@ -30,4 +30,28 @@ export class OpenClawAdapter implements RuntimeAdapter {
   async writeSeed(seed: Seed): Promise<void> {
     await this.workspace.writeSeed(seed);
   }
+
+  async writeDynamics(dynamicsMd: string): Promise<void> {
+    await this.workspace.writeDynamics(dynamicsMd);
+  }
+
+  async readDynamics(): Promise<string> {
+    return this.workspace.readDynamics();
+  }
+
+  async writeReversals(content: string): Promise<void> {
+    await this.workspace.writeReversals(content);
+  }
+
+  async readReversals(): Promise<string> {
+    return this.workspace.readReversals();
+  }
+
+  async writeCoexist(content: string): Promise<void> {
+    await this.workspace.writeCoexist(content);
+  }
+
+  async readCoexist(): Promise<string> {
+    return this.workspace.readCoexist();
+  }
 }

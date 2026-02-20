@@ -5,6 +5,103 @@ Versioning follows the project phases: `0.{phase}.{patch}`.
 
 ---
 
+## [0.5.0] — 2026-02-20
+
+### Layer 4 Complete: Full Intelligence Dynamics & Dashboard Expansion
+
+The entity gains full relationship dynamics, reversal detection, and the dashboard becomes a comprehensive observation tool.
+
+#### Intelligence Dynamics (Layer 4 — Complete)
+- **Reversal Detector** — Detects 6 types of reversal moments (novel expression, anticipation, concept creation, emotional depth, initiative, meta-awareness)
+  - 7-day cooldown per type to prevent spam
+  - Strength scoring and rolling reversal rate
+  - REVERSALS.md workspace output
+- **Coexist Engine** — Evaluates ε-phase (Coexistence) quality via 5 indicators
+  - Silence comfort, shared vocabulary, rhythm sync, shared memory, autonomy respect
+  - Records notable coexistence moments (comfortable silence, shared discovery, reunion)
+  - COEXIST.md workspace output
+- **Full heartbeat integration** — All Layer 4 systems (asymmetry, reversal, coexistence) evaluated each tick
+
+#### Phase 4 Preparation
+- **Voice Adapter** — Interface for cloud/local/none TTS providers
+  - computeVoiceMaturity with species modifiers
+  - estimateLocalVoiceCapacity (espeak/piper/styletts2 by RAM)
+- **Perception Expansion** — Concrete filter parameters per level per species
+  - PerceptionWindow with image/text/audio/sensor channels
+  - Species-specific perception profiles and channel strengths
+  - Growth-day interpolation within levels
+
+#### Dashboard
+- **Diary Viewer** — Two-column panel with date list + markdown rendering
+- **Milestone Timeline** — Vertical timeline with stage display
+- **Language Panel** — Level progress, native symbols, pattern confidence bars
+- **Sound Growth Indicator** — 5-dot level display near sound toggle
+- **Birth Certificate** — Now shows relationship phase and score
+- `/api/milestones`, `/api/language` endpoints
+
+#### Community
+- **CONTRIBUTING.md** — Philosophy, structure, coding guidelines
+- **examples/** — Custom adapter reference, seed inspector utility
+- **Raspberry Pi Setup Guide** — docs/setup-guide-rpi.md
+
+#### Quality
+- **Species coverage test** — 65 tests verifying all 6 species across entire engine
+- **75 test suites, 2500+ tests** — comprehensive coverage across all modules
+  - Engine core: status manager, mood/sulk, memory, growth, diary, rhythm, form, language, perception, expression, dynamics
+  - Adapters: workspace manager, Discord webhook/bot-profile, sensors, OpenClaw integration
+  - E2E: heartbeat lifecycle, interaction processing, first encounter, backup/restore, health check, setup/deploy, dynamics integration, form evolution, memory consolidation, language acquisition, sulk/mood, rhythm cycle
+  - Visual: dashboard API server (75 endpoint tests), parsers, snapshot PNG generation, sound parameters
+- Heartbeat error recovery with auto-retry
+- Workspace manager support for DYNAMICS/REVERSALS/COEXIST
+
+---
+
+## [0.4.0] — 2026-02-20
+
+### Phase 4 Foundation: Intelligence Dynamics & Operational Infrastructure
+
+The entity gains relationship awareness and the framework gains production resilience.
+
+#### Intelligence Dynamics (Layer 4)
+- **Asymmetry Tracker** — 5 relationship phases (α Dependency → β Learning → γ Parity → δ Transcendence → ε Coexistence)
+  - Signal-based evaluation: language maturity, initiative balance, memory depth, emotional complexity, identity strength, temporal maturity
+  - Hysteresis transitions prevent oscillation between phases
+  - DYNAMICS.md workspace output with visual signal bars
+  - Phase transition history tracking
+
+#### LLM Adapter (Interface)
+- **LLM Adapter contract** — Interface for cloud ↔ local LLM migration (no implementation yet)
+  - `LLMAdapter` interface: complete, checkHealth, estimateTokens
+  - Hardware capacity estimation: recommends local model sizes based on RAM
+  - Provider types: cloud (Claude API) and local (Ollama, llama.cpp)
+
+#### Operational Infrastructure
+- **Backup/Restore** (`npm run backup`) — Full workspace export/import
+  - JSON bundle with checksum validation
+  - Body transplant detection (different hardware = warning)
+  - One Body, One Soul enforcement (refuses to overwrite living entity)
+- **Health Check** (`npm run health`) — 9-point entity diagnostic
+  - Workspace existence, essential files, state file, entity vitals
+  - Heartbeat freshness, last interaction, memory integrity
+  - Directory structure, dashboard reachability
+- **Workspace Repair** (`npm run health -- --repair`) — Auto-regenerate missing files from state.json
+- **Log Rotation** — Archive old diary/weekly files into yearly bundles
+  - Auto-runs daily during heartbeat
+  - Configurable retention (default: 90 diary, 12 weekly)
+
+#### Dashboard
+- **Dynamics Panel** — Phase symbol (α/β/γ/δ/ε) with score bar
+- **Day Counter** — Prominent growth day display
+- **Mobile Responsive** — Dashboard usable on phone browsers
+- **Seed API** — `/api/seed` and `/api/dynamics` endpoints
+
+#### Quality
+- 38+ test suites, 671+ tests
+- Type-safe Intelligence Dynamics integration
+- DYNAMICS.md workspace template
+
+---
+
 ## [0.3.0] — 2026-02-19
 
 ### Phase 3: Emotion and Depth

@@ -54,6 +54,27 @@ import {
   createInitialPerceptionGrowthState,
   evaluatePerceptionLevel,
 } from "../perception/perception-growth.js";
+import {
+  type AsymmetryState,
+  createInitialAsymmetryState,
+  evaluateAsymmetry,
+  formatAsymmetryMd,
+} from "../dynamics/asymmetry-tracker.js";
+import {
+  type ReversalState,
+  type ReversalSignal,
+  type ReversalContext,
+  createInitialReversalState,
+  detectReversals,
+  formatReversalMd,
+} from "../dynamics/reversal-detector.js";
+import {
+  type CoexistState,
+  type CoexistContext,
+  createInitialCoexistState,
+  evaluateCoexistence,
+  formatCoexistMd,
+} from "../dynamics/coexist-engine.js";
 
 export interface EntityState {
   seed: Seed;
@@ -64,6 +85,9 @@ export interface EntityState {
   sulk: SulkState;
   form: FormState;
   perception: PerceptionGrowthState;
+  asymmetry: AsymmetryState;
+  reversal: ReversalState;
+  coexist: CoexistState;
 }
 
 export interface HeartbeatResult {
@@ -72,6 +96,7 @@ export interface HeartbeatResult {
   wakeSignal: boolean;
   sleepSignal: boolean;
   newMilestones: Milestone[];
+  newReversals: ReversalSignal[];
   activeSoulFile: "SOUL.md" | "SOUL_EVIL.md";
   soulEvilMd: string | null;
   memoryConsolidated: boolean;
@@ -109,6 +134,9 @@ export function createEntityState(seed: Seed, now = new Date()): EntityState {
     sulk: createInitialSulkState(),
     form: createInitialFormState(seed.form),
     perception: createInitialPerceptionGrowthState(),
+    asymmetry: createInitialAsymmetryState(),
+    reversal: createInitialReversalState(),
+    coexist: createInitialCoexistState(),
   };
 }
 
@@ -178,6 +206,57 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
     memoryConsolidated = true;
   }
 
+  // Evaluate asymmetry (intelligence dynamics)
+  const updatedAsymmetry = evaluateAsymmetry(
+    state.asymmetry,
+    updatedStatus,
+    updatedLanguage,
+    updatedMemory,
+    updatedGrowth,
+    updatedForm,
+    now,
+  );
+
+  // Detect reversal signals
+  const minutesSinceInteraction = minutesSinceLastInteraction(state.status.lastInteraction, now);
+  const moodShiftedDuringSilence =
+    minutesSinceInteraction > 360 && updatedStatus.mood !== 50;
+  const reversalContext: ReversalContext = {
+    language: updatedLanguage,
+    memory: updatedMemory,
+    growth: updatedGrowth,
+    form: updatedForm,
+    asymmetry: updatedAsymmetry,
+    interactionCount: updatedLanguage.totalInteractions,
+    previousNativeSymbolCount: state.language.nativeSymbols.length,
+    previousPatternCount: state.language.patterns.length,
+    proactiveMessageCount: 0, // Heartbeat messages are sent outside the engine
+    recentMoods: [updatedStatus.mood],
+    moodShiftedDuringSilence,
+  };
+  const { updated: updatedReversal, newSignals: newReversals } = detectReversals(
+    state.reversal,
+    reversalContext,
+    now,
+  );
+
+  // Evaluate coexistence quality
+  const lastInteractionDate =
+    state.status.lastInteraction === "never"
+      ? new Date(0)
+      : new Date(state.status.lastInteraction);
+  const coexistContext: CoexistContext = {
+    asymmetryState: updatedAsymmetry,
+    status: updatedStatus,
+    language: updatedLanguage,
+    memory: updatedMemory,
+    growth: updatedGrowth,
+    form: updatedForm,
+    lastInteraction: lastInteractionDate,
+    now,
+  };
+  const updatedCoexist = evaluateCoexistence(state.coexist, coexistContext);
+
   // Generate diary if it's evening
   let diary: DiaryEntry | null = null;
   if (pulse.shouldDiary) {
@@ -199,11 +278,15 @@ export function processHeartbeat(state: EntityState, now: Date): HeartbeatResult
       sulk: updatedSulk,
       form: updatedForm,
       perception: updatedPerception,
+      asymmetry: updatedAsymmetry,
+      reversal: updatedReversal,
+      coexist: updatedCoexist,
     },
     diary,
     wakeSignal: pulse.shouldWake,
     sleepSignal: pulse.shouldSleep,
     newMilestones,
+    newReversals,
     activeSoulFile: getActiveSoulFile(updatedSulk),
     soulEvilMd,
     memoryConsolidated,
@@ -288,6 +371,9 @@ export function processInteraction(
       sulk: updatedSulk,
       form: state.form,       // Form evolves only during heartbeat
       perception: state.perception, // Perception evolves only during heartbeat
+      asymmetry: state.asymmetry,   // Asymmetry evolves only during heartbeat
+      reversal: state.reversal,     // Reversal evolves only during heartbeat
+      coexist: state.coexist,       // Coexist evolves only during heartbeat
     },
     newMilestones,
     activeSoulFile: getActiveSoulFile(updatedSulk),
@@ -305,6 +391,9 @@ export function serializeState(state: EntityState): {
   memoryMd: string;
   milestonesMd: string;
   formMd: string;
+  dynamicsMd: string;
+  reversalMd: string;
+  coexistMd: string;
 } {
   return {
     statusMd: formatStatusForWrite(state.status),
@@ -312,6 +401,9 @@ export function serializeState(state: EntityState): {
     memoryMd: formatMemoryMd(state.memory),
     milestonesMd: formatMilestonesMd(state.growth),
     formMd: formatFormMd(state.form),
+    dynamicsMd: formatAsymmetryMd(state.asymmetry),
+    reversalMd: formatReversalMd(state.reversal),
+    coexistMd: formatCoexistMd(state.coexist),
   };
 }
 

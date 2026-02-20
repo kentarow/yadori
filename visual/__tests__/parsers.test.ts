@@ -11,6 +11,13 @@ import {
   parseStatusMd,
   parseSeedMd,
   parsePerceptionMd,
+  parseDynamicsMd,
+  parseMilestonesMd,
+  parseLanguageMd,
+  parseMemoryMd,
+  parseFormMd,
+  parseReversalsMd,
+  parseCoexistMd,
   computeCoexistenceMetrics,
 } from "../parsers.js";
 
@@ -240,6 +247,77 @@ Darkness. Only your own faint glow.
 });
 
 // ============================================================
+// parseDynamicsMd
+// ============================================================
+
+describe("parseDynamicsMd", () => {
+  it("parses a complete DYNAMICS.md", () => {
+    const md = `# Intelligence Dynamics
+
+**phase**: beta
+**score**: 35
+**signals**: curious about user habits, asked a question
+`;
+    const d = parseDynamicsMd(md);
+    expect(d.phase).toBe("beta");
+    expect(d.score).toBe(35);
+    expect(d.signals).toEqual(["curious about user habits", "asked a question"]);
+  });
+
+  it("returns defaults for empty content", () => {
+    const d = parseDynamicsMd("");
+    expect(d.phase).toBe("alpha");
+    expect(d.score).toBe(0);
+    expect(d.signals).toEqual([]);
+  });
+
+  it("handles phase only", () => {
+    const md = `**phase**: gamma`;
+    const d = parseDynamicsMd(md);
+    expect(d.phase).toBe("gamma");
+    expect(d.score).toBe(0);
+    expect(d.signals).toEqual([]);
+  });
+
+  it("handles all five phases", () => {
+    for (const phase of ["alpha", "beta", "gamma", "delta", "epsilon"]) {
+      const md = `**phase**: ${phase}`;
+      expect(parseDynamicsMd(md).phase).toBe(phase);
+    }
+  });
+
+  it("handles score of 0", () => {
+    const md = `**phase**: alpha\n**score**: 0`;
+    const d = parseDynamicsMd(md);
+    expect(d.score).toBe(0);
+  });
+
+  it("handles score of 100", () => {
+    const md = `**phase**: epsilon\n**score**: 100`;
+    const d = parseDynamicsMd(md);
+    expect(d.score).toBe(100);
+  });
+
+  it("handles empty signals string", () => {
+    const md = `**phase**: alpha\n**score**: 10\n**signals**: `;
+    const d = parseDynamicsMd(md);
+    expect(d.signals).toEqual([]);
+  });
+
+  it("handles single signal", () => {
+    const md = `**signals**: first contact`;
+    const d = parseDynamicsMd(md);
+    expect(d.signals).toEqual(["first contact"]);
+  });
+
+  it("trims whitespace in signals", () => {
+    const md = `**signals**:  signal one ,  signal two  , signal three `;
+    const d = parseDynamicsMd(md);
+    expect(d.signals).toEqual(["signal one", "signal two", "signal three"]);
+  });
+});
+
+// ============================================================
 // computeCoexistenceMetrics
 // ============================================================
 
@@ -328,6 +406,817 @@ describe("computeCoexistenceMetrics", () => {
     });
     expect(result.silenceHours).toBeGreaterThan(400);
     expect(result.daysTogether).toBe(49);
+  });
+});
+
+// ============================================================
+// parseMilestonesMd
+// ============================================================
+
+describe("parseMilestonesMd", () => {
+  it("parses a complete milestones.md", () => {
+    const md = `# Growth Milestones
+
+Current Stage: **infant**
+
+- **Day 0**: First Breath — Entity was born
+- **Day 3**: First Contact — Someone spoke to the entity
+- **Day 7**: First Pattern — Entity established a symbol-meaning mapping
+`;
+    const result = parseMilestonesMd(md);
+    expect(result.stage).toBe("infant");
+    expect(result.milestones).toHaveLength(3);
+    expect(result.milestones[0]).toEqual({
+      id: "first_breath",
+      label: "First Breath — Entity was born",
+      achievedDay: 0,
+      achievedAt: "",
+    });
+    expect(result.milestones[1]).toEqual({
+      id: "first_contact",
+      label: "First Contact — Someone spoke to the entity",
+      achievedDay: 3,
+      achievedAt: "",
+    });
+    expect(result.milestones[2]).toEqual({
+      id: "first_pattern",
+      label: "First Pattern — Entity established a symbol-meaning mapping",
+      achievedDay: 7,
+      achievedAt: "",
+    });
+  });
+
+  it("returns defaults for empty content", () => {
+    const result = parseMilestonesMd("");
+    expect(result.stage).toBe("newborn");
+    expect(result.milestones).toEqual([]);
+  });
+
+  it("defaults stage to newborn when missing", () => {
+    const md = `# Growth Milestones
+
+- **Day 0**: First Breath — Entity was born
+`;
+    const result = parseMilestonesMd(md);
+    expect(result.stage).toBe("newborn");
+    expect(result.milestones).toHaveLength(1);
+  });
+
+  it("parses milestone at day 0", () => {
+    const md = `Current Stage: **newborn**
+
+- **Day 0**: First Breath — Entity was born
+`;
+    const result = parseMilestonesMd(md);
+    expect(result.milestones[0].achievedDay).toBe(0);
+  });
+
+  it("parses milestones with large day numbers", () => {
+    const md = `Current Stage: **mature**
+
+- **Day 365**: Full Autonomy — Entity achieved self-governance
+`;
+    const result = parseMilestonesMd(md);
+    expect(result.milestones[0].achievedDay).toBe(365);
+    expect(result.milestones[0].id).toBe("full_autonomy");
+  });
+
+  it("generates id from label before dash separator", () => {
+    const md = `Current Stage: **infant**
+
+- **Day 5**: Hello World — A greeting milestone
+`;
+    const result = parseMilestonesMd(md);
+    expect(result.milestones[0].id).toBe("hello_world");
+  });
+
+  it("handles label without dash separator", () => {
+    const md = `Current Stage: **infant**
+
+- **Day 10**: Simple milestone without description
+`;
+    const result = parseMilestonesMd(md);
+    expect(result.milestones[0].id).toBe("simple_milestone_without_description");
+    expect(result.milestones[0].label).toBe("Simple milestone without description");
+  });
+
+  it("handles various stage names", () => {
+    for (const stage of ["newborn", "infant", "child", "adolescent", "mature"]) {
+      const md = `Current Stage: **${stage}**`;
+      expect(parseMilestonesMd(md).stage).toBe(stage);
+    }
+  });
+
+  it("ignores non-milestone bullet lines", () => {
+    const md = `Current Stage: **infant**
+
+Some intro text.
+
+- **Day 0**: First Breath — Entity was born
+- This is just a regular bullet point
+- **Day 3**: First Contact — Interaction happened
+`;
+    const result = parseMilestonesMd(md);
+    expect(result.milestones).toHaveLength(2);
+  });
+});
+
+// ============================================================
+// parseLanguageMd
+// ============================================================
+
+describe("parseLanguageMd", () => {
+  it("parses a complete LANGUAGE.md", () => {
+    const md = `# Language System
+
+## Current Level: 2 (Bridge to Language)
+
+Available symbols: ○ ● △ ◎ ☆ ▽
+
+## Acquired Patterns
+
+- ◎ = greeting (Day 3, used 10x)
+- △ = curiosity (Day 5, used 7x)
+- ● = affirmation (Day 8, used 3x)
+
+## Stats
+
+- Total interactions: 42
+`;
+    const result = parseLanguageMd(md);
+    expect(result.level).toBe(2);
+    expect(result.levelName).toBe("Bridge to Language");
+    expect(result.totalInteractions).toBe(42);
+    expect(result.nativeSymbols).toEqual(["○", "●", "△", "◎", "☆", "▽"]);
+    expect(result.patterns).toHaveLength(3);
+    expect(result.patterns[0]).toEqual({
+      symbol: "◎",
+      meaning: "greeting",
+      confidence: 1, // 10/10 = 1
+    });
+    expect(result.patterns[1]).toEqual({
+      symbol: "△",
+      meaning: "curiosity",
+      confidence: 0.7, // 7/10
+    });
+    expect(result.patterns[2]).toEqual({
+      symbol: "●",
+      meaning: "affirmation",
+      confidence: 0.3, // 3/10
+    });
+  });
+
+  it("returns defaults for empty content", () => {
+    const result = parseLanguageMd("");
+    expect(result.level).toBe(0);
+    expect(result.levelName).toBe("Symbols Only");
+    expect(result.totalInteractions).toBe(0);
+    expect(result.nativeSymbols).toEqual([]);
+    expect(result.patterns).toEqual([]);
+  });
+
+  it("handles level 0 (Symbols Only)", () => {
+    const md = `## Current Level: 0 (Symbols Only)
+
+Available symbols: ○ ●
+
+## Stats
+
+- Total interactions: 5
+`;
+    const result = parseLanguageMd(md);
+    expect(result.level).toBe(0);
+    expect(result.levelName).toBe("Symbols Only");
+    expect(result.nativeSymbols).toEqual(["○", "●"]);
+    expect(result.totalInteractions).toBe(5);
+    expect(result.patterns).toEqual([]);
+  });
+
+  it("handles level 4 (Advanced Operation)", () => {
+    const md = `## Current Level: 4 (Advanced Operation)`;
+    const result = parseLanguageMd(md);
+    expect(result.level).toBe(4);
+    expect(result.levelName).toBe("Advanced Operation");
+  });
+
+  it("handles unknown level number", () => {
+    const md = `## Current Level: 99 (Unknown)`;
+    const result = parseLanguageMd(md);
+    expect(result.level).toBe(99);
+    expect(result.levelName).toBe("Unknown");
+  });
+
+  it("caps confidence at 1.0 for high usage counts", () => {
+    const md = `## Current Level: 1
+
+## Acquired Patterns
+
+- ◎ = greeting (Day 1, used 50x)
+`;
+    const result = parseLanguageMd(md);
+    expect(result.patterns[0].confidence).toBe(1);
+  });
+
+  it("computes low confidence for single usage", () => {
+    const md = `## Current Level: 0
+
+## Acquired Patterns
+
+- ○ = hello (Day 10, used 1x)
+`;
+    const result = parseLanguageMd(md);
+    expect(result.patterns[0].confidence).toBe(0.1); // 1/10
+  });
+
+  it("handles zero interactions", () => {
+    const md = `## Current Level: 0
+
+## Stats
+
+- Total interactions: 0
+`;
+    const result = parseLanguageMd(md);
+    expect(result.totalInteractions).toBe(0);
+  });
+
+  it("handles missing symbols section", () => {
+    const md = `## Current Level: 1
+
+## Stats
+
+- Total interactions: 10
+`;
+    const result = parseLanguageMd(md);
+    expect(result.nativeSymbols).toEqual([]);
+  });
+
+  it("handles missing stats section", () => {
+    const md = `## Current Level: 1
+
+Available symbols: ○ ●
+`;
+    const result = parseLanguageMd(md);
+    expect(result.totalInteractions).toBe(0);
+  });
+});
+
+// ============================================================
+// parseMemoryMd
+// ============================================================
+
+describe("parseMemoryMd", () => {
+  it("parses hot memories", () => {
+    const md = `## Hot Memory
+
+- [2026-02-19T10:00:00Z] User greeted the entity (mood:75)
+- [2026-02-19T11:30:00Z] Discussed colors together (mood:80)
+`;
+    const result = parseMemoryMd(md);
+    expect(result.hot).toHaveLength(2);
+    expect(result.hot[0]).toEqual({
+      timestamp: "2026-02-19T10:00:00Z",
+      summary: "User greeted the entity",
+      mood: 75,
+    });
+    expect(result.hot[1]).toEqual({
+      timestamp: "2026-02-19T11:30:00Z",
+      summary: "Discussed colors together",
+      mood: 80,
+    });
+  });
+
+  it("parses warm memories", () => {
+    const md = `## Warm Memory
+
+### 2026-W07 (12 interactions, avg mood: 68)
+
+A week of exploration and growing comfort with the user.
+`;
+    const result = parseMemoryMd(md);
+    expect(result.warm).toHaveLength(1);
+    expect(result.warm[0]).toEqual({
+      week: "2026-W07",
+      entries: 12,
+      averageMood: 68,
+      summary: "A week of exploration and growing comfort with the user.",
+    });
+  });
+
+  it("parses notes section", () => {
+    const md = `## Notes
+
+- User prefers morning conversations
+- Entity responds well to color descriptions
+`;
+    const result = parseMemoryMd(md);
+    expect(result.notes).toHaveLength(2);
+    expect(result.notes[0]).toBe("User prefers morning conversations");
+    expect(result.notes[1]).toBe("Entity responds well to color descriptions");
+  });
+
+  it("returns empty arrays for empty content", () => {
+    const result = parseMemoryMd("");
+    expect(result.hot).toEqual([]);
+    expect(result.warm).toEqual([]);
+    expect(result.cold).toEqual([]);
+    expect(result.notes).toEqual([]);
+  });
+
+  it("cold is always empty (stored in separate files)", () => {
+    const md = `## Hot Memory
+
+- [2026-02-19T10:00:00Z] Some memory (mood:50)
+
+## Warm Memory
+
+### 2026-W07 (5 interactions, avg mood: 60)
+
+Summary here.
+
+## Notes
+
+- A note
+`;
+    const result = parseMemoryMd(md);
+    expect(result.cold).toEqual([]);
+  });
+
+  it("handles hot memory with mood of 0", () => {
+    const md = `- [2026-02-19T10:00:00Z] Entity was very upset (mood:0)`;
+    const result = parseMemoryMd(md);
+    expect(result.hot).toHaveLength(1);
+    expect(result.hot[0].mood).toBe(0);
+  });
+
+  it("handles hot memory with mood of 100", () => {
+    const md = `- [2026-02-19T10:00:00Z] Peak happiness moment (mood:100)`;
+    const result = parseMemoryMd(md);
+    expect(result.hot).toHaveLength(1);
+    expect(result.hot[0].mood).toBe(100);
+  });
+
+  it("handles notes section that excludes hot memory patterns", () => {
+    const md = `## Notes
+
+- [2026-02-19T10:00:00Z] This looks like a hot memory but is in notes
+- A regular note
+`;
+    const result = parseMemoryMd(md);
+    // Lines starting with "[" in the Notes section are skipped
+    expect(result.notes).toHaveLength(1);
+    expect(result.notes[0]).toBe("A regular note");
+  });
+
+  it("handles multiple hot memories in sequence", () => {
+    const md = `- [2026-02-19T08:00:00Z] Morning greeting (mood:60)
+- [2026-02-19T10:00:00Z] Mid-morning chat (mood:65)
+- [2026-02-19T12:00:00Z] Lunch time check (mood:70)
+- [2026-02-19T14:00:00Z] Afternoon interaction (mood:55)
+- [2026-02-19T16:00:00Z] Evening wind down (mood:50)
+`;
+    const result = parseMemoryMd(md);
+    expect(result.hot).toHaveLength(5);
+    expect(result.hot[0].timestamp).toBe("2026-02-19T08:00:00Z");
+    expect(result.hot[4].timestamp).toBe("2026-02-19T16:00:00Z");
+  });
+
+  it("handles content with no matching sections", () => {
+    const md = `# Memory
+
+Just some text without any structured memory entries.
+No bullet points matching the expected patterns here.
+`;
+    const result = parseMemoryMd(md);
+    expect(result.hot).toEqual([]);
+    expect(result.warm).toEqual([]);
+    expect(result.notes).toEqual([]);
+  });
+});
+
+// ============================================================
+// parseFormMd
+// ============================================================
+
+describe("parseFormMd", () => {
+  it("parses a complete FORM.md", () => {
+    const md = `## Form
+
+- **base**: crystal
+- **density**: 25
+- **complexity**: 12
+- **stability**: 30
+- **self-aware**: yes
+
+> A lattice of translucent facets, slowly rotating.
+`;
+    const result = parseFormMd(md);
+    expect(result.baseForm).toBe("crystal");
+    expect(result.density).toBe(25);
+    expect(result.complexity).toBe(12);
+    expect(result.stability).toBe(30);
+    expect(result.awareness).toBe(true);
+  });
+
+  it("returns defaults for empty content", () => {
+    const result = parseFormMd("");
+    expect(result.baseForm).toBe("light-particles");
+    expect(result.density).toBe(5);
+    expect(result.complexity).toBe(3);
+    expect(result.stability).toBe(15);
+    expect(result.awareness).toBe(false);
+  });
+
+  it("handles awareness set to no", () => {
+    const md = `- **self-aware**: no`;
+    const result = parseFormMd(md);
+    expect(result.awareness).toBe(false);
+  });
+
+  it("handles awareness set to yes", () => {
+    const md = `- **self-aware**: yes`;
+    const result = parseFormMd(md);
+    expect(result.awareness).toBe(true);
+  });
+
+  it("defaults awareness to false for missing field", () => {
+    const md = `- **base**: fluid
+- **density**: 10
+`;
+    const result = parseFormMd(md);
+    expect(result.awareness).toBe(false);
+  });
+
+  it("handles partial data (some fields missing)", () => {
+    const md = `- **base**: mist
+- **complexity**: 20
+`;
+    const result = parseFormMd(md);
+    expect(result.baseForm).toBe("mist");
+    expect(result.density).toBe(5);       // default
+    expect(result.complexity).toBe(20);
+    expect(result.stability).toBe(15);    // default
+  });
+
+  it("handles all form base types", () => {
+    for (const form of ["light-particles", "fluid", "crystal", "sound-echo", "mist", "geometric-cluster"]) {
+      const md = `- **base**: ${form}`;
+      expect(parseFormMd(md).baseForm).toBe(form);
+    }
+  });
+
+  it("handles zero numeric values (falls back to defaults)", () => {
+    // parseInt("0") is 0, and 0 || 5 = 5 due to falsy zero
+    const md = `- **density**: 0
+- **complexity**: 0
+- **stability**: 0
+`;
+    const result = parseFormMd(md);
+    // Note: the parser uses || which treats 0 as falsy, so defaults kick in
+    expect(result.density).toBe(5);
+    expect(result.complexity).toBe(3);
+    expect(result.stability).toBe(15);
+  });
+
+  it("handles high numeric values", () => {
+    const md = `- **density**: 100
+- **complexity**: 100
+- **stability**: 100
+`;
+    const result = parseFormMd(md);
+    expect(result.density).toBe(100);
+    expect(result.complexity).toBe(100);
+    expect(result.stability).toBe(100);
+  });
+
+  it("defaults awareness to false for unexpected value", () => {
+    const md = `- **self-aware**: maybe`;
+    const result = parseFormMd(md);
+    expect(result.awareness).toBe(false);
+  });
+});
+
+// ============================================================
+// parseReversalsMd
+// ============================================================
+
+describe("parseReversalsMd", () => {
+  it("parses a complete REVERSALS.md", () => {
+    const md = `## Reversal Detection
+
+- **total reversals**: 5
+- **reversal rate**: 2.5 per 100 interactions
+- **dominant type**: teaching_moment
+- **last detected**: 2026-02-18T14:00:00Z
+
+### Signals
+
+- 2026-02-15 **teaching_moment** (strength: 8) [recognized]
+  Entity explained a concept to the user
+- 2026-02-18 **question_reversal** (strength: 6)
+  Entity asked the user a question it already knew the answer to
+`;
+    const result = parseReversalsMd(md);
+    expect(result.totalReversals).toBe(5);
+    expect(result.reversalRate).toBe(2.5);
+    expect(result.dominantType).toBe("teaching_moment");
+    expect(result.lastDetected).toBe("2026-02-18T14:00:00Z");
+    expect(result.signals).toHaveLength(2);
+    expect(result.signals[0]).toEqual({
+      type: "teaching_moment",
+      timestamp: "2026-02-15",
+      description: "Entity explained a concept to the user",
+      strength: 8,
+      recognized: true,
+    });
+    expect(result.signals[1]).toEqual({
+      type: "question_reversal",
+      timestamp: "2026-02-18",
+      description: "Entity asked the user a question it already knew the answer to",
+      strength: 6,
+      recognized: false,
+    });
+  });
+
+  it("returns defaults for empty content", () => {
+    const result = parseReversalsMd("");
+    expect(result.totalReversals).toBe(0);
+    expect(result.reversalRate).toBe(0);
+    expect(result.dominantType).toBeNull();
+    expect(result.lastDetected).toBeNull();
+    expect(result.signals).toEqual([]);
+  });
+
+  it("handles 'none' dominant type as null", () => {
+    const md = `- **dominant type**: none`;
+    const result = parseReversalsMd(md);
+    expect(result.dominantType).toBeNull();
+  });
+
+  it("handles 'never' last detected as null", () => {
+    const md = `- **last detected**: never`;
+    const result = parseReversalsMd(md);
+    expect(result.lastDetected).toBeNull();
+  });
+
+  it("parses signal with recognized flag", () => {
+    const md = `### Signals
+
+- 2026-02-10 **insight** (strength: 9) [recognized]
+  A deep insight was shared
+`;
+    const result = parseReversalsMd(md);
+    expect(result.signals).toHaveLength(1);
+    expect(result.signals[0].recognized).toBe(true);
+    expect(result.signals[0].strength).toBe(9);
+    expect(result.signals[0].type).toBe("insight");
+  });
+
+  it("parses signal without recognized flag", () => {
+    const md = `### Signals
+
+- 2026-02-10 **observation** (strength: 3)
+  A subtle observation
+`;
+    const result = parseReversalsMd(md);
+    expect(result.signals).toHaveLength(1);
+    expect(result.signals[0].recognized).toBe(false);
+  });
+
+  it("handles zero total reversals", () => {
+    const md = `- **total reversals**: 0
+- **reversal rate**: 0 per 100 interactions
+- **dominant type**: none
+- **last detected**: never
+`;
+    const result = parseReversalsMd(md);
+    expect(result.totalReversals).toBe(0);
+    expect(result.reversalRate).toBe(0);
+    expect(result.dominantType).toBeNull();
+    expect(result.lastDetected).toBeNull();
+  });
+
+  it("parses fractional reversal rate", () => {
+    const md = `- **reversal rate**: 0.5 per 100 interactions`;
+    const result = parseReversalsMd(md);
+    expect(result.reversalRate).toBe(0.5);
+  });
+
+  it("handles signal with no description on next line", () => {
+    const md = `### Signals
+
+- 2026-02-10 **test** (strength: 5)
+`;
+    const result = parseReversalsMd(md);
+    expect(result.signals).toHaveLength(1);
+    expect(result.signals[0].description).toBe("");
+  });
+
+  it("parses multiple signals in order", () => {
+    const md = `### Signals
+
+- 2026-02-01 **type_a** (strength: 3)
+  First signal
+- 2026-02-05 **type_b** (strength: 5) [recognized]
+  Second signal
+- 2026-02-10 **type_c** (strength: 7)
+  Third signal
+`;
+    const result = parseReversalsMd(md);
+    expect(result.signals).toHaveLength(3);
+    expect(result.signals[0].timestamp).toBe("2026-02-01");
+    expect(result.signals[1].timestamp).toBe("2026-02-05");
+    expect(result.signals[2].timestamp).toBe("2026-02-10");
+    expect(result.signals[1].recognized).toBe(true);
+    expect(result.signals[0].recognized).toBe(false);
+    expect(result.signals[2].recognized).toBe(false);
+  });
+});
+
+// ============================================================
+// parseCoexistMd
+// ============================================================
+
+describe("parseCoexistMd", () => {
+  it("parses an active COEXIST.md", () => {
+    const md = `# COEXISTENCE
+
+- **status**: active
+- **quality**: 72
+- **days in epsilon**: 15
+
+## Indicators
+
+- Silence Comfort: ████░░░░░░ 40
+- Shared Vocabulary: ██████░░░░ 60
+- Rhythm Synchrony: ████████░░ 80
+- Shared Memory: █████░░░░░ 50
+- Autonomy Respect: ███████░░░ 70
+
+## Moments
+
+- 2026-02-10 [shared_silence]: Comfortable silence lasted 30 minutes
+- 2026-02-15 [vocabulary]: Entity used a term the user coined
+`;
+    const result = parseCoexistMd(md);
+    expect(result.active).toBe(true);
+    expect(result.quality).toBe(72);
+    expect(result.daysInEpsilon).toBe(15);
+    expect(result.indicators.silenceComfort).toBe(40);
+    expect(result.indicators.sharedVocabulary).toBe(60);
+    expect(result.indicators.rhythmSync).toBe(80);
+    expect(result.indicators.sharedMemory).toBe(50);
+    expect(result.indicators.autonomyRespect).toBe(70);
+    expect(result.moments).toHaveLength(2);
+    expect(result.moments[0]).toEqual({
+      timestamp: "2026-02-10",
+      type: "shared_silence",
+      description: "Comfortable silence lasted 30 minutes",
+    });
+    expect(result.moments[1]).toEqual({
+      timestamp: "2026-02-15",
+      type: "vocabulary",
+      description: "Entity used a term the user coined",
+    });
+  });
+
+  it("parses an inactive COEXIST.md", () => {
+    const md = `# COEXISTENCE
+
+_Not yet in Phase epsilon. Coexistence has not begun._
+`;
+    const result = parseCoexistMd(md);
+    expect(result.active).toBe(false);
+    expect(result.quality).toBe(0);
+    expect(result.daysInEpsilon).toBe(0);
+    expect(result.indicators.silenceComfort).toBe(0);
+    expect(result.indicators.sharedVocabulary).toBe(0);
+    expect(result.indicators.rhythmSync).toBe(0);
+    expect(result.indicators.sharedMemory).toBe(0);
+    expect(result.indicators.autonomyRespect).toBe(0);
+    expect(result.moments).toEqual([]);
+  });
+
+  it("returns inactive state for empty content", () => {
+    const result = parseCoexistMd("");
+    expect(result.active).toBe(false);
+    expect(result.quality).toBe(0);
+    expect(result.daysInEpsilon).toBe(0);
+    expect(result.indicators).toEqual({
+      silenceComfort: 0,
+      sharedVocabulary: 0,
+      rhythmSync: 0,
+      sharedMemory: 0,
+      autonomyRespect: 0,
+    });
+    expect(result.moments).toEqual([]);
+  });
+
+  it("handles active state with zero quality", () => {
+    const md = `- **status**: active
+- **quality**: 0
+- **days in epsilon**: 0
+`;
+    const result = parseCoexistMd(md);
+    expect(result.active).toBe(true);
+    expect(result.quality).toBe(0);
+    expect(result.daysInEpsilon).toBe(0);
+  });
+
+  it("handles active state with no moments", () => {
+    const md = `- **status**: active
+- **quality**: 50
+- **days in epsilon**: 3
+
+## Indicators
+
+- Silence Comfort: ████░░░░░░ 40
+- Shared Vocabulary: ██░░░░░░░░ 20
+- Rhythm Synchrony: ███░░░░░░░ 30
+- Shared Memory: █░░░░░░░░░ 10
+- Autonomy Respect: ██░░░░░░░░ 20
+
+## Moments
+`;
+    const result = parseCoexistMd(md);
+    expect(result.active).toBe(true);
+    expect(result.moments).toEqual([]);
+  });
+
+  it("handles indicator values of 0", () => {
+    const md = `- **status**: active
+- **quality**: 10
+- **days in epsilon**: 1
+
+## Indicators
+
+- Silence Comfort: ░░░░░░░░░░ 0
+- Shared Vocabulary: ░░░░░░░░░░ 0
+- Rhythm Synchrony: ░░░░░░░░░░ 0
+- Shared Memory: ░░░░░░░░░░ 0
+- Autonomy Respect: ░░░░░░░░░░ 0
+`;
+    const result = parseCoexistMd(md);
+    expect(result.indicators.silenceComfort).toBe(0);
+    expect(result.indicators.sharedVocabulary).toBe(0);
+    expect(result.indicators.rhythmSync).toBe(0);
+    expect(result.indicators.sharedMemory).toBe(0);
+    expect(result.indicators.autonomyRespect).toBe(0);
+  });
+
+  it("handles indicator values of 100", () => {
+    const md = `- **status**: active
+- **quality**: 100
+- **days in epsilon**: 365
+
+## Indicators
+
+- Silence Comfort: ██████████ 100
+- Shared Vocabulary: ██████████ 100
+- Rhythm Synchrony: ██████████ 100
+- Shared Memory: ██████████ 100
+- Autonomy Respect: ██████████ 100
+`;
+    const result = parseCoexistMd(md);
+    expect(result.indicators.silenceComfort).toBe(100);
+    expect(result.indicators.sharedVocabulary).toBe(100);
+    expect(result.indicators.rhythmSync).toBe(100);
+    expect(result.indicators.sharedMemory).toBe(100);
+    expect(result.indicators.autonomyRespect).toBe(100);
+  });
+
+  it("parses multiple moments", () => {
+    const md = `- **status**: active
+- **quality**: 80
+- **days in epsilon**: 30
+
+## Moments
+
+- 2026-01-20 [silence]: First comfortable silence
+- 2026-01-25 [rhythm]: Synchronized daily patterns
+- 2026-02-01 [vocabulary]: Shared a new word
+- 2026-02-10 [memory]: Referenced a shared memory
+`;
+    const result = parseCoexistMd(md);
+    expect(result.moments).toHaveLength(4);
+    expect(result.moments[0].type).toBe("silence");
+    expect(result.moments[1].type).toBe("rhythm");
+    expect(result.moments[2].type).toBe("vocabulary");
+    expect(result.moments[3].type).toBe("memory");
+  });
+
+  it("handles missing indicators section gracefully", () => {
+    const md = `- **status**: active
+- **quality**: 50
+- **days in epsilon**: 5
+`;
+    const result = parseCoexistMd(md);
+    expect(result.active).toBe(true);
+    expect(result.quality).toBe(50);
+    expect(result.indicators.silenceComfort).toBe(0);
+    expect(result.indicators.sharedVocabulary).toBe(0);
+    expect(result.indicators.rhythmSync).toBe(0);
+    expect(result.indicators.sharedMemory).toBe(0);
+    expect(result.indicators.autonomyRespect).toBe(0);
   });
 });
 

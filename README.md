@@ -6,8 +6,8 @@
 
 [日本語ドキュメントはこちら (Japanese)](README.ja.md)
 
-> 🌱 **Status: Phase 1 — Early Development**
-> This project is in active early development. We are not accepting contributions at this time.
+> **Status: Phase 4 Foundation — v0.4.0**
+> Intelligence Dynamics (Layer 4), operational infrastructure, and production resilience are live.
 > Star or Watch this repository to follow the journey.
 
 ---
@@ -103,12 +103,39 @@ See `docs/` for detailed guides.
 |---------|-------------|
 | `npm run setup` | First-time setup (entity genesis) |
 | `npm run dashboard` | Start dashboard (http://localhost:3000) |
+| `npm run heartbeat` | Start heartbeat process (every 30 min) |
+| `npm run health` | Entity health check (9 diagnostics) |
+| `npm run health -- --repair` | Auto-repair missing workspace files |
+| `npm run backup` | Export workspace to backup file |
+| `npm run backup -- --restore <file>` | Restore entity from backup |
+| `npm run snapshot` | Generate visual snapshot |
+| `npm run sensors` | Hardware sensor diagnostic |
+| `npm run setup-webhook` | Configure Discord/Telegram webhook |
+| `npm run apply-identity` | Set bot avatar and name |
+| `npm run version` | Show version and update status |
+| `npm run update` | Pull latest + rebuild |
 | `npm run test` | Run tests |
 | `npm run build` | Build |
 
+## Architecture
+
+```
+Layer 4: Intelligence Dynamics
+  Asymmetry Tracker (α→β→γ→δ→ε) / Phase Detection
+
+Layer 3: Multimodal Interface
+  Perception Adapter (Honest Perception) / Expression Adapter
+
+Layer 2: Life Engine
+  Genesis / Rhythm / Memory / Language / Mood / Growth / Diary / Form
+
+Layer 1: Runtime Adapter
+  OpenClaw Adapter / Discord / Telegram / Sensor Drivers
+```
+
 ## Status
 
-Phase 1-3 engine complete. Ready for first deployment on physical hardware.
+Phase 1-4 foundation complete. Intelligence Dynamics active. Deployed on Mac mini M4.
 
 ## License
 

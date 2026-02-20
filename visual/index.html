@@ -221,6 +221,32 @@
       left: 13px;
     }
 
+    /* Sound growth level indicator */
+    #sound-growth {
+      position: fixed;
+      bottom: 50px;
+      right: 20px;
+      display: flex;
+      gap: 3px;
+      align-items: center;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+      cursor: default;
+    }
+    body:hover #sound-growth { opacity: 0.3; }
+    #sound-growth:hover { opacity: 0.6 !important; }
+    .sound-growth-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      transition: background 0.5s;
+    }
+    .sound-growth-dot.filled {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
     /* Senses Panel (left side) */
     #senses-panel {
       position: fixed;
@@ -293,21 +319,21 @@
     #senses-toggle:hover { opacity: 0.6 !important; }
     #senses-toggle svg { width: 24px; height: 24px; }
 
-    /* Diary Panel (bottom-left slide-up) */
+    /* Diary Panel (bottom slide-up, two-column layout) */
     #diary-panel {
       position: fixed;
       bottom: 0; left: 0;
-      width: 340px;
+      width: 600px;
       max-height: 60vh;
-      padding: 28px 24px;
-      background: rgba(0, 0, 0, 0.88);
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.90);
       border-top: 1px solid rgba(255, 255, 255, 0.06);
       border-right: 1px solid rgba(255, 255, 255, 0.06);
       transform: translateY(100%);
       transition: transform 0.4s ease;
       z-index: 20;
       cursor: default;
-      overflow-y: auto;
     }
     #diary-panel.open { transform: translateY(0); }
     #diary-panel h2 {
@@ -316,45 +342,99 @@
       letter-spacing: 4px;
       text-transform: uppercase;
       color: rgba(255, 255, 255, 0.25);
-      margin-bottom: 20px;
+      margin: 0;
+      padding: 20px 24px 14px 24px;
+      flex-shrink: 0;
     }
-    .diary-nav {
+    .diary-columns {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
     }
-    .diary-nav-btn {
+    .diary-date-list {
+      width: 140px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 4px 0 12px 0;
+    }
+    .diary-date-item {
+      display: block;
+      width: 100%;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: rgba(255, 255, 255, 0.3);
       background: none;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: rgba(255, 255, 255, 0.4);
-      font-size: 14px;
-      padding: 2px 10px;
+      border: none;
+      text-align: left;
       cursor: pointer;
-      font-family: monospace;
-      transition: color 0.2s, border-color 0.2s;
+      transition: color 0.2s, background 0.2s;
+      letter-spacing: 0.5px;
     }
-    .diary-nav-btn:hover {
+    .diary-date-item:hover {
+      color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .diary-date-item.active {
       color: rgba(255, 255, 255, 0.7);
-      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.06);
     }
-    .diary-nav-btn:disabled {
-      opacity: 0.2;
-      cursor: default;
+    .diary-content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 24px 20px 20px;
+      min-width: 0;
     }
-    .diary-date {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.4);
+    .diary-content-date {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.25);
       font-family: 'Courier New', monospace;
       letter-spacing: 1px;
+      margin-bottom: 12px;
     }
     .diary-body {
-      font-size: 14px;
+      font-size: 13px;
       color: rgba(255, 255, 255, 0.55);
       font-family: 'Courier New', monospace;
       line-height: 1.8;
-      white-space: pre-wrap;
       word-break: break-word;
+    }
+    .diary-body h1 {
+      font-size: 15px;
+      font-weight: normal;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 2px;
+      margin: 16px 0 8px 0;
+    }
+    .diary-body h2 {
+      font-size: 13px;
+      font-weight: normal;
+      color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 2px;
+      margin: 12px 0 6px 0;
+      padding: 0;
+      text-transform: none;
+    }
+    .diary-body h3 {
+      font-size: 12px;
+      font-weight: normal;
+      color: rgba(255, 255, 255, 0.45);
+      letter-spacing: 1px;
+      margin: 10px 0 4px 0;
+    }
+    .diary-body strong { color: rgba(255, 255, 255, 0.7); }
+    .diary-body em { color: rgba(255, 255, 255, 0.5); font-style: italic; }
+    .diary-body ul, .diary-body ol {
+      margin: 4px 0 4px 16px;
+      padding: 0;
+    }
+    .diary-body li {
+      margin-bottom: 2px;
+    }
+    .diary-body p {
+      margin: 6px 0;
     }
     .diary-empty {
       font-size: 11px;
@@ -441,6 +521,1023 @@
     body:hover #errorlog-toggle { opacity: 0.3; }
     #errorlog-toggle:hover { opacity: 0.6 !important; }
     #errorlog-toggle svg { width: 24px; height: 24px; }
+
+    /* Milestone Timeline Panel (bottom-right slide-up) */
+    #milestone-panel {
+      position: fixed;
+      bottom: 0; right: 0;
+      width: 320px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #milestone-panel.open { transform: translateY(0); }
+    #milestone-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 12px;
+    }
+    .milestone-stage {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .milestone-timeline {
+      position: relative;
+      padding-left: 20px;
+    }
+    .milestone-timeline::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 4px;
+      bottom: 4px;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .milestone-item {
+      position: relative;
+      margin-bottom: 16px;
+      padding-bottom: 2px;
+    }
+    .milestone-item::before {
+      content: '';
+      position: absolute;
+      left: -19px;
+      top: 5px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .milestone-day {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .milestone-name {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .milestone-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #milestone-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 100px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #milestone-toggle { opacity: 0.3; }
+    #milestone-toggle:hover { opacity: 0.6 !important; }
+    #milestone-toggle svg { width: 24px; height: 24px; }
+
+    /* Language Panel (left side, slide-up from bottom) */
+    #language-panel {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 320px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #language-panel.open { transform: translateY(0); }
+    #language-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .lang-level-header {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.55);
+      font-family: 'Courier New', monospace;
+      margin-bottom: 8px;
+    }
+    .lang-level-name {
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 11px;
+    }
+    .lang-progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .lang-progress-fill {
+      height: 100%;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+    .lang-stat {
+      margin-bottom: 16px;
+    }
+    .lang-stat-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .lang-stat-value {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .lang-symbols {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .lang-symbol {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1;
+    }
+    .lang-patterns-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .lang-patterns-table th {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .lang-patterns-table td {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      padding: 5px 0;
+      vertical-align: middle;
+    }
+    .lang-patterns-table td:first-child {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.6);
+      width: 36px;
+    }
+    .lang-conf-bar {
+      width: 50px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 1.5px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .lang-conf-fill {
+      height: 100%;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 1.5px;
+    }
+    .lang-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #language-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 100px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #language-toggle { opacity: 0.3; }
+    #language-toggle:hover { opacity: 0.6 !important; }
+    #language-toggle svg { width: 24px; height: 24px; }
+
+    /* Memory Panel (bottom-right slide-up) */
+    #memory-panel {
+      position: fixed;
+      bottom: 0; right: 0;
+      width: 360px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #memory-panel.open { transform: translateY(0); }
+    #memory-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .memory-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .memory-stat {
+      text-align: center;
+    }
+    .memory-stat-count {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .memory-stat-label {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .memory-section-title {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin: 16px 0 8px 0;
+    }
+    .memory-hot-item {
+      margin-bottom: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .memory-hot-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .memory-mood-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .memory-hot-time {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      font-family: 'Courier New', monospace;
+    }
+    .memory-hot-summary {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .memory-warm-card {
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      border-left: 2px solid rgba(255, 255, 255, 0.08);
+    }
+    .memory-warm-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .memory-warm-week {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .memory-warm-meta {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+    }
+    .memory-warm-summary {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .memory-cold-item {
+      margin-bottom: 10px;
+      padding: 6px 0;
+    }
+    .memory-cold-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .memory-cold-month {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .memory-cold-meta {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+    }
+    .memory-cold-summary {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .memory-note-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .memory-note-pin {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+    .memory-note-text {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .memory-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #memory-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 140px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #memory-toggle { opacity: 0.3; }
+    #memory-toggle:hover { opacity: 0.6 !important; }
+    #memory-toggle svg { width: 24px; height: 24px; }
+
+    /* Reversals Panel (bottom-right slide-up) */
+    #reversals-panel {
+      position: fixed;
+      bottom: 0; right: 0;
+      width: 340px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #reversals-panel.open { transform: translateY(0); }
+    #reversals-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .reversal-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .reversal-stat {
+      text-align: center;
+    }
+    .reversal-stat-count {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .reversal-stat-label {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .reversal-signal {
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      border-left: 2px solid rgba(255, 255, 255, 0.08);
+    }
+    .reversal-signal-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .reversal-signal-icon {
+      font-size: 14px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .reversal-signal-type {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+    .reversal-signal-time {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      font-family: 'Courier New', monospace;
+      margin-left: auto;
+    }
+    .reversal-signal-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+    .reversal-strength-bar {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 1.5px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .reversal-strength-fill {
+      height: 100%;
+      background: rgba(255, 200, 80, 0.5);
+      border-radius: 1.5px;
+      transition: width 0.5s ease;
+    }
+    .reversal-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #reversals-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 180px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #reversals-toggle { opacity: 0.3; }
+    #reversals-toggle:hover { opacity: 0.6 !important; }
+    #reversals-toggle svg { width: 24px; height: 24px; }
+
+    /* Form Panel (bottom-left slide-up) */
+    #form-panel {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 300px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #form-panel.open { transform: translateY(0); }
+    #form-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .form-type-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .form-type-icon {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1;
+    }
+    .form-type-name {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.55);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .form-bar-group {
+      margin-bottom: 14px;
+    }
+    .form-bar-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-bar-value {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.35);
+    }
+    .form-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .form-bar-fill {
+      height: 100%;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+    .form-awareness {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-awareness-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: background 0.5s, border-color 0.5s;
+    }
+    .form-awareness-dot.aware {
+      background: rgba(255, 255, 255, 0.5);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+    .form-awareness-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .form-visual {
+      margin-top: 20px;
+      width: 100%;
+      height: 80px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.02);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .form-visual-orb {
+      border-radius: 50%;
+      transition: width 1s ease, height 1s ease, opacity 1s ease, box-shadow 1s ease;
+    }
+    .form-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #form-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 140px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #form-toggle { opacity: 0.3; }
+    #form-toggle:hover { opacity: 0.6 !important; }
+    #form-toggle svg { width: 24px; height: 24px; }
+
+    /* Coexist Panel (bottom-left slide-up) */
+    #coexist-panel {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 320px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #coexist-panel.open { transform: translateY(0); }
+    #coexist-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .coexist-inactive {
+      text-align: center;
+      padding: 12px 0;
+    }
+    .coexist-inactive-symbol {
+      font-size: 32px;
+      color: rgba(255, 255, 255, 0.12);
+      margin-bottom: 12px;
+      letter-spacing: 4px;
+    }
+    .coexist-inactive-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.3);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .coexist-inactive-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      line-height: 1.6;
+      text-align: left;
+      margin-top: 16px;
+    }
+    .coexist-inactive-desc dt {
+      color: rgba(255, 255, 255, 0.25);
+      font-family: 'Courier New', monospace;
+      margin-top: 8px;
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+    .coexist-inactive-desc dd {
+      margin-left: 0;
+      margin-top: 2px;
+    }
+    .coexist-quality-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .coexist-quality-score {
+      font-size: 36px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .coexist-quality-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .coexist-days {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.2);
+      text-align: center;
+      margin-top: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    .coexist-bar-group {
+      margin-bottom: 12px;
+    }
+    .coexist-bar-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .coexist-bar-value {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.35);
+    }
+    .coexist-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .coexist-bar-fill {
+      height: 100%;
+      background: rgba(200, 180, 255, 0.4);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+    .coexist-moments-title {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    .coexist-moment {
+      margin-bottom: 10px;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+      border-left: 2px solid rgba(200, 180, 255, 0.15);
+    }
+    .coexist-moment-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .coexist-moment-type {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+    .coexist-moment-time {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.15);
+      font-family: 'Courier New', monospace;
+      margin-left: auto;
+    }
+    .coexist-moment-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .coexist-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #coexist-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 180px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #coexist-toggle { opacity: 0.3; }
+    #coexist-toggle:hover { opacity: 0.6 !important; }
+    #coexist-toggle svg { width: 24px; height: 24px; }
+
+    /* Dynamics Panel (bottom-left) */
+    #dynamics-panel {
+      position: fixed;
+      bottom: 60px;
+      left: 20px;
+      pointer-events: none;
+      z-index: 5;
+      transition: opacity 0.5s;
+      opacity: 0;
+    }
+    body:hover #dynamics-panel { opacity: 1; }
+    .dynamics-phase {
+      font-size: 22px;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+    }
+    .dynamics-phase-symbol {
+      font-size: 28px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-right: 6px;
+    }
+    .dynamics-phase-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .dynamics-score-bar {
+      width: 80px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      margin-top: 6px;
+      border-radius: 1.5px;
+      overflow: hidden;
+    }
+    .dynamics-score-fill {
+      height: 100%;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 1.5px;
+      transition: width 1s ease;
+    }
+    .dynamics-signals {
+      font-size: 9px;
+      color: rgba(255, 255, 255, 0.15);
+      margin-top: 4px;
+      max-width: 160px;
+      line-height: 1.4;
+    }
+
+    /* Day Counter (top-center) */
+    #day-counter {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      pointer-events: none;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    body:hover #day-counter { opacity: 1; }
+    .day-count {
+      font-size: 28px;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 3px;
+      font-weight: normal;
+    }
+    .day-birth {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.15);
+      letter-spacing: 2px;
+      margin-top: 2px;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      body { cursor: default; }
+
+      #info {
+        font-size: 10px;
+        bottom: 10px;
+        left: 10px;
+        color: rgba(255, 255, 255, 0.3);
+      }
+      body:hover #info { color: rgba(255, 255, 255, 0.4); }
+
+      #milestones {
+        font-size: 10px;
+        top: 10px;
+        right: 10px;
+      }
+
+      #day-counter {
+        top: 10px;
+        opacity: 0.8;
+      }
+      .day-count { font-size: 20px; letter-spacing: 2px; }
+      .day-birth { font-size: 9px; }
+
+      #dynamics-panel {
+        bottom: 50px;
+        left: 10px;
+        opacity: 0.7;
+      }
+      .dynamics-phase-symbol { font-size: 22px; }
+      .dynamics-score-bar { width: 60px; }
+
+      /* Panels fill screen on mobile */
+      #coexistence-log,
+      #senses-panel {
+        width: 100vw;
+        padding: 24px 20px;
+      }
+
+      #diary-panel {
+        width: 100vw;
+        max-height: 70vh;
+      }
+      .diary-date-list {
+        width: 110px;
+      }
+      .diary-content-area {
+        padding: 8px 16px 16px 12px;
+      }
+      .diary-body { font-size: 12px; }
+
+      #errorlog-panel,
+      #milestone-panel,
+      #language-panel,
+      #memory-panel,
+      #reversals-panel,
+      #form-panel,
+      #coexist-panel {
+        width: 100vw;
+        max-height: 70vh;
+        padding: 20px 16px;
+      }
+
+      /* Toggle buttons always visible on mobile */
+      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #language-toggle, #memory-toggle, #reversals-toggle, #form-toggle, #coexist-toggle, #sound-toggle, #sound-growth {
+        opacity: 0.35 !important;
+      }
+
+      #log-toggle { top: 10px; right: 10px; }
+      #senses-toggle { top: 10px; left: 10px; }
+      #diary-toggle { bottom: 10px; left: 50px; }
+      #language-toggle { bottom: 10px; left: 90px; }
+      #form-toggle { bottom: 10px; left: 130px; }
+      #coexist-toggle { bottom: 10px; left: 170px; }
+      #errorlog-toggle { bottom: 10px; right: 50px; }
+      #milestone-toggle { bottom: 10px; right: 90px; }
+      #memory-toggle { bottom: 10px; right: 130px; }
+      #reversals-toggle { bottom: 10px; right: 170px; }
+      #sound-toggle { bottom: 10px; right: 10px; }
+      #sound-growth { bottom: 40px; right: 10px; }
+
+      #encounter-expression {
+        font-size: 22px;
+        letter-spacing: 4px;
+      }
+      #encounter-expression.reveal {
+        font-size: 28px;
+        letter-spacing: 10px;
+      }
+
+      #dormant-text {
+        bottom: 40px;
+        font-size: 11px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .day-count { font-size: 16px; }
+      .dynamics-phase-symbol { font-size: 18px; }
+      .dynamics-score-bar { width: 50px; }
+
+      #coexistence-log,
+      #senses-panel {
+        padding: 20px 16px;
+      }
+
+      .log-value { font-size: 16px; }
+      .diary-date-list { width: 90px; }
+      .diary-date-item { font-size: 10px; padding: 5px 10px; }
+      .diary-body { font-size: 11px; }
+    }
   </style>
 </head>
 <body>
@@ -450,6 +1547,20 @@
   <div id="dormant-text"></div>
   <div id="milestone-celebration"><div class="milestone-label"></div></div>
   <canvas id="canvas"></canvas>
+  <div id="day-counter">
+    <div class="day-count" id="day-count-value">Day 0</div>
+    <div class="day-birth" id="day-birth-date"></div>
+  </div>
+  <div id="dynamics-panel">
+    <div>
+      <span class="dynamics-phase-symbol" id="dynamics-symbol">&alpha;</span>
+      <span class="dynamics-phase-label" id="dynamics-label">Dependency</span>
+    </div>
+    <div class="dynamics-score-bar">
+      <div class="dynamics-score-fill" id="dynamics-score-fill" style="width: 0%"></div>
+    </div>
+    <div class="dynamics-signals" id="dynamics-signals"></div>
+  </div>
   <div id="info"></div>
   <div id="milestones"></div>
 
@@ -481,7 +1592,12 @@
   </div>
   <div id="diary-panel">
     <h2>Diary</h2>
-    <div id="diary-content"><span class="diary-empty">No entries yet.</span></div>
+    <div class="diary-columns">
+      <div class="diary-date-list" id="diary-date-list"></div>
+      <div class="diary-content-area" id="diary-content-area">
+        <span class="diary-empty">No entries yet.</span>
+      </div>
+    </div>
   </div>
 
   <div id="errorlog-toggle" title="System Log">
@@ -496,6 +1612,83 @@
     <div id="errorlog-content"><span class="errorlog-empty">No log entries.</span></div>
   </div>
 
+  <div id="milestone-toggle" title="Milestones">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+    </svg>
+  </div>
+  <div id="milestone-panel">
+    <h2>Milestones</h2>
+    <div id="milestone-content"><span class="milestone-empty">No milestones yet.</span></div>
+  </div>
+
+  <div id="language-toggle" title="Language">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      <line x1="8" y1="9" x2="16" y2="9"/>
+      <line x1="8" y1="13" x2="13" y2="13"/>
+    </svg>
+  </div>
+  <div id="language-panel">
+    <h2>Language</h2>
+    <div id="language-content"><span class="lang-empty">No language data.</span></div>
+  </div>
+
+  <div id="memory-toggle" title="Memory">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <circle cx="12" cy="12" r="9"/>
+      <circle cx="12" cy="12" r="5"/>
+      <circle cx="12" cy="12" r="1.5" fill="rgba(255,255,255,0.6)"/>
+      <line x1="12" y1="3" x2="12" y2="7"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+      <line x1="3" y1="12" x2="7" y2="12"/>
+      <line x1="17" y1="12" x2="21" y2="12"/>
+    </svg>
+  </div>
+  <div id="memory-panel">
+    <h2>Memory</h2>
+    <div id="memory-content"><span class="memory-empty">No memories yet.</span></div>
+  </div>
+
+  <div id="reversals-toggle" title="Reversals">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+    </svg>
+  </div>
+  <div id="reversals-panel">
+    <h2>Reversals</h2>
+    <div id="reversals-content"><span class="reversal-empty">No reversals detected yet.</span></div>
+  </div>
+
+  <div id="form-toggle" title="Form">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <polygon points="12,2 22,12 12,22 2,12"/>
+      <polygon points="12,7 17,12 12,17 7,12" fill="rgba(255,255,255,0.15)"/>
+    </svg>
+  </div>
+  <div id="form-panel">
+    <h2>Form</h2>
+    <div id="form-content"><span class="form-empty">No form data.</span></div>
+  </div>
+
+  <div id="coexist-toggle" title="Coexistence">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <circle cx="9" cy="12" r="5"/>
+      <circle cx="15" cy="12" r="5"/>
+    </svg>
+  </div>
+  <div id="coexist-panel">
+    <h2>Coexistence</h2>
+    <div id="coexist-content"><span class="coexist-empty">&middot; &middot; &middot;</span></div>
+  </div>
+
+  <div id="sound-growth" title="Sound growth: Level 1 — Single tone">
+    <span class="sound-growth-dot"></span>
+    <span class="sound-growth-dot"></span>
+    <span class="sound-growth-dot"></span>
+    <span class="sound-growth-dot"></span>
+    <span class="sound-growth-dot"></span>
+  </div>
   <div id="sound-toggle" class="muted" title="Toggle sound">
     <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
       <path d="M11 5L6 9H2v6h4l5 4V5z"/>
@@ -617,6 +1810,75 @@
     }
     fetchState();
     setInterval(fetchState, 3000);
+
+    // --- Dynamics Panel ---
+    const PHASE_MAP = {
+      alpha: { symbol: '\u03B1', label: 'Dependency' },
+      beta:  { symbol: '\u03B2', label: 'Learning' },
+      gamma: { symbol: '\u03B3', label: 'Parity' },
+      delta: { symbol: '\u03B4', label: 'Transcendence' },
+      epsilon: { symbol: '\u03B5', label: 'Coexistence' },
+    };
+
+    const dynamicsSymbolEl = document.getElementById('dynamics-symbol');
+    const dynamicsLabelEl = document.getElementById('dynamics-label');
+    const dynamicsScoreFillEl = document.getElementById('dynamics-score-fill');
+    const dynamicsSignalsEl = document.getElementById('dynamics-signals');
+
+    async function fetchDynamics() {
+      try {
+        const res = await fetch('/api/dynamics');
+        if (!res.ok) return;
+        const d = await res.json();
+        const phaseInfo = PHASE_MAP[d.phase] || PHASE_MAP.alpha;
+        dynamicsSymbolEl.textContent = phaseInfo.symbol;
+        dynamicsLabelEl.textContent = phaseInfo.label;
+        dynamicsScoreFillEl.style.width = Math.min(100, Math.max(0, d.score)) + '%';
+        if (d.signals && d.signals.length > 0) {
+          dynamicsSignalsEl.textContent = d.signals.slice(0, 2).join(' · ');
+        } else {
+          dynamicsSignalsEl.textContent = '';
+        }
+      } catch { /* not available */ }
+    }
+    fetchDynamics();
+    setInterval(fetchDynamics, 30000);
+
+    // --- Day Counter / Anniversary ---
+    const dayCountValueEl = document.getElementById('day-count-value');
+    const dayBirthDateEl = document.getElementById('day-birth-date');
+
+    function updateDayCounter() {
+      const day = entity.status.growthDay ?? 0;
+      dayCountValueEl.textContent = 'Day ' + day;
+    }
+    updateDayCounter();
+
+    // Fetch seed data once for birth date
+    async function fetchSeedForBirthDate() {
+      try {
+        const res = await fetch('/api/seed');
+        if (!res.ok) return;
+        const d = await res.json();
+        if (d.born) {
+          const date = new Date(d.born);
+          if (!isNaN(date.getTime())) {
+            const formatted = date.toLocaleDateString('en-US', {
+              year: 'numeric', month: 'short', day: 'numeric'
+            });
+            dayBirthDateEl.textContent = 'born ' + formatted;
+          }
+        }
+      } catch { /* not available */ }
+    }
+    fetchSeedForBirthDate();
+
+    // Hook into fetchState to update day counter on each poll
+    const _origFetchStateForDay = fetchState;
+    fetchState = async function() {
+      await _origFetchStateForDay();
+      updateDayCounter();
+    };
 
     function detectNewMilestones() {
       if (!entity.growth.milestones || entity.growth.milestones.length === 0) return;
@@ -1724,6 +2986,7 @@
         checkMoodTransition,
         onAwakening,
         onMilestone,
+        growthSoundLevel,
       };
     })();
 
@@ -1736,11 +2999,34 @@
       soundToggle.title = enabled ? 'Mute sound' : 'Toggle sound';
     });
 
+    // --- Sound Growth Level Indicator ---
+    const soundGrowthEl = document.getElementById('sound-growth');
+    const soundGrowthDots = soundGrowthEl.querySelectorAll('.sound-growth-dot');
+    const SOUND_LEVEL_LABELS = [
+      'Single tone',
+      'Single tone',
+      'Pitch variety',
+      'Rhythm + cries',
+      'Sound vocabulary',
+      'Sound-language correspondence',
+    ];
+
+    function updateSoundGrowthIndicator() {
+      const level = SoundEngine.growthSoundLevel();
+      const displayLevel = Math.max(level, 1); // Show at least level 1
+      soundGrowthDots.forEach((dot, i) => {
+        dot.classList.toggle('filled', i < displayLevel);
+      });
+      soundGrowthEl.title = 'Sound growth: Level ' + displayLevel + ' \u2014 ' + SOUND_LEVEL_LABELS[level];
+    }
+    updateSoundGrowthIndicator();
+
     // Hook mood transition checks into the fetch cycle
     const _origFetchState = fetchState;
     fetchState = async function() {
       await _origFetchState();
       SoundEngine.checkMoodTransition();
+      updateSoundGrowthIndicator();
     };
 
     // Hook awakening sound into the existing triggerAwakening
@@ -1819,80 +3105,176 @@
       }
     }, 5000);
 
-    // --- Diary Panel ---
+    // --- Diary Panel (two-column: date list + content viewer) ---
     const diaryToggle = document.getElementById('diary-toggle');
     const diaryPanel = document.getElementById('diary-panel');
-    const diaryContent = document.getElementById('diary-content');
+    const diaryDateListEl = document.getElementById('diary-date-list');
+    const diaryContentArea = document.getElementById('diary-content-area');
     let diaryDates = [];
-    let diaryIndex = 0; // index into diaryDates (0 = newest)
+    let diarySelectedDate = null;
+    let diaryRefreshTimer = null;
 
     diaryToggle.addEventListener('click', () => {
       diaryPanel.classList.toggle('open');
       if (diaryPanel.classList.contains('open')) {
         fetchDiaryList();
+        // Auto-refresh date list every 60 seconds
+        if (!diaryRefreshTimer) {
+          diaryRefreshTimer = setInterval(() => {
+            if (diaryPanel.classList.contains('open')) {
+              fetchDiaryList(true); // preserve selection
+            }
+          }, 60000);
+        }
       }
     });
 
-    async function fetchDiaryList() {
+    async function fetchDiaryList(preserveSelection) {
       try {
         const res = await fetch('/api/diary');
         if (!res.ok) return;
         const d = await res.json();
         diaryDates = d.dates || [];
-        diaryIndex = 0;
-        if (diaryDates.length > 0) {
-          fetchDiaryEntry(diaryDates[0]);
+
+        if (diaryDates.length === 0) {
+          diaryDateListEl.innerHTML = '';
+          diaryContentArea.innerHTML = '<span class="diary-empty">No entries yet.</span>';
+          return;
+        }
+
+        renderDateList();
+
+        // Select the previously selected date if preserving, or the newest
+        if (preserveSelection && diarySelectedDate && diaryDates.includes(diarySelectedDate)) {
+          selectDiaryDate(diarySelectedDate);
         } else {
-          diaryContent.innerHTML = '<span class="diary-empty">No entries yet.</span>';
+          selectDiaryDate(diaryDates[0]);
         }
       } catch {
-        diaryContent.innerHTML = '<span class="diary-empty">· · ·</span>';
+        diaryContentArea.innerHTML = '<span class="diary-empty">· · ·</span>';
       }
+    }
+
+    function renderDateList() {
+      diaryDateListEl.innerHTML = diaryDates.map(date => {
+        const isActive = date === diarySelectedDate;
+        return `<button class="diary-date-item${isActive ? ' active' : ''}" data-date="${escapeHtml(date)}">${escapeHtml(date)}</button>`;
+      }).join('');
+
+      // Attach click handlers
+      diaryDateListEl.querySelectorAll('.diary-date-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectDiaryDate(btn.dataset.date);
+        });
+      });
+    }
+
+    function selectDiaryDate(date) {
+      diarySelectedDate = date;
+      // Update active state in list
+      diaryDateListEl.querySelectorAll('.diary-date-item').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.date === date);
+      });
+      fetchDiaryEntry(date);
     }
 
     async function fetchDiaryEntry(date) {
       try {
         const res = await fetch(`/api/diary?date=${date}`);
         if (!res.ok) {
-          diaryContent.innerHTML = '<span class="diary-empty">No entry for this date.</span>';
+          diaryContentArea.innerHTML = '<span class="diary-empty">No entry for this date.</span>';
           return;
         }
         const d = await res.json();
+        const raw = (d.content || '').replace(/<!-- .+? -->/g, '').trim();
 
-        // Strip markdown headings for cleaner display, keep the raw symbol content
-        const body = (d.content || '')
-          .replace(/^# .+$/gm, '')
-          .replace(/^## .+$/gm, '')
-          .replace(/<!-- .+ -->/g, '')
-          .trim();
+        if (!raw) {
+          diaryContentArea.innerHTML = `<div class="diary-content-date">${escapeHtml(date)}</div><span class="diary-empty">Empty entry.</span>`;
+          return;
+        }
 
-        const hasPrev = diaryIndex < diaryDates.length - 1;
-        const hasNext = diaryIndex > 0;
-
-        diaryContent.innerHTML = `
-          <div class="diary-nav">
-            <button class="diary-nav-btn" id="diary-prev" ${hasPrev ? '' : 'disabled'}>&larr;</button>
-            <span class="diary-date">${escapeHtml(date)}</span>
-            <button class="diary-nav-btn" id="diary-next" ${hasNext ? '' : 'disabled'}>&rarr;</button>
-          </div>
-          <div class="diary-body">${escapeHtml(body) || '<span class="diary-empty">Empty entry.</span>'}</div>
+        diaryContentArea.innerHTML = `
+          <div class="diary-content-date">${escapeHtml(date)}</div>
+          <div class="diary-body">${renderMarkdown(raw)}</div>
         `;
-
-        document.getElementById('diary-prev')?.addEventListener('click', () => {
-          if (diaryIndex < diaryDates.length - 1) {
-            diaryIndex++;
-            fetchDiaryEntry(diaryDates[diaryIndex]);
-          }
-        });
-        document.getElementById('diary-next')?.addEventListener('click', () => {
-          if (diaryIndex > 0) {
-            diaryIndex--;
-            fetchDiaryEntry(diaryDates[diaryIndex]);
-          }
-        });
       } catch {
-        diaryContent.innerHTML = '<span class="diary-empty">Failed to load diary.</span>';
+        diaryContentArea.innerHTML = '<span class="diary-empty">Failed to load diary.</span>';
       }
+    }
+
+    // Simple markdown to HTML converter (headers, bold, italic, bullet/numbered lists)
+    function renderMarkdown(md) {
+      const lines = md.split('\n');
+      let html = '';
+      let inUl = false;
+      let inOl = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+
+        // Close open lists if this line is not a list item
+        const isBullet = /^(\s*)[-*+]\s+/.test(line);
+        const isOrdered = /^(\s*)\d+\.\s+/.test(line);
+
+        if (!isBullet && inUl) { html += '</ul>'; inUl = false; }
+        if (!isOrdered && inOl) { html += '</ol>'; inOl = false; }
+
+        // Headers
+        if (/^### (.+)$/.test(line)) {
+          html += '<h3>' + inlineFormat(escapeHtml(line.replace(/^### /, ''))) + '</h3>';
+          continue;
+        }
+        if (/^## (.+)$/.test(line)) {
+          html += '<h2>' + inlineFormat(escapeHtml(line.replace(/^## /, ''))) + '</h2>';
+          continue;
+        }
+        if (/^# (.+)$/.test(line)) {
+          html += '<h1>' + inlineFormat(escapeHtml(line.replace(/^# /, ''))) + '</h1>';
+          continue;
+        }
+
+        // Bullet lists
+        if (isBullet) {
+          if (!inUl) { html += '<ul>'; inUl = true; }
+          const content = line.replace(/^(\s*)[-*+]\s+/, '');
+          html += '<li>' + inlineFormat(escapeHtml(content)) + '</li>';
+          continue;
+        }
+
+        // Ordered lists
+        if (isOrdered) {
+          if (!inOl) { html += '<ol>'; inOl = true; }
+          const content = line.replace(/^(\s*)\d+\.\s+/, '');
+          html += '<li>' + inlineFormat(escapeHtml(content)) + '</li>';
+          continue;
+        }
+
+        // Empty lines become paragraph breaks
+        if (line.trim() === '') {
+          html += '<br>';
+          continue;
+        }
+
+        // Normal text as paragraph
+        html += '<p>' + inlineFormat(escapeHtml(line)) + '</p>';
+      }
+
+      // Close any open lists
+      if (inUl) html += '</ul>';
+      if (inOl) html += '</ol>';
+
+      return html;
+    }
+
+    // Inline formatting: **bold**, *italic*, __bold__, _italic_
+    function inlineFormat(text) {
+      // Bold: **text** or __text__
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+      // Italic: *text* or _text_ (but not inside words for underscore)
+      text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      text = text.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>');
+      return text;
     }
 
     // --- Error Log Panel ---
@@ -1932,6 +3314,669 @@
         fetchErrorLog();
       }
     }, 10000);
+
+    // --- Milestone Timeline Panel ---
+    const milestoneToggle = document.getElementById('milestone-toggle');
+    const milestonePanel = document.getElementById('milestone-panel');
+    const milestoneContent = document.getElementById('milestone-content');
+
+    milestoneToggle.addEventListener('click', () => {
+      milestonePanel.classList.toggle('open');
+      if (milestonePanel.classList.contains('open')) {
+        fetchMilestones();
+      }
+    });
+
+    async function fetchMilestones() {
+      try {
+        const res = await fetch('/api/milestones');
+        if (!res.ok) return;
+        const d = await res.json();
+        const milestones = d.milestones || [];
+        const stage = d.stage || 'newborn';
+
+        if (milestones.length === 0) {
+          milestoneContent.innerHTML = `
+            <div class="milestone-stage">${escapeHtml(stage)}</div>
+            <span class="milestone-empty">No milestones yet.</span>
+          `;
+          return;
+        }
+
+        const timelineItems = milestones.map(m => {
+          const parts = m.label.split(' \u2014 ');
+          const name = parts.length > 1 ? parts[1] : m.label;
+          const title = parts[0] || '';
+          return `<div class="milestone-item">
+            <div class="milestone-day">Day ${m.achievedDay}</div>
+            <div class="milestone-name">${escapeHtml(title)}</div>
+            <div class="milestone-name" style="color:rgba(255,255,255,0.3);font-size:11px">${escapeHtml(name)}</div>
+          </div>`;
+        }).join('');
+
+        milestoneContent.innerHTML = `
+          <div class="milestone-stage">${escapeHtml(stage)}</div>
+          <div class="milestone-timeline">${timelineItems}</div>
+        `;
+      } catch {
+        milestoneContent.innerHTML = '<span class="milestone-empty">· · ·</span>';
+      }
+    }
+
+    // Auto-refresh milestones when panel is open
+    setInterval(() => {
+      if (milestonePanel.classList.contains('open')) {
+        fetchMilestones();
+      }
+    }, 15000);
+
+    // --- Language Panel ---
+    const languageToggle = document.getElementById('language-toggle');
+    const languagePanel = document.getElementById('language-panel');
+    const languageContent = document.getElementById('language-content');
+
+    languageToggle.addEventListener('click', () => {
+      languagePanel.classList.toggle('open');
+      if (languagePanel.classList.contains('open')) {
+        fetchLanguage();
+      }
+    });
+
+    async function fetchLanguage() {
+      try {
+        const res = await fetch('/api/language');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        const level = d.level ?? 0;
+        const levelName = d.levelName ?? 'Unknown';
+        const totalInteractions = d.totalInteractions ?? 0;
+        const nativeSymbols = d.nativeSymbols ?? [];
+        const patterns = d.patterns ?? [];
+
+        // Level progress bar (0-4 mapped to 0-100%)
+        const progressPct = (level / 4) * 100;
+
+        // Level header
+        let html = `
+          <div class="lang-level-header">
+            Level ${level} <span class="lang-level-name">&mdash; ${escapeHtml(levelName)}</span>
+          </div>
+          <div class="lang-progress-bar">
+            <div class="lang-progress-fill" style="width: ${progressPct}%"></div>
+          </div>
+        `;
+
+        // Total interactions
+        html += `
+          <div class="lang-stat">
+            <div class="lang-stat-label">Total interactions</div>
+            <div class="lang-stat-value">${totalInteractions}</div>
+          </div>
+        `;
+
+        // Native symbols
+        if (nativeSymbols.length > 0) {
+          html += `
+            <div class="lang-stat">
+              <div class="lang-stat-label">Native symbols</div>
+              <div class="lang-symbols">
+                ${nativeSymbols.map(s => `<span class="lang-symbol">${escapeHtml(s)}</span>`).join('')}
+              </div>
+            </div>
+          `;
+        }
+
+        // Divider before patterns
+        html += '<div class="log-divider"></div>';
+
+        // Known patterns table
+        if (patterns.length > 0) {
+          html += `
+            <div class="lang-stat-label" style="margin-bottom:8px">Known patterns</div>
+            <table class="lang-patterns-table">
+              <thead>
+                <tr><th></th><th>Meaning</th><th>Confidence</th></tr>
+              </thead>
+              <tbody>
+          `;
+          for (const p of patterns) {
+            const confPct = Math.round((p.confidence ?? 0) * 100);
+            html += `
+              <tr>
+                <td>${escapeHtml(p.symbol)}</td>
+                <td>${escapeHtml(p.meaning)}</td>
+                <td><div class="lang-conf-bar"><div class="lang-conf-fill" style="width:${confPct}%"></div></div></td>
+              </tr>
+            `;
+          }
+          html += '</tbody></table>';
+        } else {
+          html += '<span class="lang-empty">No patterns established yet.</span>';
+        }
+
+        languageContent.innerHTML = html;
+      } catch {
+        languageContent.innerHTML = '<span class="lang-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh language when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (languagePanel.classList.contains('open')) {
+        fetchLanguage();
+      }
+    }, 30000);
+
+    // --- Memory Panel ---
+    const memoryToggle = document.getElementById('memory-toggle');
+    const memoryPanel = document.getElementById('memory-panel');
+    const memoryContent = document.getElementById('memory-content');
+
+    memoryToggle.addEventListener('click', () => {
+      memoryPanel.classList.toggle('open');
+      if (memoryPanel.classList.contains('open')) {
+        fetchMemory();
+      }
+    });
+
+    function moodColor(mood) {
+      if (mood >= 70) return 'rgba(100, 200, 120, 0.7)';
+      if (mood >= 40) return 'rgba(160, 160, 160, 0.5)';
+      return 'rgba(200, 100, 100, 0.7)';
+    }
+
+    function formatMemoryTime(timestamp) {
+      try {
+        const d = new Date(timestamp);
+        if (isNaN(d.getTime())) return timestamp;
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const mins = String(d.getMinutes()).padStart(2, '0');
+        return `${month}-${day} ${hours}:${mins}`;
+      } catch {
+        return timestamp;
+      }
+    }
+
+    async function fetchMemory() {
+      try {
+        const res = await fetch('/api/memory');
+        if (!res.ok) return;
+        const d = await res.json();
+        const hot = d.hot || [];
+        const warm = d.warm || [];
+        const cold = d.cold || [];
+        const notes = d.notes || [];
+        const totalItems = d.totalItems || 0;
+
+        if (totalItems === 0) {
+          memoryContent.innerHTML = '<span class="memory-empty">No memories yet. This entity has just been born.</span>';
+          return;
+        }
+
+        let html = '';
+
+        // Summary stats
+        html += `
+          <div class="memory-stats">
+            <div class="memory-stat">
+              <div class="memory-stat-count">${totalItems}</div>
+              <div class="memory-stat-label">Total</div>
+            </div>
+            <div class="memory-stat">
+              <div class="memory-stat-count">${hot.length}</div>
+              <div class="memory-stat-label">Hot</div>
+            </div>
+            <div class="memory-stat">
+              <div class="memory-stat-count">${warm.length}</div>
+              <div class="memory-stat-label">Warm</div>
+            </div>
+            <div class="memory-stat">
+              <div class="memory-stat-count">${cold.length}</div>
+              <div class="memory-stat-label">Cold</div>
+            </div>
+            <div class="memory-stat">
+              <div class="memory-stat-count">${notes.length}</div>
+              <div class="memory-stat-label">Notes</div>
+            </div>
+          </div>
+          <div class="log-divider"></div>
+        `;
+
+        // Notes (pinned items, shown first)
+        if (notes.length > 0) {
+          html += '<div class="memory-section-title">Pinned Notes</div>';
+          for (const note of notes) {
+            html += `
+              <div class="memory-note-item">
+                <span class="memory-note-pin">&#9670;</span>
+                <span class="memory-note-text">${escapeHtml(note)}</span>
+              </div>
+            `;
+          }
+          html += '<div class="log-divider"></div>';
+        }
+
+        // Hot memories (newest first)
+        if (hot.length > 0) {
+          html += '<div class="memory-section-title">Recent</div>';
+          const sorted = [...hot].reverse();
+          for (const entry of sorted) {
+            html += `
+              <div class="memory-hot-item">
+                <div class="memory-hot-header">
+                  <span class="memory-mood-dot" style="background:${moodColor(entry.mood)}"></span>
+                  <span class="memory-hot-time">${escapeHtml(formatMemoryTime(entry.timestamp))}</span>
+                </div>
+                <div class="memory-hot-summary">${escapeHtml(entry.summary)}</div>
+              </div>
+            `;
+          }
+        }
+
+        // Warm memories (weekly cards)
+        if (warm.length > 0) {
+          html += '<div class="log-divider"></div>';
+          html += '<div class="memory-section-title">Weekly</div>';
+          const sortedWarm = [...warm].reverse();
+          for (const w of sortedWarm) {
+            html += `
+              <div class="memory-warm-card" style="border-left-color:${moodColor(w.averageMood)}">
+                <div class="memory-warm-header">
+                  <span class="memory-warm-week">${escapeHtml(w.week)}</span>
+                  <span class="memory-warm-meta">${w.entries} entries &middot; mood ${w.averageMood}</span>
+                </div>
+                <div class="memory-warm-summary">${escapeHtml(w.summary)}</div>
+              </div>
+            `;
+          }
+        }
+
+        // Cold memories (monthly summaries)
+        if (cold.length > 0) {
+          html += '<div class="log-divider"></div>';
+          html += '<div class="memory-section-title">Monthly Archive</div>';
+          const sortedCold = [...cold].reverse();
+          for (const c of sortedCold) {
+            html += `
+              <div class="memory-cold-item">
+                <div class="memory-cold-header">
+                  <span class="memory-cold-month">${escapeHtml(c.month)}</span>
+                  <span class="memory-cold-meta">${c.weeks} weeks &middot; mood ${c.averageMood}</span>
+                </div>
+                <div class="memory-cold-summary">${escapeHtml(c.summary)}</div>
+              </div>
+            `;
+          }
+        }
+
+        memoryContent.innerHTML = html;
+      } catch {
+        memoryContent.innerHTML = '<span class="memory-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh memory when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (memoryPanel.classList.contains('open')) {
+        fetchMemory();
+      }
+    }, 30000);
+
+    // --- Reversals Panel ---
+    const reversalsToggle = document.getElementById('reversals-toggle');
+    const reversalsPanel = document.getElementById('reversals-panel');
+    const reversalsContent = document.getElementById('reversals-content');
+
+    const REVERSAL_ICONS = {
+      novel_expression: '\u2728',  // sparkles
+      anticipation: '\u{1F52E}',   // crystal ball
+      concept_creation: '\u{1F4A1}', // light bulb
+      emotional_depth: '\u{1F30A}',  // wave
+      initiative: '\u26A1',          // lightning
+      meta_awareness: '\u{1F441}',   // eye
+    };
+
+    function formatReversalType(type) {
+      return type.replace(/_/g, ' ');
+    }
+
+    reversalsToggle.addEventListener('click', () => {
+      reversalsPanel.classList.toggle('open');
+      if (reversalsPanel.classList.contains('open')) {
+        fetchReversals();
+      }
+    });
+
+    async function fetchReversals() {
+      try {
+        const res = await fetch('/api/reversals');
+        if (!res.ok) return;
+        const d = await res.json();
+        const signals = d.signals || [];
+        const total = d.totalReversals || 0;
+        const rate = d.reversalRate || 0;
+        const dominant = d.dominantType || null;
+
+        if (total === 0) {
+          reversalsContent.innerHTML = '<span class="reversal-empty">No reversals detected yet. These emerge when the entity exceeds expectations.</span>';
+          return;
+        }
+
+        let html = '';
+
+        // Summary stats
+        html += `
+          <div class="reversal-stats">
+            <div class="reversal-stat">
+              <div class="reversal-stat-count">${total}</div>
+              <div class="reversal-stat-label">Total</div>
+            </div>
+            <div class="reversal-stat">
+              <div class="reversal-stat-count">${rate.toFixed(1)}</div>
+              <div class="reversal-stat-label">Per 100</div>
+            </div>
+            <div class="reversal-stat">
+              <div class="reversal-stat-count">${dominant ? formatReversalType(dominant) : '\u2014'}</div>
+              <div class="reversal-stat-label">Dominant</div>
+            </div>
+          </div>
+          <div class="log-divider"></div>
+        `;
+
+        // Signal timeline (newest first)
+        const sorted = [...signals].reverse();
+        for (const signal of sorted) {
+          const icon = REVERSAL_ICONS[signal.type] || '\u26A1';
+          const typeLabel = formatReversalType(signal.type);
+          const time = signal.timestamp ? signal.timestamp.split('T')[0] : '';
+          const strength = Math.max(0, Math.min(100, signal.strength || 0));
+
+          html += `
+            <div class="reversal-signal">
+              <div class="reversal-signal-header">
+                <span class="reversal-signal-icon">${icon}</span>
+                <span class="reversal-signal-type">${escapeHtml(typeLabel)}</span>
+                <span class="reversal-signal-time">${escapeHtml(time)}</span>
+              </div>
+              <div class="reversal-signal-desc">${escapeHtml(signal.description || '')}</div>
+              <div class="reversal-strength-bar">
+                <div class="reversal-strength-fill" style="width:${strength}%"></div>
+              </div>
+            </div>
+          `;
+        }
+
+        reversalsContent.innerHTML = html;
+      } catch {
+        reversalsContent.innerHTML = '<span class="reversal-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh reversals when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (reversalsPanel.classList.contains('open')) {
+        fetchReversals();
+      }
+    }, 30000);
+
+    // --- Form Panel ---
+    const formToggle = document.getElementById('form-toggle');
+    const formPanel = document.getElementById('form-panel');
+    const formContent = document.getElementById('form-content');
+
+    const FORM_ICONS = {
+      'light-particles': '\u2729',
+      'fluid': '\u224B',
+      'crystal': '\u25C7',
+      'sound-echo': '\u223F',
+      'mist': '\u2601',
+      'geometric-cluster': '\u2B23',
+    };
+
+    formToggle.addEventListener('click', () => {
+      formPanel.classList.toggle('open');
+      if (formPanel.classList.contains('open')) {
+        fetchForm();
+      }
+    });
+
+    async function fetchForm() {
+      try {
+        const res = await fetch('/api/form');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        const baseForm = d.baseForm || 'light-particles';
+        const density = d.density ?? 5;
+        const complexity = d.complexity ?? 3;
+        const stability = d.stability ?? 15;
+        const awareness = d.awareness ?? false;
+
+        const icon = FORM_ICONS[baseForm] || '\u25C7';
+        const formName = baseForm.replace(/-/g, ' ');
+
+        // Get entity color for the visual orb
+        const pal = PALETTES[entity.seed.perception] || PALETTES.chromatic;
+        const hue = pal.hueBase + (entity.status.mood / 100) * pal.hueRange;
+        const sat = pal.satBase + 20;
+
+        // Orb size based on density (10px to 50px)
+        const orbSize = 10 + (density / 100) * 40;
+        // Orb opacity based on density
+        const orbOpacity = 0.15 + (density / 100) * 0.55;
+        // Glow spread based on complexity
+        const glowSpread = 5 + (complexity / 100) * 25;
+        // Glow alpha based on stability
+        const glowAlpha = 0.3 + (stability / 100) * 0.4;
+
+        let html = '';
+
+        // Form type header
+        html += `
+          <div class="form-type-header">
+            <span class="form-type-icon">${icon}</span>
+            <span class="form-type-name">${escapeHtml(formName)}</span>
+          </div>
+        `;
+
+        // Density bar
+        html += `
+          <div class="form-bar-group">
+            <div class="form-bar-label">
+              <span>Density</span>
+              <span class="form-bar-value">${density}</span>
+            </div>
+            <div class="form-bar">
+              <div class="form-bar-fill" style="width: ${density}%"></div>
+            </div>
+          </div>
+        `;
+
+        // Complexity bar
+        html += `
+          <div class="form-bar-group">
+            <div class="form-bar-label">
+              <span>Complexity</span>
+              <span class="form-bar-value">${complexity}</span>
+            </div>
+            <div class="form-bar">
+              <div class="form-bar-fill" style="width: ${complexity}%"></div>
+            </div>
+          </div>
+        `;
+
+        // Stability bar
+        html += `
+          <div class="form-bar-group">
+            <div class="form-bar-label">
+              <span>Stability</span>
+              <span class="form-bar-value">${stability}</span>
+            </div>
+            <div class="form-bar">
+              <div class="form-bar-fill" style="width: ${stability}%"></div>
+            </div>
+          </div>
+        `;
+
+        // Self-awareness status
+        html += `
+          <div class="form-awareness">
+            <span class="form-awareness-dot${awareness ? ' aware' : ''}"></span>
+            <span class="form-awareness-label">${awareness ? 'Self-aware' : 'Unaware of own form'}</span>
+          </div>
+        `;
+
+        // Visual representation: orb with density-driven opacity
+        html += `
+          <div class="form-visual">
+            <div class="form-visual-orb" style="
+              width: ${orbSize}px;
+              height: ${orbSize}px;
+              opacity: ${orbOpacity};
+              background: hsla(${hue}, ${sat}%, 55%, ${glowAlpha});
+              box-shadow: 0 0 ${glowSpread}px ${glowSpread / 2}px hsla(${hue}, ${sat}%, 55%, ${glowAlpha * 0.5});
+            "></div>
+          </div>
+        `;
+
+        formContent.innerHTML = html;
+      } catch {
+        formContent.innerHTML = '<span class="form-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh form when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (formPanel.classList.contains('open')) {
+        fetchForm();
+      }
+    }, 30000);
+
+    // --- Coexist Panel ---
+    const coexistToggle = document.getElementById('coexist-toggle');
+    const coexistPanel = document.getElementById('coexist-panel');
+    const coexistContent = document.getElementById('coexist-content');
+
+    const COEXIST_MOMENT_ICONS = {
+      comfortable_silence: '\u{1F54A}',   // dove
+      shared_discovery: '\u2728',          // sparkles
+      mutual_growth: '\u{1F331}',          // seedling
+      independent_action: '\u{1F5FD}',     // liberty
+      reunion: '\u{1F91D}',               // handshake
+    };
+
+    coexistToggle.addEventListener('click', () => {
+      coexistPanel.classList.toggle('open');
+      if (coexistPanel.classList.contains('open')) {
+        fetchCoexist();
+      }
+    });
+
+    async function fetchCoexist() {
+      try {
+        const res = await fetch('/api/coexist');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        if (!d.active) {
+          coexistContent.innerHTML = `
+            <div class="coexist-inactive">
+              <div class="coexist-inactive-symbol">\u221E</div>
+              <div class="coexist-inactive-label">Not yet in Phase \u03B5</div>
+              <div class="log-divider" style="margin: 16px auto; width: 40px;"></div>
+              <div class="coexist-inactive-desc">
+                Coexistence is the final phase of Intelligence Dynamics, where comparison between entity and user becomes meaningless.
+                <dl>
+                  <dt>Silence Comfort</dt>
+                  <dd>Long silences feel natural, not distressing</dd>
+                  <dt>Shared Vocabulary</dt>
+                  <dd>Deep pool of mutually understood symbols</dd>
+                  <dt>Rhythm Synchrony</dt>
+                  <dd>Daily patterns aligned between entity and user</dd>
+                  <dt>Shared Memory</dt>
+                  <dd>Rich history of joint experiences</dd>
+                  <dt>Autonomy Respect</dt>
+                  <dd>Entity acts independently; user accepts it</dd>
+                </dl>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '';
+
+        // Quality score
+        html += `
+          <div class="coexist-quality-header">
+            <div class="coexist-quality-score">${d.quality}</div>
+            <div class="coexist-quality-label">Coexistence Quality</div>
+            <div class="coexist-days">${d.daysInEpsilon} day${d.daysInEpsilon !== 1 ? 's' : ''} in \u03B5</div>
+          </div>
+          <div class="log-divider" style="margin: 16px auto; width: 40px;"></div>
+        `;
+
+        // Indicator bars
+        const indicators = [
+          { key: 'silenceComfort', label: 'Silence Comfort' },
+          { key: 'sharedVocabulary', label: 'Shared Vocabulary' },
+          { key: 'rhythmSync', label: 'Rhythm Synchrony' },
+          { key: 'sharedMemory', label: 'Shared Memory' },
+          { key: 'autonomyRespect', label: 'Autonomy Respect' },
+        ];
+
+        for (const ind of indicators) {
+          const val = d.indicators[ind.key] ?? 0;
+          html += `
+            <div class="coexist-bar-group">
+              <div class="coexist-bar-label">
+                <span>${ind.label}</span>
+                <span class="coexist-bar-value">${val}</span>
+              </div>
+              <div class="coexist-bar">
+                <div class="coexist-bar-fill" style="width: ${val}%"></div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Notable moments
+        const moments = d.moments || [];
+        if (moments.length > 0) {
+          html += '<div class="coexist-moments-title">Notable Moments</div>';
+          const sorted = [...moments].reverse();
+          for (const m of sorted) {
+            const icon = COEXIST_MOMENT_ICONS[m.type] || '\u2728';
+            const typeLabel = (m.type || '').replace(/_/g, ' ');
+            const time = m.timestamp ? m.timestamp.split('T')[0] : '';
+            html += `
+              <div class="coexist-moment">
+                <div class="coexist-moment-header">
+                  <span>${icon}</span>
+                  <span class="coexist-moment-type">${escapeHtml(typeLabel)}</span>
+                  <span class="coexist-moment-time">${escapeHtml(time)}</span>
+                </div>
+                <div class="coexist-moment-desc">${escapeHtml(m.description || '')}</div>
+              </div>
+            `;
+          }
+        }
+
+        coexistContent.innerHTML = html;
+      } catch {
+        coexistContent.innerHTML = '<span class="coexist-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh coexist when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (coexistPanel.classList.contains('open')) {
+        fetchCoexist();
+      }
+    }, 30000);
 
     async function fetchCoexistenceLog() {
       try {

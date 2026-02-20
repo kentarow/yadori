@@ -115,6 +115,22 @@ describe("OpenClawWorkspaceManager", () => {
     });
   });
 
+  describe("writeDynamics / readDynamics", () => {
+    it("writes and reads DYNAMICS.md", async () => {
+      const dynamicsMd = "# DYNAMICS\n\n## Current Phase\n\nPhase α (Dependency)\n";
+      await manager.writeDynamics(dynamicsMd);
+      const content = await readFile(join(tempDir, "DYNAMICS.md"), "utf-8");
+      expect(content).toContain("# DYNAMICS");
+      const read = await manager.readDynamics();
+      expect(read).toContain("Phase α (Dependency)");
+    });
+
+    it("returns empty string when DYNAMICS.md does not exist", async () => {
+      const read = await manager.readDynamics();
+      expect(read).toBe("");
+    });
+  });
+
   describe("writeMilestones", () => {
     it("writes to growth/milestones.md", async () => {
       await mkdir(join(tempDir, "growth"), { recursive: true });
@@ -140,6 +156,72 @@ describe("OpenClawWorkspaceManager", () => {
       await manager.writeDiary("2026-02-18", "# 2026-02-18\n\n◎◎◎");
       const read = await readFile(join(tempDir, "diary", "2026-02-18.md"), "utf-8");
       expect(read).toContain("◎◎◎");
+    });
+  });
+
+  describe("writePerception", () => {
+    it("writes PERCEPTION.md", async () => {
+      const md = "# PERCEPTION\n\n## Current Filter\n\nColor histogram only.\n";
+      await manager.writePerception(md);
+      const read = await readFile(join(tempDir, "PERCEPTION.md"), "utf-8");
+      expect(read).toContain("# PERCEPTION");
+      expect(read).toContain("Color histogram only.");
+    });
+
+    it("overwrites existing PERCEPTION.md", async () => {
+      await manager.writePerception("# PERCEPTION\n\nVersion 1\n");
+      await manager.writePerception("# PERCEPTION\n\nVersion 2\n");
+      const read = await readFile(join(tempDir, "PERCEPTION.md"), "utf-8");
+      expect(read).toContain("Version 2");
+      expect(read).not.toContain("Version 1");
+    });
+  });
+
+  describe("writeReversals / readReversals", () => {
+    it("writes and reads REVERSALS.md", async () => {
+      const md = "# REVERSALS\n\n## Intelligence Reversals Log\n\nNo reversals detected yet.\n";
+      await manager.writeReversals(md);
+      const content = await readFile(join(tempDir, "REVERSALS.md"), "utf-8");
+      expect(content).toContain("# REVERSALS");
+      const read = await manager.readReversals();
+      expect(read).toContain("No reversals detected yet.");
+    });
+
+    it("returns empty string when REVERSALS.md does not exist", async () => {
+      const read = await manager.readReversals();
+      expect(read).toBe("");
+    });
+
+    it("overwrites existing REVERSALS.md", async () => {
+      await manager.writeReversals("# REVERSALS\n\nFirst entry.\n");
+      await manager.writeReversals("# REVERSALS\n\nUpdated entry.\n");
+      const read = await manager.readReversals();
+      expect(read).toContain("Updated entry.");
+      expect(read).not.toContain("First entry.");
+    });
+  });
+
+  describe("writeCoexist / readCoexist", () => {
+    it("writes and reads COEXIST.md", async () => {
+      const md = "# COEXIST\n\n## Coexistence State\n\nPhase alpha active.\n";
+      await manager.writeCoexist(md);
+      const content = await readFile(join(tempDir, "COEXIST.md"), "utf-8");
+      expect(content).toContain("# COEXIST");
+      const read = await manager.readCoexist();
+      expect(read).toContain("Phase alpha active.");
+    });
+
+    it("returns empty string when COEXIST.md does not exist", async () => {
+      const read = await manager.readCoexist();
+      expect(read).toBe("");
+    });
+
+    it("overwrites existing COEXIST.md", async () => {
+      await manager.writeCoexist("# COEXIST\n\nInitial state.\n");
+      await manager.writeCoexist("# COEXIST\n\nEvolved state.\n");
+      const read = await manager.readCoexist();
+      expect(read).toContain("Evolved state.");
+      expect(read).not.toContain("Initial state.");
     });
   });
 

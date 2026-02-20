@@ -120,6 +120,14 @@ export {
   type PerceptionGrowthState,
 } from "./perception/perception-growth.js";
 
+// Perception Params (filter parameter evolution)
+export {
+  computePerceptionWindow,
+  getSpeciesPerceptionProfile,
+  type PerceptionWindow,
+  type SpeciesPerceptionProfile,
+} from "./perception/perception-params.js";
+
 export {
   createInputRegistry,
   registerSensor,
@@ -224,6 +232,33 @@ export {
   type PhaseTransition,
 } from "./dynamics/asymmetry-tracker.js";
 
+// Reversal Detector (Layer 4)
+export {
+  createInitialReversalState,
+  detectReversals,
+  computeReversalMetrics,
+  formatReversalMd,
+  type ReversalSignal,
+  type ReversalType,
+  type ReversalState,
+  type ReversalContext,
+  type ReversalDetectionResult,
+  type ReversalMetrics,
+} from "./dynamics/reversal-detector.js";
+
+// Coexist Engine (Layer 4)
+export {
+  createInitialCoexistState,
+  evaluateCoexistence,
+  computeCoexistQuality,
+  formatCoexistMd,
+  type CoexistState,
+  type CoexistIndicators,
+  type CoexistMoment,
+  type CoexistMomentType,
+  type CoexistContext,
+} from "./dynamics/coexist-engine.js";
+
 // LLM Adapter (interface only — implementation future)
 export {
   estimateLocalModelCapacity,
@@ -236,3 +271,15 @@ export {
   type LLMCompletionResponse,
   type LLMHealthStatus,
 } from "./llm/llm-adapter.js";
+
+// Voice Adapter (interface only — Phase 4 preparation)
+export {
+  computeVoiceMaturity,
+  estimateLocalVoiceCapacity,
+  type VoiceProviderType,
+  type VoiceCapabilities,
+  type VoiceRequest,
+  type VoiceResponse,
+  type VoiceAdapter,
+  type LocalVoiceCapacity,
+} from "./voice/voice-adapter.js";

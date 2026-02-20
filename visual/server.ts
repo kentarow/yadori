@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { parseStatusMd, parseSeedMd, parsePerceptionMd, computeCoexistenceMetrics } from "./parsers.js";
+import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, parseLanguageMd, parseMemoryMd, parseFormMd, parseReversalsMd, parseCoexistMd, computeCoexistenceMetrics } from "./parsers.js";
 import {
   processInteraction,
   serializeState,
@@ -238,6 +238,238 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // --- GET /api/dynamics ---
+  // Returns intelligence dynamics phase and score from DYNAMICS.md.
+  // Falls back to default values if the file doesn't exist yet.
+  if (req.url === "/api/dynamics") {
+    try {
+      const md = await readFile(join(WORKSPACE_ROOT, "DYNAMICS.md"), "utf-8");
+      const dynamics = parseDynamicsMd(md);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(dynamics));
+    } catch {
+      // DYNAMICS.md doesn't exist yet — return defaults
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ phase: "alpha", score: 0, signals: [] }));
+    }
+    return;
+  }
+
+  // --- GET /api/reversals ---
+  // Returns reversal detection signals — moments where the entity exceeded expectations.
+  // Tries state.json first, falls back to REVERSALS.md.
+  if (req.url === "/api/reversals") {
+    try {
+      const state = await readJsonState();
+      if (state && state.reversal) {
+        const rev = state.reversal as Record<string, unknown>;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          signals: (rev.signals ?? []) as unknown[],
+          totalReversals: (rev.totalReversals as number) ?? 0,
+          dominantType: (rev.dominantType as string | null) ?? null,
+          reversalRate: (rev.reversalRate as number) ?? 0,
+          lastDetected: (rev.lastDetected as string | null) ?? null,
+        }));
+      } else {
+        // Fallback: parse REVERSALS.md
+        const md = await readFile(join(WORKSPACE_ROOT, "REVERSALS.md"), "utf-8");
+        const parsed = parseReversalsMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch {
+      // No reversal data yet — return empty defaults
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        signals: [],
+        totalReversals: 0,
+        dominantType: null,
+        reversalRate: 0,
+        lastDetected: null,
+      }));
+    }
+    return;
+  }
+
+  // --- GET /api/coexist ---
+  // Returns coexistence quality data (Phase epsilon).
+  // Tries state.json first, falls back to COEXIST.md.
+  if (req.url === "/api/coexist") {
+    try {
+      const state = await readJsonState();
+      if (state && state.coexist) {
+        const c = state.coexist as Record<string, unknown>;
+        const indicators = c.indicators as Record<string, number> | undefined;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          active: (c.active as boolean) ?? false,
+          quality: (c.quality as number) ?? 0,
+          indicators: {
+            silenceComfort: indicators?.silenceComfort ?? 0,
+            sharedVocabulary: indicators?.sharedVocabulary ?? 0,
+            rhythmSync: indicators?.rhythmSync ?? 0,
+            sharedMemory: indicators?.sharedMemory ?? 0,
+            autonomyRespect: indicators?.autonomyRespect ?? 0,
+          },
+          moments: (c.moments ?? []) as unknown[],
+          daysInEpsilon: (c.daysInEpsilon as number) ?? 0,
+        }));
+      } else {
+        // Fallback: parse COEXIST.md
+        const md = await readFile(join(WORKSPACE_ROOT, "COEXIST.md"), "utf-8");
+        const parsed = parseCoexistMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch {
+      // No coexistence data yet — return inactive defaults
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        active: false,
+        quality: 0,
+        indicators: {
+          silenceComfort: 0,
+          sharedVocabulary: 0,
+          rhythmSync: 0,
+          sharedMemory: 0,
+          autonomyRespect: 0,
+        },
+        moments: [],
+        daysInEpsilon: 0,
+      }));
+    }
+    return;
+  }
+
+  // --- GET /api/milestones ---
+  // Returns growth milestones and current stage.
+  // Tries state.json first, falls back to growth/milestones.md.
+  if (req.url === "/api/milestones") {
+    try {
+      const state = await readJsonState();
+      if (state) {
+        const growth = state.growth as Record<string, unknown> | undefined;
+        const milestones = (growth?.milestones ?? []) as { id: string; label: string; achievedDay: number; achievedAt: string }[];
+        const stage = (growth?.stage ?? "newborn") as string;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ stage, milestones }));
+      } else {
+        // Fallback: parse growth/milestones.md
+        const md = await readFile(join(WORKSPACE_ROOT, "growth", "milestones.md"), "utf-8");
+        const parsed = parseMilestonesMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch (err) {
+      logger.error(`/api/milestones failed: ${(err as Error).message}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ stage: "newborn", milestones: [] }));
+    }
+    return;
+  }
+
+  // --- GET /api/language ---
+  // Returns language acquisition state: level, patterns, symbols, interactions.
+  // Tries state.json first, falls back to LANGUAGE.md.
+  if (req.url === "/api/language") {
+    const LEVEL_NAMES = [
+      "Symbols Only",
+      "Pattern Establishment",
+      "Bridge to Language",
+      "Unique Language",
+      "Advanced Operation",
+    ];
+
+    try {
+      const state = await readJsonState();
+      if (state) {
+        const lang = state.language as Record<string, unknown> | undefined;
+        const level = (lang?.level as number) ?? 0;
+        const patterns = ((lang?.patterns ?? []) as { symbol: string; meaning: string; usageCount?: number; confidence?: number }[]).map(p => ({
+          symbol: p.symbol,
+          meaning: p.meaning,
+          confidence: p.confidence ?? Math.min(1, (p.usageCount ?? 1) / 10),
+        }));
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          level,
+          levelName: LEVEL_NAMES[level] ?? "Unknown",
+          totalInteractions: (lang?.totalInteractions as number) ?? 0,
+          nativeSymbols: (lang?.nativeSymbols as string[]) ?? [],
+          patterns,
+        }));
+      } else {
+        // Fallback: parse LANGUAGE.md
+        const md = await readFile(join(WORKSPACE_ROOT, "LANGUAGE.md"), "utf-8");
+        const parsed = parseLanguageMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch (err) {
+      logger.error(`/api/language failed: ${(err as Error).message}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        level: 0,
+        levelName: "Symbols Only",
+        totalInteractions: 0,
+        nativeSymbols: [],
+        patterns: [],
+      }));
+    }
+    return;
+  }
+
+  // --- GET /api/memory ---
+  // Returns the entity's 3-tier memory system: hot, warm, cold, and notes.
+  // Tries state.json first, falls back to MEMORY.md.
+  if (req.url === "/api/memory") {
+    try {
+      const state = await readJsonState();
+      if (state && state.memory) {
+        const mem = state.memory as Record<string, unknown>;
+        const hot = (mem.hot ?? []) as { timestamp: string; summary: string; mood: number }[];
+        const warm = (mem.warm ?? []) as { week: string; entries: number; summary: string; averageMood: number }[];
+        const cold = (mem.cold ?? []) as { month: string; weeks: number; summary: string; averageMood: number }[];
+        const notes = (mem.notes ?? []) as string[];
+        const totalItems = hot.length + warm.length + cold.length + notes.length;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ hot, warm, cold, notes, totalItems }));
+      } else {
+        // Fallback: parse MEMORY.md
+        const md = await readFile(join(WORKSPACE_ROOT, "MEMORY.md"), "utf-8");
+        const parsed = parseMemoryMd(md);
+        const totalItems = parsed.hot.length + parsed.warm.length + parsed.cold.length + parsed.notes.length;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ...parsed, totalItems }));
+      }
+    } catch (err) {
+      logger.error(`/api/memory failed: ${(err as Error).message}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ hot: [], warm: [], cold: [], notes: [], totalItems: 0 }));
+    }
+    return;
+  }
+
+  // --- GET /api/seed ---
+  // Returns parsed seed data including birth date.
+  if (req.url === "/api/seed") {
+    try {
+      const md = await readFile(join(WORKSPACE_ROOT, "SEED.md"), "utf-8");
+      const seed = parseSeedMd(md);
+      // Also extract Born date which parseSeedMd doesn't capture
+      const bornMatch = md.match(/\*\*Born\*\*:\s*(.+)/);
+      const born = bornMatch?.[1]?.trim() ?? "";
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ...seed, born }));
+    } catch (err) {
+      logger.error(`/api/seed failed: ${(err as Error).message}`);
+      res.writeHead(503, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Seed not found. Run 'npm run setup' first." }));
+    }
+    return;
+  }
+
   // --- GET /api/snapshot ---
   // Returns a state-aware PNG image of the entity's current appearance.
   if (req.url === "/api/snapshot") {
@@ -454,6 +686,43 @@ const server = createServer(async (req, res) => {
         : (err as Error).message;
       res.writeHead(404, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: msg }));
+    }
+    return;
+  }
+
+  // --- GET /api/form ---
+  // Returns the entity's self-perceived form state.
+  // Tries state.json first, falls back to FORM.md.
+  if (req.url === "/api/form") {
+    try {
+      const state = await readJsonState();
+      if (state && state.form) {
+        const form = state.form as Record<string, unknown>;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          baseForm: (form.baseForm as string) ?? "light-particles",
+          density: (form.density as number) ?? 5,
+          complexity: (form.complexity as number) ?? 3,
+          stability: (form.stability as number) ?? 15,
+          awareness: (form.awareness as boolean) ?? false,
+        }));
+      } else {
+        // Fallback: parse FORM.md
+        const md = await readFile(join(WORKSPACE_ROOT, "FORM.md"), "utf-8");
+        const parsed = parseFormMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch (err) {
+      logger.error(`/api/form failed: ${(err as Error).message}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        baseForm: "light-particles",
+        density: 5,
+        complexity: 3,
+        stability: 15,
+        awareness: false,
+      }));
     }
     return;
   }

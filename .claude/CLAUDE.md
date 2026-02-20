@@ -414,12 +414,7 @@ Total: ~$8-25/month
 
 ## Security Principles
 
-- Never store the project owner's primary account credentials on the Mac mini
-- Use dedicated Anthropic accounts for OpenClaw and Claude Code
-- Enable DM Pairing (dmPolicy: "pairing")
-- Gateway binds to localhost only (no external exposure)
-- Always set API usage limits
-- Complete separation from business accounts and data
+See SECURITY.md for the full security policy. Key principles: no external data transmission, localhost-only gateway, dedicated API accounts, API usage limits, DM pairing enabled, workspace isolation.
 
 ---
 

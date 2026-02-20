@@ -232,6 +232,33 @@ export {
   type PhaseTransition,
 } from "./dynamics/asymmetry-tracker.js";
 
+// Reversal Detector (Layer 4)
+export {
+  createInitialReversalState,
+  detectReversals,
+  computeReversalMetrics,
+  formatReversalMd,
+  type ReversalSignal,
+  type ReversalType,
+  type ReversalState,
+  type ReversalContext,
+  type ReversalDetectionResult,
+  type ReversalMetrics,
+} from "./dynamics/reversal-detector.js";
+
+// Coexist Engine (Layer 4)
+export {
+  createInitialCoexistState,
+  evaluateCoexistence,
+  computeCoexistQuality,
+  formatCoexistMd,
+  type CoexistState,
+  type CoexistIndicators,
+  type CoexistMoment,
+  type CoexistMomentType,
+  type CoexistContext,
+} from "./dynamics/coexist-engine.js";
+
 // LLM Adapter (interface only — implementation future)
 export {
   estimateLocalModelCapacity,

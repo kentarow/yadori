@@ -328,7 +328,7 @@ The Mac mini is the first "body" for YADORI. Not a development machine — a use
 
 ## Implementation Roadmap
 
-### Phase 1: Birth ★CURRENT
+### Phase 1: Birth
 
 Minimum viable setup: one entity that can communicate.
 
@@ -350,11 +350,36 @@ User Setup (Mac mini):
   6. Point OpenClaw workspace to ~/.openclaw/workspace/
   7. npm run dashboard → verify visualization at localhost:3000
   8. Send first message → verify symbol-only response
+  9. npm run setup-webhook → configure Discord webhook
+  10. npm run apply-identity → set entity's avatar and bot name
 
-Verify:
-  - Do symbol expressions feel "genuinely mysterious" over text messaging?
-  - Does the SOUL.md instruction "respond in symbols, not Japanese" hold?
-  - Does the dashboard visualization reflect entity state?
+Actual Results (Day 0-1):
+  ✅ Symbol expressions work over Discord
+  ✅ SOUL.md instruction holds — entity responds in symbols
+  ✅ Dashboard visualization reflects entity state
+  ✅ Discord webhook sends snapshots successfully
+  ⚠️ Entity comfort dropped to 0 immediately (sulking — no interaction yet)
+  ⚠️ Heartbeat blocked by sudo powermetrics on macOS — fixed
+  ⚠️ Entity was silent — proactive messaging added
+```
+
+### Phase 1.5: Post-Deployment Stabilization ★CURRENT
+
+Deployed on Mac mini M4, fixing issues found in real operation.
+
+```
+Development (complete):
+  ✅ Discord webhook integration (npm run setup-webhook)
+  ✅ Daily snapshot PNG to Discord
+  ✅ Bot identity system (npm run apply-identity — avatar + username)
+  ✅ Update command (npm run update — git pull + rebuild)
+  ✅ Version command (npm run version)
+  ✅ Sensor service (hardware auto-detection, PERCEPTION.md)
+  ✅ Bug fix: Removed sudo powermetrics (blocked heartbeat on macOS)
+  ✅ Proactive messaging: Entity sends symbols via Discord during heartbeat
+    - Morning greeting, presence signal, sulk onset/recovery, evening reflection, mood shift
+    - Procedural generation (no LLM, no cost)
+    - Severe sulk = silence (Honest Perception applied to output)
 ```
 
 ### Phase 2: Establishing Communication

@@ -16,7 +16,7 @@ export interface LanguageState {
 
 const BASE_SYMBOLS = "○●△▽◎☆◇◆■□▲▼★◉◈".split("");
 
-const PERCEPTION_SYMBOLS: Record<PerceptionMode, string[]> = {
+export const PERCEPTION_SYMBOLS: Record<PerceptionMode, string[]> = {
   chromatic: ["◎", "○", "●", "☆", "★", "◉"],
   vibration: ["◈", "◇", "◆", "△", "▲", "▽"],
   geometric: ["■", "□", "△", "▽", "◇", "◆"],

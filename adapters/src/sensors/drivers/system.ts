@@ -158,15 +158,6 @@ async function getCpuTemp(): Promise<number> {
     return parseInt(temp.trim(), 10) / 1000;
   } catch { /* not RPi or no thermal zone */ }
 
-  // macOS (Apple Silicon)
-  if (platform() === "darwin") {
-    try {
-      const out = await exec("sudo", ["powermetrics", "--samplers", "smc", "-n", "1", "-i", "100"], 3000);
-      const match = out.match(/CPU die temperature:\s+([\d.]+)/);
-      if (match) return parseFloat(match[1]);
-    } catch { /* ok */ }
-  }
-
   // RPi vcgencmd
   try {
     const out = await exec("vcgencmd", ["measure_temp"], 2000);

@@ -22,7 +22,7 @@ We will acknowledge receipt within 48 hours and provide a timeline for a fix.
 
 ## Security Principles
 
-YADORI follows these security principles (see [CLAUDE.md](CLAUDE.md) for details):
+YADORI follows these security principles:
 
 - **No external data transmission** — User entity data never leaves the local machine
 - **Localhost only** — Gateway and dashboard bind to localhost; no external exposure

@@ -414,12 +414,7 @@ Cron (1日3回): $1-2/月
 
 ## セキュリティ原則
 
-- Mac miniにはプロジェクトオーナーの本アカウントの認証情報を入れない
-- OpenClaw用・Claude Code用に専用のAnthropicアカウントを使用
-- DM Pairing有効化（dmPolicy: "pairing"）
-- Gateway はlocalhost bindのみ（外部公開しない）
-- API利用上限を必ず設定
-- ビジネス用のアカウント・データとは完全に分離
+完全なセキュリティポリシーは SECURITY.md を参照。主な原則: 外部データ送信禁止、Gateway は localhost のみ、専用 API アカウント、API 利用上限設定、DM ペアリング有効化、ワークスペース分離。
 
 ---
 

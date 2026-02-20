@@ -21,7 +21,7 @@ When the framework's core is stable and the design principles are fully expresse
 ## In the meantime
 
 - **Star** or **Watch** this repository to follow the journey
-- Read the docs — especially `CLAUDE.md` and `docs/` — if you're curious about the thinking behind the design
+- Read the docs — especially `docs/` — if you're curious about the thinking behind the design
 - If something resonates with you, that means a lot
 
 See you when the time is right.

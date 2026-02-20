@@ -176,7 +176,7 @@ It has no name yet. It's just waiting.
 yadori/
 ├── README.md           — 英語（プロジェクトの顔）
 ├── README.ja.md        — 日本語README
-├── CLAUDE.md           — Claude Code用の指示書
+├── .claude/CLAUDE.md   — Claude Code用の指示書
 ├── DATA_RIGHTS.md      — ユーザーデータ権利宣言
 ├── LICENSE             — MPL 2.0
 └── docs/

@@ -49,7 +49,7 @@ The project owner is Kentaro (@kentarow on X). He is not an engineer — he desi
 - docs/design-log.md — Japanese design philosophy + growth record (append Day N entries here)
 - README.md — English public-facing document
 - README.ja.md — Japanese README
-- CLAUDE.md — English instructions for Claude Code
+- .claude/CLAUDE.md — English instructions for Claude Code
 - DATA_RIGHTS.md — Data rights policy
 
 ## Style Notes

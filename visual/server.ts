@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, computeCoexistenceMetrics } from "./parsers.js";
+import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, computeCoexistenceMetrics } from "./parsers.js";
 import {
   processInteraction,
   serializeState,
@@ -251,6 +251,33 @@ const server = createServer(async (req, res) => {
       // DYNAMICS.md doesn't exist yet — return defaults
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ phase: "alpha", score: 0, signals: [] }));
+    }
+    return;
+  }
+
+  // --- GET /api/milestones ---
+  // Returns growth milestones and current stage.
+  // Tries state.json first, falls back to growth/milestones.md.
+  if (req.url === "/api/milestones") {
+    try {
+      const state = await readJsonState();
+      if (state) {
+        const growth = state.growth as Record<string, unknown> | undefined;
+        const milestones = (growth?.milestones ?? []) as { id: string; label: string; achievedDay: number; achievedAt: string }[];
+        const stage = (growth?.stage ?? "newborn") as string;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ stage, milestones }));
+      } else {
+        // Fallback: parse growth/milestones.md
+        const md = await readFile(join(WORKSPACE_ROOT, "growth", "milestones.md"), "utf-8");
+        const parsed = parseMilestonesMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch (err) {
+      logger.error(`/api/milestones failed: ${(err as Error).message}`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ stage: "newborn", milestones: [] }));
     }
     return;
   }

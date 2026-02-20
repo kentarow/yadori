@@ -120,6 +120,14 @@ export {
   type PerceptionGrowthState,
 } from "./perception/perception-growth.js";
 
+// Perception Params (filter parameter evolution)
+export {
+  computePerceptionWindow,
+  getSpeciesPerceptionProfile,
+  type PerceptionWindow,
+  type SpeciesPerceptionProfile,
+} from "./perception/perception-params.js";
+
 export {
   createInputRegistry,
   registerSensor,
@@ -236,3 +244,15 @@ export {
   type LLMCompletionResponse,
   type LLMHealthStatus,
 } from "./llm/llm-adapter.js";
+
+// Voice Adapter (interface only — Phase 4 preparation)
+export {
+  computeVoiceMaturity,
+  estimateLocalVoiceCapacity,
+  type VoiceProviderType,
+  type VoiceCapabilities,
+  type VoiceRequest,
+  type VoiceResponse,
+  type VoiceAdapter,
+  type LocalVoiceCapacity,
+} from "./voice/voice-adapter.js";

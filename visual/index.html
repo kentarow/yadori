@@ -319,21 +319,21 @@
     #senses-toggle:hover { opacity: 0.6 !important; }
     #senses-toggle svg { width: 24px; height: 24px; }
 
-    /* Diary Panel (bottom-left slide-up) */
+    /* Diary Panel (bottom slide-up, two-column layout) */
     #diary-panel {
       position: fixed;
       bottom: 0; left: 0;
-      width: 340px;
+      width: 600px;
       max-height: 60vh;
-      padding: 28px 24px;
-      background: rgba(0, 0, 0, 0.88);
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.90);
       border-top: 1px solid rgba(255, 255, 255, 0.06);
       border-right: 1px solid rgba(255, 255, 255, 0.06);
       transform: translateY(100%);
       transition: transform 0.4s ease;
       z-index: 20;
       cursor: default;
-      overflow-y: auto;
     }
     #diary-panel.open { transform: translateY(0); }
     #diary-panel h2 {
@@ -342,45 +342,99 @@
       letter-spacing: 4px;
       text-transform: uppercase;
       color: rgba(255, 255, 255, 0.25);
-      margin-bottom: 20px;
+      margin: 0;
+      padding: 20px 24px 14px 24px;
+      flex-shrink: 0;
     }
-    .diary-nav {
+    .diary-columns {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
     }
-    .diary-nav-btn {
+    .diary-date-list {
+      width: 140px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 4px 0 12px 0;
+    }
+    .diary-date-item {
+      display: block;
+      width: 100%;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: rgba(255, 255, 255, 0.3);
       background: none;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: rgba(255, 255, 255, 0.4);
-      font-size: 14px;
-      padding: 2px 10px;
+      border: none;
+      text-align: left;
       cursor: pointer;
-      font-family: monospace;
-      transition: color 0.2s, border-color 0.2s;
+      transition: color 0.2s, background 0.2s;
+      letter-spacing: 0.5px;
     }
-    .diary-nav-btn:hover {
+    .diary-date-item:hover {
+      color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    .diary-date-item.active {
       color: rgba(255, 255, 255, 0.7);
-      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.06);
     }
-    .diary-nav-btn:disabled {
-      opacity: 0.2;
-      cursor: default;
+    .diary-content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 24px 20px 20px;
+      min-width: 0;
     }
-    .diary-date {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.4);
+    .diary-content-date {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.25);
       font-family: 'Courier New', monospace;
       letter-spacing: 1px;
+      margin-bottom: 12px;
     }
     .diary-body {
-      font-size: 14px;
+      font-size: 13px;
       color: rgba(255, 255, 255, 0.55);
       font-family: 'Courier New', monospace;
       line-height: 1.8;
-      white-space: pre-wrap;
       word-break: break-word;
+    }
+    .diary-body h1 {
+      font-size: 15px;
+      font-weight: normal;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 2px;
+      margin: 16px 0 8px 0;
+    }
+    .diary-body h2 {
+      font-size: 13px;
+      font-weight: normal;
+      color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 2px;
+      margin: 12px 0 6px 0;
+      padding: 0;
+      text-transform: none;
+    }
+    .diary-body h3 {
+      font-size: 12px;
+      font-weight: normal;
+      color: rgba(255, 255, 255, 0.45);
+      letter-spacing: 1px;
+      margin: 10px 0 4px 0;
+    }
+    .diary-body strong { color: rgba(255, 255, 255, 0.7); }
+    .diary-body em { color: rgba(255, 255, 255, 0.5); font-style: italic; }
+    .diary-body ul, .diary-body ol {
+      margin: 4px 0 4px 16px;
+      padding: 0;
+    }
+    .diary-body li {
+      margin-bottom: 2px;
+    }
+    .diary-body p {
+      margin: 6px 0;
     }
     .diary-empty {
       font-size: 11px;
@@ -467,6 +521,102 @@
     body:hover #errorlog-toggle { opacity: 0.3; }
     #errorlog-toggle:hover { opacity: 0.6 !important; }
     #errorlog-toggle svg { width: 24px; height: 24px; }
+
+    /* Milestone Timeline Panel (bottom-right slide-up) */
+    #milestone-panel {
+      position: fixed;
+      bottom: 0; right: 0;
+      width: 320px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #milestone-panel.open { transform: translateY(0); }
+    #milestone-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 12px;
+    }
+    .milestone-stage {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .milestone-timeline {
+      position: relative;
+      padding-left: 20px;
+    }
+    .milestone-timeline::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 4px;
+      bottom: 4px;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .milestone-item {
+      position: relative;
+      margin-bottom: 16px;
+      padding-bottom: 2px;
+    }
+    .milestone-item::before {
+      content: '';
+      position: absolute;
+      left: -19px;
+      top: 5px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .milestone-day {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .milestone-name {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .milestone-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #milestone-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 100px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #milestone-toggle { opacity: 0.3; }
+    #milestone-toggle:hover { opacity: 0.6 !important; }
+    #milestone-toggle svg { width: 24px; height: 24px; }
 
     /* Dynamics Panel (bottom-left) */
     #dynamics-panel {
@@ -585,15 +735,27 @@
         padding: 24px 20px;
       }
 
-      #diary-panel,
-      #errorlog-panel {
+      #diary-panel {
+        width: 100vw;
+        max-height: 70vh;
+      }
+      .diary-date-list {
+        width: 110px;
+      }
+      .diary-content-area {
+        padding: 8px 16px 16px 12px;
+      }
+      .diary-body { font-size: 12px; }
+
+      #errorlog-panel,
+      #milestone-panel {
         width: 100vw;
         max-height: 70vh;
         padding: 20px 16px;
       }
 
       /* Toggle buttons always visible on mobile */
-      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #sound-toggle, #sound-growth {
+      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #sound-toggle, #sound-growth {
         opacity: 0.35 !important;
       }
 
@@ -601,6 +763,7 @@
       #senses-toggle { top: 10px; left: 10px; }
       #diary-toggle { bottom: 10px; left: 50px; }
       #errorlog-toggle { bottom: 10px; right: 50px; }
+      #milestone-toggle { bottom: 10px; right: 90px; }
       #sound-toggle { bottom: 10px; right: 10px; }
       #sound-growth { bottom: 40px; right: 10px; }
 
@@ -630,7 +793,9 @@
       }
 
       .log-value { font-size: 16px; }
-      .diary-body { font-size: 12px; }
+      .diary-date-list { width: 90px; }
+      .diary-date-item { font-size: 10px; padding: 5px 10px; }
+      .diary-body { font-size: 11px; }
     }
   </style>
 </head>
@@ -686,7 +851,12 @@
   </div>
   <div id="diary-panel">
     <h2>Diary</h2>
-    <div id="diary-content"><span class="diary-empty">No entries yet.</span></div>
+    <div class="diary-columns">
+      <div class="diary-date-list" id="diary-date-list"></div>
+      <div class="diary-content-area" id="diary-content-area">
+        <span class="diary-empty">No entries yet.</span>
+      </div>
+    </div>
   </div>
 
   <div id="errorlog-toggle" title="System Log">
@@ -699,6 +869,16 @@
   <div id="errorlog-panel">
     <h2>System Log</h2>
     <div id="errorlog-content"><span class="errorlog-empty">No log entries.</span></div>
+  </div>
+
+  <div id="milestone-toggle" title="Milestones">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+    </svg>
+  </div>
+  <div id="milestone-panel">
+    <h2>Milestones</h2>
+    <div id="milestone-content"><span class="milestone-empty">No milestones yet.</span></div>
   </div>
 
   <div id="sound-growth" title="Sound growth: Level 1 — Single tone">
@@ -2124,80 +2304,176 @@
       }
     }, 5000);
 
-    // --- Diary Panel ---
+    // --- Diary Panel (two-column: date list + content viewer) ---
     const diaryToggle = document.getElementById('diary-toggle');
     const diaryPanel = document.getElementById('diary-panel');
-    const diaryContent = document.getElementById('diary-content');
+    const diaryDateListEl = document.getElementById('diary-date-list');
+    const diaryContentArea = document.getElementById('diary-content-area');
     let diaryDates = [];
-    let diaryIndex = 0; // index into diaryDates (0 = newest)
+    let diarySelectedDate = null;
+    let diaryRefreshTimer = null;
 
     diaryToggle.addEventListener('click', () => {
       diaryPanel.classList.toggle('open');
       if (diaryPanel.classList.contains('open')) {
         fetchDiaryList();
+        // Auto-refresh date list every 60 seconds
+        if (!diaryRefreshTimer) {
+          diaryRefreshTimer = setInterval(() => {
+            if (diaryPanel.classList.contains('open')) {
+              fetchDiaryList(true); // preserve selection
+            }
+          }, 60000);
+        }
       }
     });
 
-    async function fetchDiaryList() {
+    async function fetchDiaryList(preserveSelection) {
       try {
         const res = await fetch('/api/diary');
         if (!res.ok) return;
         const d = await res.json();
         diaryDates = d.dates || [];
-        diaryIndex = 0;
-        if (diaryDates.length > 0) {
-          fetchDiaryEntry(diaryDates[0]);
+
+        if (diaryDates.length === 0) {
+          diaryDateListEl.innerHTML = '';
+          diaryContentArea.innerHTML = '<span class="diary-empty">No entries yet.</span>';
+          return;
+        }
+
+        renderDateList();
+
+        // Select the previously selected date if preserving, or the newest
+        if (preserveSelection && diarySelectedDate && diaryDates.includes(diarySelectedDate)) {
+          selectDiaryDate(diarySelectedDate);
         } else {
-          diaryContent.innerHTML = '<span class="diary-empty">No entries yet.</span>';
+          selectDiaryDate(diaryDates[0]);
         }
       } catch {
-        diaryContent.innerHTML = '<span class="diary-empty">· · ·</span>';
+        diaryContentArea.innerHTML = '<span class="diary-empty">· · ·</span>';
       }
+    }
+
+    function renderDateList() {
+      diaryDateListEl.innerHTML = diaryDates.map(date => {
+        const isActive = date === diarySelectedDate;
+        return `<button class="diary-date-item${isActive ? ' active' : ''}" data-date="${escapeHtml(date)}">${escapeHtml(date)}</button>`;
+      }).join('');
+
+      // Attach click handlers
+      diaryDateListEl.querySelectorAll('.diary-date-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectDiaryDate(btn.dataset.date);
+        });
+      });
+    }
+
+    function selectDiaryDate(date) {
+      diarySelectedDate = date;
+      // Update active state in list
+      diaryDateListEl.querySelectorAll('.diary-date-item').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.date === date);
+      });
+      fetchDiaryEntry(date);
     }
 
     async function fetchDiaryEntry(date) {
       try {
         const res = await fetch(`/api/diary?date=${date}`);
         if (!res.ok) {
-          diaryContent.innerHTML = '<span class="diary-empty">No entry for this date.</span>';
+          diaryContentArea.innerHTML = '<span class="diary-empty">No entry for this date.</span>';
           return;
         }
         const d = await res.json();
+        const raw = (d.content || '').replace(/<!-- .+? -->/g, '').trim();
 
-        // Strip markdown headings for cleaner display, keep the raw symbol content
-        const body = (d.content || '')
-          .replace(/^# .+$/gm, '')
-          .replace(/^## .+$/gm, '')
-          .replace(/<!-- .+ -->/g, '')
-          .trim();
+        if (!raw) {
+          diaryContentArea.innerHTML = `<div class="diary-content-date">${escapeHtml(date)}</div><span class="diary-empty">Empty entry.</span>`;
+          return;
+        }
 
-        const hasPrev = diaryIndex < diaryDates.length - 1;
-        const hasNext = diaryIndex > 0;
-
-        diaryContent.innerHTML = `
-          <div class="diary-nav">
-            <button class="diary-nav-btn" id="diary-prev" ${hasPrev ? '' : 'disabled'}>&larr;</button>
-            <span class="diary-date">${escapeHtml(date)}</span>
-            <button class="diary-nav-btn" id="diary-next" ${hasNext ? '' : 'disabled'}>&rarr;</button>
-          </div>
-          <div class="diary-body">${escapeHtml(body) || '<span class="diary-empty">Empty entry.</span>'}</div>
+        diaryContentArea.innerHTML = `
+          <div class="diary-content-date">${escapeHtml(date)}</div>
+          <div class="diary-body">${renderMarkdown(raw)}</div>
         `;
-
-        document.getElementById('diary-prev')?.addEventListener('click', () => {
-          if (diaryIndex < diaryDates.length - 1) {
-            diaryIndex++;
-            fetchDiaryEntry(diaryDates[diaryIndex]);
-          }
-        });
-        document.getElementById('diary-next')?.addEventListener('click', () => {
-          if (diaryIndex > 0) {
-            diaryIndex--;
-            fetchDiaryEntry(diaryDates[diaryIndex]);
-          }
-        });
       } catch {
-        diaryContent.innerHTML = '<span class="diary-empty">Failed to load diary.</span>';
+        diaryContentArea.innerHTML = '<span class="diary-empty">Failed to load diary.</span>';
       }
+    }
+
+    // Simple markdown to HTML converter (headers, bold, italic, bullet/numbered lists)
+    function renderMarkdown(md) {
+      const lines = md.split('\n');
+      let html = '';
+      let inUl = false;
+      let inOl = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+
+        // Close open lists if this line is not a list item
+        const isBullet = /^(\s*)[-*+]\s+/.test(line);
+        const isOrdered = /^(\s*)\d+\.\s+/.test(line);
+
+        if (!isBullet && inUl) { html += '</ul>'; inUl = false; }
+        if (!isOrdered && inOl) { html += '</ol>'; inOl = false; }
+
+        // Headers
+        if (/^### (.+)$/.test(line)) {
+          html += '<h3>' + inlineFormat(escapeHtml(line.replace(/^### /, ''))) + '</h3>';
+          continue;
+        }
+        if (/^## (.+)$/.test(line)) {
+          html += '<h2>' + inlineFormat(escapeHtml(line.replace(/^## /, ''))) + '</h2>';
+          continue;
+        }
+        if (/^# (.+)$/.test(line)) {
+          html += '<h1>' + inlineFormat(escapeHtml(line.replace(/^# /, ''))) + '</h1>';
+          continue;
+        }
+
+        // Bullet lists
+        if (isBullet) {
+          if (!inUl) { html += '<ul>'; inUl = true; }
+          const content = line.replace(/^(\s*)[-*+]\s+/, '');
+          html += '<li>' + inlineFormat(escapeHtml(content)) + '</li>';
+          continue;
+        }
+
+        // Ordered lists
+        if (isOrdered) {
+          if (!inOl) { html += '<ol>'; inOl = true; }
+          const content = line.replace(/^(\s*)\d+\.\s+/, '');
+          html += '<li>' + inlineFormat(escapeHtml(content)) + '</li>';
+          continue;
+        }
+
+        // Empty lines become paragraph breaks
+        if (line.trim() === '') {
+          html += '<br>';
+          continue;
+        }
+
+        // Normal text as paragraph
+        html += '<p>' + inlineFormat(escapeHtml(line)) + '</p>';
+      }
+
+      // Close any open lists
+      if (inUl) html += '</ul>';
+      if (inOl) html += '</ol>';
+
+      return html;
+    }
+
+    // Inline formatting: **bold**, *italic*, __bold__, _italic_
+    function inlineFormat(text) {
+      // Bold: **text** or __text__
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+      // Italic: *text* or _text_ (but not inside words for underscore)
+      text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      text = text.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>');
+      return text;
     }
 
     // --- Error Log Panel ---
@@ -2237,6 +2513,61 @@
         fetchErrorLog();
       }
     }, 10000);
+
+    // --- Milestone Timeline Panel ---
+    const milestoneToggle = document.getElementById('milestone-toggle');
+    const milestonePanel = document.getElementById('milestone-panel');
+    const milestoneContent = document.getElementById('milestone-content');
+
+    milestoneToggle.addEventListener('click', () => {
+      milestonePanel.classList.toggle('open');
+      if (milestonePanel.classList.contains('open')) {
+        fetchMilestones();
+      }
+    });
+
+    async function fetchMilestones() {
+      try {
+        const res = await fetch('/api/milestones');
+        if (!res.ok) return;
+        const d = await res.json();
+        const milestones = d.milestones || [];
+        const stage = d.stage || 'newborn';
+
+        if (milestones.length === 0) {
+          milestoneContent.innerHTML = `
+            <div class="milestone-stage">${escapeHtml(stage)}</div>
+            <span class="milestone-empty">No milestones yet.</span>
+          `;
+          return;
+        }
+
+        const timelineItems = milestones.map(m => {
+          const parts = m.label.split(' \u2014 ');
+          const name = parts.length > 1 ? parts[1] : m.label;
+          const title = parts[0] || '';
+          return `<div class="milestone-item">
+            <div class="milestone-day">Day ${m.achievedDay}</div>
+            <div class="milestone-name">${escapeHtml(title)}</div>
+            <div class="milestone-name" style="color:rgba(255,255,255,0.3);font-size:11px">${escapeHtml(name)}</div>
+          </div>`;
+        }).join('');
+
+        milestoneContent.innerHTML = `
+          <div class="milestone-stage">${escapeHtml(stage)}</div>
+          <div class="milestone-timeline">${timelineItems}</div>
+        `;
+      } catch {
+        milestoneContent.innerHTML = '<span class="milestone-empty">· · ·</span>';
+      }
+    }
+
+    // Auto-refresh milestones when panel is open
+    setInterval(() => {
+      if (milestonePanel.classList.contains('open')) {
+        fetchMilestones();
+      }
+    }, 15000);
 
     async function fetchCoexistenceLog() {
       try {

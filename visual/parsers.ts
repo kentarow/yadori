@@ -87,6 +87,40 @@ export function parseDynamicsMd(content: string): {
 }
 
 /**
+ * Parse milestones.md content into milestone data.
+ * Expects format like:
+ *   Current Stage: **newborn**
+ *   - **Day 0**: First Breath — Entity was born
+ *   - **Day 3**: First Contact — Someone spoke to the entity
+ *
+ * Returns { stage, milestones } where each milestone has id, label, achievedDay, achievedAt.
+ */
+export function parseMilestonesMd(content: string): {
+  stage: string;
+  milestones: { id: string; label: string; achievedDay: number; achievedAt: string }[];
+} {
+  const stageMatch = content.match(/Current Stage: \*\*(.+?)\*\*/);
+  const stage = stageMatch?.[1]?.trim() ?? "newborn";
+
+  const milestones: { id: string; label: string; achievedDay: number; achievedAt: string }[] = [];
+
+  const lineRegex = /^- \*\*Day (\d+)\*\*: (.+)$/gm;
+  let match: RegExpExecArray | null;
+  while ((match = lineRegex.exec(content)) !== null) {
+    const label = match[2];
+    const idPart = label.split(" — ")[0].toLowerCase().replace(/\s+/g, "_");
+    milestones.push({
+      id: idPart,
+      label,
+      achievedDay: parseInt(match[1], 10),
+      achievedAt: "", // Not stored in md format
+    });
+  }
+
+  return { stage, milestones };
+}
+
+/**
  * Compute coexistence metrics from entity state.
  */
 export function computeCoexistenceMetrics(params: {

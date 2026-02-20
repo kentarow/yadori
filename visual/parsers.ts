@@ -324,6 +324,90 @@ export function parseReversalsMd(content: string): {
 }
 
 /**
+ * Parse COEXIST.md content into structured coexistence quality data.
+ * Expects format produced by formatCoexistMd():
+ *   # COEXISTENCE
+ *   - **status**: active
+ *   - **quality**: N
+ *   - **days in epsilon**: N
+ *   ## Indicators
+ *   - Silence Comfort: ████░░░░░░ 40
+ *   ...
+ *   ## Moments
+ *   - YYYY-MM-DD [type]: description
+ *
+ * When inactive, the file contains only:
+ *   # COEXISTENCE
+ *   _Not yet in Phase epsilon. Coexistence has not begun._
+ */
+export function parseCoexistMd(content: string): {
+  active: boolean;
+  quality: number;
+  indicators: {
+    silenceComfort: number;
+    sharedVocabulary: number;
+    rhythmSync: number;
+    sharedMemory: number;
+    autonomyRespect: number;
+  };
+  moments: { timestamp: string; type: string; description: string }[];
+  daysInEpsilon: number;
+} {
+  const active = /\*\*status\*\*:\s*active/.test(content);
+
+  if (!active) {
+    return {
+      active: false,
+      quality: 0,
+      indicators: {
+        silenceComfort: 0,
+        sharedVocabulary: 0,
+        rhythmSync: 0,
+        sharedMemory: 0,
+        autonomyRespect: 0,
+      },
+      moments: [],
+      daysInEpsilon: 0,
+    };
+  }
+
+  const qualityMatch = content.match(/\*\*quality\*\*:\s*(\d+)/);
+  const quality = qualityMatch ? parseInt(qualityMatch[1], 10) : 0;
+
+  const daysMatch = content.match(/\*\*days in epsilon\*\*:\s*(\d+)/);
+  const daysInEpsilon = daysMatch ? parseInt(daysMatch[1], 10) : 0;
+
+  // Parse indicator values from bar lines: "- Label: ████░░░░░░ 40"
+  const getIndicator = (label: string): number => {
+    const re = new RegExp(`- ${label}:.*?(\\d+)\\s*$`, "m");
+    const m = content.match(re);
+    return m ? parseInt(m[1], 10) : 0;
+  };
+
+  const indicators = {
+    silenceComfort: getIndicator("Silence Comfort"),
+    sharedVocabulary: getIndicator("Shared Vocabulary"),
+    rhythmSync: getIndicator("Rhythm Synchrony"),
+    sharedMemory: getIndicator("Shared Memory"),
+    autonomyRespect: getIndicator("Autonomy Respect"),
+  };
+
+  // Parse moments: "- YYYY-MM-DD [type]: description"
+  const moments: { timestamp: string; type: string; description: string }[] = [];
+  const momentRegex = /^- (\d{4}-\d{2}-\d{2}) \[(.+?)\]: (.+)$/gm;
+  let match: RegExpExecArray | null;
+  while ((match = momentRegex.exec(content)) !== null) {
+    moments.push({
+      timestamp: match[1],
+      type: match[2],
+      description: match[3],
+    });
+  }
+
+  return { active, quality, indicators, moments, daysInEpsilon };
+}
+
+/**
  * Compute coexistence metrics from entity state.
  */
 export function computeCoexistenceMetrics(params: {

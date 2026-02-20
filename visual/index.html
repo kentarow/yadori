@@ -1177,6 +1177,178 @@
     #form-toggle:hover { opacity: 0.6 !important; }
     #form-toggle svg { width: 24px; height: 24px; }
 
+    /* Coexist Panel (bottom-left slide-up) */
+    #coexist-panel {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 320px;
+      max-height: 65vh;
+      padding: 28px 24px;
+      background: rgba(0, 0, 0, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      transform: translateY(100%);
+      transition: transform 0.4s ease;
+      z-index: 20;
+      cursor: default;
+      overflow-y: auto;
+    }
+    #coexist-panel.open { transform: translateY(0); }
+    #coexist-panel h2 {
+      font-size: 10px;
+      font-weight: normal;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      margin-bottom: 20px;
+    }
+    .coexist-inactive {
+      text-align: center;
+      padding: 12px 0;
+    }
+    .coexist-inactive-symbol {
+      font-size: 32px;
+      color: rgba(255, 255, 255, 0.12);
+      margin-bottom: 12px;
+      letter-spacing: 4px;
+    }
+    .coexist-inactive-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.3);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .coexist-inactive-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      line-height: 1.6;
+      text-align: left;
+      margin-top: 16px;
+    }
+    .coexist-inactive-desc dt {
+      color: rgba(255, 255, 255, 0.25);
+      font-family: 'Courier New', monospace;
+      margin-top: 8px;
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+    .coexist-inactive-desc dd {
+      margin-left: 0;
+      margin-top: 2px;
+    }
+    .coexist-quality-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .coexist-quality-score {
+      font-size: 36px;
+      color: rgba(255, 255, 255, 0.6);
+      font-family: 'Courier New', monospace;
+    }
+    .coexist-quality-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .coexist-days {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.2);
+      text-align: center;
+      margin-top: 4px;
+      font-family: 'Courier New', monospace;
+    }
+    .coexist-bar-group {
+      margin-bottom: 12px;
+    }
+    .coexist-bar-label {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.25);
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .coexist-bar-value {
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.35);
+    }
+    .coexist-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .coexist-bar-fill {
+      height: 100%;
+      background: rgba(200, 180, 255, 0.4);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+    .coexist-moments-title {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    .coexist-moment {
+      margin-bottom: 10px;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+      border-left: 2px solid rgba(200, 180, 255, 0.15);
+    }
+    .coexist-moment-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .coexist-moment-type {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.35);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+    .coexist-moment-time {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.15);
+      font-family: 'Courier New', monospace;
+      margin-left: auto;
+    }
+    .coexist-moment-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.3);
+      font-family: 'Courier New', monospace;
+      line-height: 1.4;
+    }
+    .coexist-empty {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.15);
+      font-style: italic;
+    }
+
+    #coexist-toggle {
+      position: fixed;
+      bottom: 20px;
+      left: 180px;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      z-index: 21;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    body:hover #coexist-toggle { opacity: 0.3; }
+    #coexist-toggle:hover { opacity: 0.6 !important; }
+    #coexist-toggle svg { width: 24px; height: 24px; }
+
     /* Dynamics Panel (bottom-left) */
     #dynamics-panel {
       position: fixed;
@@ -1311,14 +1483,15 @@
       #language-panel,
       #memory-panel,
       #reversals-panel,
-      #form-panel {
+      #form-panel,
+      #coexist-panel {
         width: 100vw;
         max-height: 70vh;
         padding: 20px 16px;
       }
 
       /* Toggle buttons always visible on mobile */
-      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #language-toggle, #memory-toggle, #reversals-toggle, #form-toggle, #sound-toggle, #sound-growth {
+      #log-toggle, #senses-toggle, #diary-toggle, #errorlog-toggle, #milestone-toggle, #language-toggle, #memory-toggle, #reversals-toggle, #form-toggle, #coexist-toggle, #sound-toggle, #sound-growth {
         opacity: 0.35 !important;
       }
 
@@ -1327,6 +1500,7 @@
       #diary-toggle { bottom: 10px; left: 50px; }
       #language-toggle { bottom: 10px; left: 90px; }
       #form-toggle { bottom: 10px; left: 130px; }
+      #coexist-toggle { bottom: 10px; left: 170px; }
       #errorlog-toggle { bottom: 10px; right: 50px; }
       #milestone-toggle { bottom: 10px; right: 90px; }
       #memory-toggle { bottom: 10px; right: 130px; }
@@ -1495,6 +1669,17 @@
   <div id="form-panel">
     <h2>Form</h2>
     <div id="form-content"><span class="form-empty">No form data.</span></div>
+  </div>
+
+  <div id="coexist-toggle" title="Coexistence">
+    <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.5">
+      <circle cx="9" cy="12" r="5"/>
+      <circle cx="15" cy="12" r="5"/>
+    </svg>
+  </div>
+  <div id="coexist-panel">
+    <h2>Coexistence</h2>
+    <div id="coexist-content"><span class="coexist-empty">&middot; &middot; &middot;</span></div>
   </div>
 
   <div id="sound-growth" title="Sound growth: Level 1 — Single tone">
@@ -3667,6 +3852,129 @@
     setInterval(() => {
       if (formPanel.classList.contains('open')) {
         fetchForm();
+      }
+    }, 30000);
+
+    // --- Coexist Panel ---
+    const coexistToggle = document.getElementById('coexist-toggle');
+    const coexistPanel = document.getElementById('coexist-panel');
+    const coexistContent = document.getElementById('coexist-content');
+
+    const COEXIST_MOMENT_ICONS = {
+      comfortable_silence: '\u{1F54A}',   // dove
+      shared_discovery: '\u2728',          // sparkles
+      mutual_growth: '\u{1F331}',          // seedling
+      independent_action: '\u{1F5FD}',     // liberty
+      reunion: '\u{1F91D}',               // handshake
+    };
+
+    coexistToggle.addEventListener('click', () => {
+      coexistPanel.classList.toggle('open');
+      if (coexistPanel.classList.contains('open')) {
+        fetchCoexist();
+      }
+    });
+
+    async function fetchCoexist() {
+      try {
+        const res = await fetch('/api/coexist');
+        if (!res.ok) return;
+        const d = await res.json();
+
+        if (!d.active) {
+          coexistContent.innerHTML = `
+            <div class="coexist-inactive">
+              <div class="coexist-inactive-symbol">\u221E</div>
+              <div class="coexist-inactive-label">Not yet in Phase \u03B5</div>
+              <div class="log-divider" style="margin: 16px auto; width: 40px;"></div>
+              <div class="coexist-inactive-desc">
+                Coexistence is the final phase of Intelligence Dynamics, where comparison between entity and user becomes meaningless.
+                <dl>
+                  <dt>Silence Comfort</dt>
+                  <dd>Long silences feel natural, not distressing</dd>
+                  <dt>Shared Vocabulary</dt>
+                  <dd>Deep pool of mutually understood symbols</dd>
+                  <dt>Rhythm Synchrony</dt>
+                  <dd>Daily patterns aligned between entity and user</dd>
+                  <dt>Shared Memory</dt>
+                  <dd>Rich history of joint experiences</dd>
+                  <dt>Autonomy Respect</dt>
+                  <dd>Entity acts independently; user accepts it</dd>
+                </dl>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '';
+
+        // Quality score
+        html += `
+          <div class="coexist-quality-header">
+            <div class="coexist-quality-score">${d.quality}</div>
+            <div class="coexist-quality-label">Coexistence Quality</div>
+            <div class="coexist-days">${d.daysInEpsilon} day${d.daysInEpsilon !== 1 ? 's' : ''} in \u03B5</div>
+          </div>
+          <div class="log-divider" style="margin: 16px auto; width: 40px;"></div>
+        `;
+
+        // Indicator bars
+        const indicators = [
+          { key: 'silenceComfort', label: 'Silence Comfort' },
+          { key: 'sharedVocabulary', label: 'Shared Vocabulary' },
+          { key: 'rhythmSync', label: 'Rhythm Synchrony' },
+          { key: 'sharedMemory', label: 'Shared Memory' },
+          { key: 'autonomyRespect', label: 'Autonomy Respect' },
+        ];
+
+        for (const ind of indicators) {
+          const val = d.indicators[ind.key] ?? 0;
+          html += `
+            <div class="coexist-bar-group">
+              <div class="coexist-bar-label">
+                <span>${ind.label}</span>
+                <span class="coexist-bar-value">${val}</span>
+              </div>
+              <div class="coexist-bar">
+                <div class="coexist-bar-fill" style="width: ${val}%"></div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Notable moments
+        const moments = d.moments || [];
+        if (moments.length > 0) {
+          html += '<div class="coexist-moments-title">Notable Moments</div>';
+          const sorted = [...moments].reverse();
+          for (const m of sorted) {
+            const icon = COEXIST_MOMENT_ICONS[m.type] || '\u2728';
+            const typeLabel = (m.type || '').replace(/_/g, ' ');
+            const time = m.timestamp ? m.timestamp.split('T')[0] : '';
+            html += `
+              <div class="coexist-moment">
+                <div class="coexist-moment-header">
+                  <span>${icon}</span>
+                  <span class="coexist-moment-type">${escapeHtml(typeLabel)}</span>
+                  <span class="coexist-moment-time">${escapeHtml(time)}</span>
+                </div>
+                <div class="coexist-moment-desc">${escapeHtml(m.description || '')}</div>
+              </div>
+            `;
+          }
+        }
+
+        coexistContent.innerHTML = html;
+      } catch {
+        coexistContent.innerHTML = '<span class="coexist-empty">&middot; &middot; &middot;</span>';
+      }
+    }
+
+    // Auto-refresh coexist when panel is open (every 30 seconds)
+    setInterval(() => {
+      if (coexistPanel.classList.contains('open')) {
+        fetchCoexist();
       }
     }, 30000);
 

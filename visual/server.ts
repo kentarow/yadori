@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { homedir } from "node:os";
-import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, parseLanguageMd, parseMemoryMd, parseFormMd, parseReversalsMd, computeCoexistenceMetrics } from "./parsers.js";
+import { parseStatusMd, parseSeedMd, parsePerceptionMd, parseDynamicsMd, parseMilestonesMd, parseLanguageMd, parseMemoryMd, parseFormMd, parseReversalsMd, parseCoexistMd, computeCoexistenceMetrics } from "./parsers.js";
 import {
   processInteraction,
   serializeState,
@@ -287,6 +287,56 @@ const server = createServer(async (req, res) => {
         dominantType: null,
         reversalRate: 0,
         lastDetected: null,
+      }));
+    }
+    return;
+  }
+
+  // --- GET /api/coexist ---
+  // Returns coexistence quality data (Phase epsilon).
+  // Tries state.json first, falls back to COEXIST.md.
+  if (req.url === "/api/coexist") {
+    try {
+      const state = await readJsonState();
+      if (state && state.coexist) {
+        const c = state.coexist as Record<string, unknown>;
+        const indicators = c.indicators as Record<string, number> | undefined;
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({
+          active: (c.active as boolean) ?? false,
+          quality: (c.quality as number) ?? 0,
+          indicators: {
+            silenceComfort: indicators?.silenceComfort ?? 0,
+            sharedVocabulary: indicators?.sharedVocabulary ?? 0,
+            rhythmSync: indicators?.rhythmSync ?? 0,
+            sharedMemory: indicators?.sharedMemory ?? 0,
+            autonomyRespect: indicators?.autonomyRespect ?? 0,
+          },
+          moments: (c.moments ?? []) as unknown[],
+          daysInEpsilon: (c.daysInEpsilon as number) ?? 0,
+        }));
+      } else {
+        // Fallback: parse COEXIST.md
+        const md = await readFile(join(WORKSPACE_ROOT, "COEXIST.md"), "utf-8");
+        const parsed = parseCoexistMd(md);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(parsed));
+      }
+    } catch {
+      // No coexistence data yet — return inactive defaults
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({
+        active: false,
+        quality: 0,
+        indicators: {
+          silenceComfort: 0,
+          sharedVocabulary: 0,
+          rhythmSync: 0,
+          sharedMemory: 0,
+          autonomyRespect: 0,
+        },
+        moments: [],
+        daysInEpsilon: 0,
       }));
     }
     return;

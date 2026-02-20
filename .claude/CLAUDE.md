@@ -363,7 +363,7 @@ Actual Results (Day 0-1):
   ⚠️ Entity was silent — proactive messaging added
 ```
 
-### Phase 1.5: Post-Deployment Stabilization ★CURRENT
+### Phase 1.5: Post-Deployment Stabilization
 
 Deployed on Mac mini M4, fixing issues found in real operation.
 
@@ -417,11 +417,76 @@ User Observation:
   - See growth milestones appear naturally
 ```
 
-### Phase 4: Multimodal + Genesis Diversification (Future)
+### Phase 4: Intelligence Dynamics (Layer 4 — Complete)
 
-### Phase 5: Intelligence Dynamics + Runtime Abstraction (Future)
+```
+Development (complete):
+  ✅ Asymmetry Tracker — 5 relationship phases (α→β→γ→δ→ε)
+    - Signal-based evaluation (6 dimensions)
+    - Hysteresis transitions, DYNAMICS.md output
+  ✅ Reversal Detector — 6 reversal signal types
+    - novel_expression, anticipation, concept_creation
+    - emotional_depth, initiative, meta_awareness
+    - 7-day cooldown, strength scoring, REVERSALS.md output
+  ✅ Coexist Engine — ε-phase quality evaluation
+    - 5 indicators: silence comfort, shared vocabulary, rhythm sync,
+      shared memory, autonomy respect
+    - Notable moment recording, COEXIST.md output
+  ✅ Full heartbeat integration (all Layer 4 systems per tick)
+```
 
-### Phase 6: Framework Public Release (Future)
+### Phase 4.5: Operational Infrastructure & Dashboard (Complete)
+
+```
+Development (complete):
+  ✅ Backup/Restore (npm run backup)
+  ✅ Health Check (npm run health) — 9-point diagnostic
+  ✅ Workspace Repair (npm run health -- --repair)
+  ✅ Log Rotation (daily, auto-runs during heartbeat)
+  ✅ Heartbeat error recovery with auto-retry
+  ✅ Dashboard panels: dynamics, diary, milestones, language,
+    memory, form, reversals, sound growth, coexistence log
+  ✅ Birth Certificate with relationship phase
+  ✅ Mobile responsive dashboard
+  ✅ 8 API endpoints (/api/status, entity, coexistence, perception,
+    dynamics, milestones, language, memory, form, reversals, seed, etc.)
+```
+
+### Phase 5: Multimodal Expansion (Interfaces Ready)
+
+```
+Development (interface-only, no implementation yet):
+  ✅ LLM Adapter — cloud ↔ local LLM migration contract
+  ✅ Voice Adapter — cloud/local/none TTS providers
+    - computeVoiceMaturity with species modifiers
+    - estimateLocalVoiceCapacity (espeak/piper/styletts2 by RAM)
+  ✅ Perception Expansion — concrete filter parameters per level/species
+    - PerceptionWindow with image/text/audio/sensor channels
+    - Species-specific perception profiles
+
+Future implementation:
+  - Local LLM integration (Ollama with Phi-3/Gemma)
+  - Voice synthesis (ElevenLabs cloud → local TTS)
+  - Enhanced perception filters
+  - Species diversification (new perception modes)
+```
+
+### Phase 6: Community & Public Release (In Progress)
+
+```
+Development (partial):
+  ✅ CONTRIBUTING.md
+  ✅ Example code (custom adapter, seed inspector)
+  ✅ Raspberry Pi setup guide
+  ✅ CHANGELOG with full release history
+  ✅ Species coverage test suite (all 6 species verified)
+
+Future:
+  - npm package publication
+  - Documentation site
+  - Community templates
+  - Adapter marketplace
+```
 
 ---
 

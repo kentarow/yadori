@@ -2033,12 +2033,9 @@
     }
 
     function updateMilestones() {
-      if (!entity.growth.milestones || entity.growth.milestones.length === 0) return;
-      const latest = entity.growth.milestones.slice(-3);
-      milestonesEl.innerHTML = latest.map(m =>
-        `Day ${m.achievedDay}: ${m.label.split(' — ')[0]}`
-      ).join('<br>');
-      milestonesEl.classList.add('show');
+      // Milestones are historical records — only shown temporarily
+      // via triggerMilestoneCelebration() when newly achieved.
+      // No permanent display in the corner.
     }
 
     // --- Resize ---

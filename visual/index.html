@@ -1806,6 +1806,7 @@
         updateMilestones();
         updateDormantState();
         detectNewMilestones();
+        updateDayCounter();
       } catch { /* server not available */ }
     }
     fetchState();
@@ -1872,13 +1873,6 @@
       } catch { /* not available */ }
     }
     fetchSeedForBirthDate();
-
-    // Hook into fetchState to update day counter on each poll
-    const _origFetchStateForDay = fetchState;
-    fetchState = async function() {
-      await _origFetchStateForDay();
-      updateDayCounter();
-    };
 
     function detectNewMilestones() {
       if (!entity.growth.milestones || entity.growth.milestones.length === 0) return;

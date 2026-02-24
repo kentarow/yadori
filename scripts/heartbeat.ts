@@ -24,6 +24,11 @@ import {
   createEntityState,
   type EntityState,
 } from "../engine/src/status/status-manager.js";
+import { createInitialAsymmetryState } from "../engine/src/dynamics/asymmetry-tracker.js";
+import { createInitialReversalState } from "../engine/src/dynamics/reversal-detector.js";
+import { createInitialCoexistState } from "../engine/src/dynamics/coexist-engine.js";
+import { createInitialFormState } from "../engine/src/form/form-engine.js";
+import { createInitialPerceptionGrowthState } from "../engine/src/perception/perception-growth.js";
 import { OpenClawWorkspaceManager } from "../adapters/src/openclaw/workspace-manager.js";
 import { isActiveHours, shouldPulse, getTimeOfDay } from "../engine/src/rhythm/rhythm-system.js";
 import { formatDiaryMd } from "../engine/src/diary/diary-engine.js";
@@ -104,12 +109,27 @@ async function saveHeartbeatMessageState(state: HeartbeatMessageState): Promise<
 
 // --- State persistence ---
 
+/**
+ * Backfill fields added in later phases that may be missing
+ * from state.json saved by earlier versions.
+ */
+function backfillMissingFields(state: EntityState): EntityState {
+  const patched = { ...state };
+  if (!patched.asymmetry) patched.asymmetry = createInitialAsymmetryState();
+  if (!patched.reversal) patched.reversal = createInitialReversalState();
+  if (!patched.coexist) patched.coexist = createInitialCoexistState();
+  if (!patched.form) patched.form = createInitialFormState(patched.seed?.form ?? "light-particles");
+  if (!patched.perception) patched.perception = createInitialPerceptionGrowthState();
+  return patched;
+}
+
 async function loadState(): Promise<EntityState> {
   // Try state.json first, then __state.json (setup writes __state.json)
   for (const filename of ["state.json", "__state.json"]) {
     try {
       const content = await readFile(join(WORKSPACE_ROOT, filename), "utf-8");
-      return JSON.parse(content) as EntityState;
+      const state = JSON.parse(content) as EntityState;
+      return backfillMissingFields(state);
     } catch {
       continue;
     }

@@ -671,17 +671,18 @@ describe("HeartbeatMessages — State Management", () => {
   });
 
   it("accumulates message count across multiple calls", () => {
-    // First call: morning greeting
+    // First call: morning greeting at 09:00
     const ctx1 = makeContext({ timeOfDay: "morning", hourOfDay: 9 });
     const { updatedMessageState: state1 } = generateHeartbeatMessages(ctx1, makeState(), MORNING);
     expect(state1.messageCountToday).toBe(1);
 
-    // Second call: presence signal (using updated state)
+    // Second call: presence signal 6+ hours later (15:30) to satisfy cooldown
+    const sixHoursLater = new Date("2026-02-20T15:30:00");
     const ctx2 = makeContext({
       minutesSinceLastInteraction: 400,
-      hourOfDay: 14,
+      hourOfDay: 15,
     });
-    const { updatedMessageState: state2 } = generateHeartbeatMessages(ctx2, state1, AFTERNOON);
+    const { updatedMessageState: state2 } = generateHeartbeatMessages(ctx2, state1, sixHoursLater);
     expect(state2.messageCountToday).toBe(2);
   });
 });

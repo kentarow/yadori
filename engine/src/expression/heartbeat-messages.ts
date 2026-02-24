@@ -66,6 +66,7 @@ export interface HeartbeatMessageState {
 // --- Constants ---
 
 const MAX_MESSAGES_PER_DAY = 4;
+const MESSAGE_COOLDOWN_MINUTES = 360; // 6 hours between any heartbeat messages
 const PRESENCE_SILENCE_MINUTES = 360; // 6 hours
 const PRESENCE_COOLDOWN_MINUTES = 240; // 4 hours between presence signals
 const MOOD_SHIFT_THRESHOLD = 15;
@@ -109,6 +110,14 @@ export function generateHeartbeatMessages(
   // Gate: max messages per day
   if (state.messageCountToday >= MAX_MESSAGES_PER_DAY) {
     return { messages: [], updatedMessageState: state };
+  }
+
+  // Gate: 6-hour cooldown between any heartbeat messages
+  if (state.lastMessageTime) {
+    const minutesSinceLast = (now.getTime() - new Date(state.lastMessageTime).getTime()) / 60_000;
+    if (minutesSinceLast < MESSAGE_COOLDOWN_MINUTES) {
+      return { messages: [], updatedMessageState: state };
+    }
   }
 
   // Gate: sleep hours (23:00-7:00)
@@ -183,6 +192,14 @@ export function generateEveningReflection(
 
   if (state.messageCountToday >= MAX_MESSAGES_PER_DAY) {
     return { message: null, updatedMessageState: state };
+  }
+
+  // Gate: 6-hour cooldown between any heartbeat messages
+  if (state.lastMessageTime) {
+    const minutesSinceLast = (now.getTime() - new Date(state.lastMessageTime).getTime()) / 60_000;
+    if (minutesSinceLast < MESSAGE_COOLDOWN_MINUTES) {
+      return { message: null, updatedMessageState: state };
+    }
   }
 
   if (context.sulk.isSulking && context.sulk.severity === "severe") {

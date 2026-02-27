@@ -144,7 +144,10 @@ vi.mock("../../engine/src/identity/snapshot-generator.js", () => ({
   generateSnapshot: vi.fn(() => Buffer.from("FAKE_PNG_DATA")),
 }));
 
-vi.mock("../../engine/src/types.js", () => ({}));
+vi.mock("../../engine/src/types.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual as Record<string, unknown> };
+});
 
 // ============================================================
 // Import server AFTER all mocks are set up

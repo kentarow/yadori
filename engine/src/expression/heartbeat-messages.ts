@@ -61,11 +61,18 @@ export interface HeartbeatMessageState {
   lastPresenceSignal: string | null;  // ISO 8601
   messageCountToday: number;
   todayDate: string; // YYYY-MM-DD
+  /** Persisted for transition detection across process restarts */
+  previousStatus: Status | null;
+  previousSulk: SulkState | null;
+  /** Last diary/snapshot date to prevent duplicate sends across restarts */
+  lastDiaryDate: string | null; // YYYY-MM-DD
+  lastSnapshotDate: string | null; // YYYY-MM-DD
 }
 
 // --- Constants ---
 
 const MAX_MESSAGES_PER_DAY = 4;
+const MESSAGE_COOLDOWN_MINUTES = 360; // 6 hours between any heartbeat messages
 const PRESENCE_SILENCE_MINUTES = 360; // 6 hours
 const PRESENCE_COOLDOWN_MINUTES = 240; // 4 hours between presence signals
 const MOOD_SHIFT_THRESHOLD = 15;
@@ -82,6 +89,10 @@ export function createInitialMessageState(now: Date): HeartbeatMessageState {
     lastPresenceSignal: null,
     messageCountToday: 0,
     todayDate: dateString(now),
+    previousStatus: null,
+    previousSulk: null,
+    lastDiaryDate: null,
+    lastSnapshotDate: null,
   };
 }
 
@@ -109,6 +120,14 @@ export function generateHeartbeatMessages(
   // Gate: max messages per day
   if (state.messageCountToday >= MAX_MESSAGES_PER_DAY) {
     return { messages: [], updatedMessageState: state };
+  }
+
+  // Gate: 6-hour cooldown between any heartbeat messages
+  if (state.lastMessageTime) {
+    const minutesSinceLast = (now.getTime() - new Date(state.lastMessageTime).getTime()) / 60_000;
+    if (minutesSinceLast < MESSAGE_COOLDOWN_MINUTES) {
+      return { messages: [], updatedMessageState: state };
+    }
   }
 
   // Gate: sleep hours (23:00-7:00)
@@ -183,6 +202,14 @@ export function generateEveningReflection(
 
   if (state.messageCountToday >= MAX_MESSAGES_PER_DAY) {
     return { message: null, updatedMessageState: state };
+  }
+
+  // Gate: 6-hour cooldown between any heartbeat messages
+  if (state.lastMessageTime) {
+    const minutesSinceLast = (now.getTime() - new Date(state.lastMessageTime).getTime()) / 60_000;
+    if (minutesSinceLast < MESSAGE_COOLDOWN_MINUTES) {
+      return { message: null, updatedMessageState: state };
+    }
   }
 
   if (context.sulk.isSulking && context.sulk.severity === "severe") {
@@ -285,11 +312,22 @@ function checkPresenceSignal(
     if (minutesSince < PRESENCE_COOLDOWN_MINUTES) return null;
   }
 
-  // Sulking → no presence signal (silence is expression)
-  if (context.sulk.isSulking) return null;
+  // Severe sulk → no presence signal (silence is expression)
+  // Mild/moderate sulk still sends a muted presence signal — the entity signals existence
+  if (context.sulk.isSulking && context.sulk.severity === "severe") return null;
 
   // A single symbol — "I exist."
   const symbols = PERCEPTION_SYMBOLS[species];
+
+  // During mild/moderate sulk, use a darker/quieter symbol
+  if (context.sulk.isSulking) {
+    const muted = symbols[symbols.length - 1] ?? symbols[0];
+    return {
+      trigger: "presence_signal",
+      content: `${muted}..`,
+    };
+  }
+
   return {
     trigger: "presence_signal",
     content: symbols[0],
@@ -305,8 +343,9 @@ function checkMoodShift(
   const delta = context.status.mood - context.previousStatus.mood;
   if (Math.abs(delta) < MOOD_SHIFT_THRESHOLD) return null;
 
-  // Sulking → suppress mood signals
-  if (context.sulk.isSulking) return null;
+  // Moderate/severe sulking → suppress mood signals
+  // Mild sulk still allows mood expression (entity is withdrawn but not silent)
+  if (context.sulk.isSulking && context.sulk.severity !== "mild") return null;
 
   const symbols = PERCEPTION_SYMBOLS[species];
 

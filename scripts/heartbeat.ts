@@ -84,20 +84,25 @@ let entityPerceptionLevel: PerceptionLevel = PerceptionLevel.Minimal;
 // --- Log rotation state ---
 let lastRotationDate = "";
 
+
 // --- Error recovery state ---
 let consecutiveErrors = 0;
 const MAX_CONSECUTIVE_ERRORS = 5;
 
 // --- Proactive messaging state ---
 let heartbeatMessageState: HeartbeatMessageState | null = null;
-let previousStatus: Status | null = null;
-let previousSulk: SulkState | null = null;
 const HEARTBEAT_MSG_STATE_PATH = join(WORKSPACE_ROOT, "heartbeat-messages.json");
 
 async function loadHeartbeatMessageState(now: Date): Promise<HeartbeatMessageState> {
   try {
     const content = await readFile(HEARTBEAT_MSG_STATE_PATH, "utf-8");
-    return JSON.parse(content) as HeartbeatMessageState;
+    const loaded = JSON.parse(content) as HeartbeatMessageState;
+    // Backfill fields added in this version (missing from older state files)
+    if (loaded.previousStatus === undefined) loaded.previousStatus = null;
+    if (loaded.previousSulk === undefined) loaded.previousSulk = null;
+    if (loaded.lastDiaryDate === undefined) loaded.lastDiaryDate = null;
+    if (loaded.lastSnapshotDate === undefined) loaded.lastSnapshotDate = null;
+    return loaded;
   } catch {
     return createInitialMessageState(now);
   }
@@ -399,8 +404,8 @@ async function tick(): Promise<void> {
         timeOfDay: getTimeOfDay(now),
         hourOfDay: now.getHours(),
         minutesSinceLastInteraction: minutesSince,
-        previousStatus,
-        previousSulk,
+        previousStatus: heartbeatMessageState.previousStatus,
+        previousSulk: heartbeatMessageState.previousSulk,
       };
 
       const { messages, updatedMessageState } = generateHeartbeatMessages(
@@ -415,14 +420,23 @@ async function tick(): Promise<void> {
       }
 
       heartbeatMessageState = updatedMessageState;
+    }
+
+    // Persist previous state for transition detection across restarts
+    if (heartbeatMessageState) {
+      heartbeatMessageState.previousStatus = { ...updatedState.status };
+      heartbeatMessageState.previousSulk = { ...updatedState.sulk };
       await saveHeartbeatMessageState(heartbeatMessageState);
     }
 
-    previousStatus = { ...updatedState.status };
-    previousSulk = { ...updatedState.sulk };
+    // Write diary if generated (evening) — only once per day
+    const todayStr = now.toISOString().split("T")[0];
+    const alreadyDiaried = heartbeatMessageState?.lastDiaryDate === todayStr;
+    if (result.diary && !alreadyDiaried) {
+      if (heartbeatMessageState) {
+        heartbeatMessageState.lastDiaryDate = todayStr;
+      }
 
-    // Write diary if generated (evening)
-    if (result.diary) {
       const diaryPath = join(WORKSPACE_ROOT, "diary", `${result.diary.date}.md`);
       await writeFile(diaryPath, formatDiaryMd(result.diary), "utf-8");
       log(`Diary written: ${result.diary.date}`);
@@ -437,8 +451,8 @@ async function tick(): Promise<void> {
           timeOfDay: getTimeOfDay(now),
           hourOfDay: now.getHours(),
           minutesSinceLastInteraction: 0,
-          previousStatus,
-          previousSulk,
+          previousStatus: heartbeatMessageState.previousStatus,
+          previousSulk: heartbeatMessageState.previousSulk,
         };
         const { message, updatedMessageState } = generateEveningReflection(
           msgContext, heartbeatMessageState, now,
@@ -450,11 +464,21 @@ async function tick(): Promise<void> {
           }
         }
         heartbeatMessageState = updatedMessageState;
-        await saveHeartbeatMessageState(heartbeatMessageState);
       }
 
-      // Send daily snapshot alongside diary (same evening timing)
-      await sendDailySnapshot(updatedState);
+      // Send daily snapshot alongside diary — only once per day
+      const alreadySnapshot = heartbeatMessageState?.lastSnapshotDate === todayStr;
+      if (!alreadySnapshot) {
+        if (heartbeatMessageState) {
+          heartbeatMessageState.lastSnapshotDate = todayStr;
+        }
+        await sendDailySnapshot(updatedState);
+      }
+
+      // Save all state changes (diary date, snapshot date, message state)
+      if (heartbeatMessageState) {
+        await saveHeartbeatMessageState(heartbeatMessageState);
+      }
     }
 
     // Update SOUL_EVIL.md if sulking

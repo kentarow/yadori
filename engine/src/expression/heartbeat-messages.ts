@@ -61,6 +61,12 @@ export interface HeartbeatMessageState {
   lastPresenceSignal: string | null;  // ISO 8601
   messageCountToday: number;
   todayDate: string; // YYYY-MM-DD
+  /** Persisted for transition detection across process restarts */
+  previousStatus: Status | null;
+  previousSulk: SulkState | null;
+  /** Last diary/snapshot date to prevent duplicate sends across restarts */
+  lastDiaryDate: string | null; // YYYY-MM-DD
+  lastSnapshotDate: string | null; // YYYY-MM-DD
 }
 
 // --- Constants ---
@@ -83,6 +89,10 @@ export function createInitialMessageState(now: Date): HeartbeatMessageState {
     lastPresenceSignal: null,
     messageCountToday: 0,
     todayDate: dateString(now),
+    previousStatus: null,
+    previousSulk: null,
+    lastDiaryDate: null,
+    lastSnapshotDate: null,
   };
 }
 
@@ -302,11 +312,22 @@ function checkPresenceSignal(
     if (minutesSince < PRESENCE_COOLDOWN_MINUTES) return null;
   }
 
-  // Sulking → no presence signal (silence is expression)
-  if (context.sulk.isSulking) return null;
+  // Severe sulk → no presence signal (silence is expression)
+  // Mild/moderate sulk still sends a muted presence signal — the entity signals existence
+  if (context.sulk.isSulking && context.sulk.severity === "severe") return null;
 
   // A single symbol — "I exist."
   const symbols = PERCEPTION_SYMBOLS[species];
+
+  // During mild/moderate sulk, use a darker/quieter symbol
+  if (context.sulk.isSulking) {
+    const muted = symbols[symbols.length - 1] ?? symbols[0];
+    return {
+      trigger: "presence_signal",
+      content: `${muted}..`,
+    };
+  }
+
   return {
     trigger: "presence_signal",
     content: symbols[0],
@@ -322,8 +343,9 @@ function checkMoodShift(
   const delta = context.status.mood - context.previousStatus.mood;
   if (Math.abs(delta) < MOOD_SHIFT_THRESHOLD) return null;
 
-  // Sulking → suppress mood signals
-  if (context.sulk.isSulking) return null;
+  // Moderate/severe sulking → suppress mood signals
+  // Mild sulk still allows mood expression (entity is withdrawn but not silent)
+  if (context.sulk.isSulking && context.sulk.severity !== "mild") return null;
 
   const symbols = PERCEPTION_SYMBOLS[species];
 

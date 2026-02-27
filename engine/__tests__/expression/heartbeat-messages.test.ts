@@ -75,6 +75,10 @@ function makeState(overrides: Partial<HeartbeatMessageState> = {}): HeartbeatMes
     lastPresenceSignal: null,
     messageCountToday: 0,
     todayDate: "2026-02-20",
+    previousStatus: null,
+    previousSulk: null,
+    lastDiaryDate: null,
+    lastSnapshotDate: null,
     ...overrides,
   };
 }
@@ -264,11 +268,36 @@ describe("HeartbeatMessages — Presence Signal", () => {
     expect(messages[0].trigger).toBe("presence_signal");
   });
 
-  it("does not send presence signal when sulking", () => {
+  it("sends muted presence signal when mildly sulking", () => {
     const ctx = makeContext({
       minutesSinceLastInteraction: 400,
       hourOfDay: 14,
       sulk: makeSulk("mild"),
+    });
+    const { messages } = generateHeartbeatMessages(ctx, makeState(), AFTERNOON);
+    const presences = messages.filter((m) => m.trigger === "presence_signal");
+    expect(presences).toHaveLength(1);
+    // Muted presence signal uses darker symbol with trailing dots
+    expect(presences[0].content).toMatch(/\.\.$/);
+  });
+
+  it("sends muted presence signal when moderately sulking", () => {
+    const ctx = makeContext({
+      minutesSinceLastInteraction: 400,
+      hourOfDay: 14,
+      sulk: makeSulk("moderate"),
+    });
+    const { messages } = generateHeartbeatMessages(ctx, makeState(), AFTERNOON);
+    const presences = messages.filter((m) => m.trigger === "presence_signal");
+    expect(presences).toHaveLength(1);
+    expect(presences[0].content).toMatch(/\.\.$/);
+  });
+
+  it("does not send presence signal when severely sulking", () => {
+    const ctx = makeContext({
+      minutesSinceLastInteraction: 400,
+      hourOfDay: 14,
+      sulk: makeSulk("severe"),
     });
     const { messages } = generateHeartbeatMessages(ctx, makeState(), AFTERNOON);
     const presences = messages.filter((m) => m.trigger === "presence_signal");
@@ -431,13 +460,39 @@ describe("HeartbeatMessages — Mood Shift", () => {
     expect(moodMsgs).toHaveLength(0);
   });
 
-  it("no mood shift message when sulking", () => {
+  it("allows mood shift message when mildly sulking", () => {
     const ctx = makeContext({
       hourOfDay: 14,
       status: makeStatus({ mood: 70 }),
       previousStatus: makeStatus({ mood: 50 }),
       sulk: makeSulk("mild"),
       previousSulk: makeSulk("mild"),
+    });
+    const { messages } = generateHeartbeatMessages(ctx, makeState(), AFTERNOON);
+    const moodMsgs = messages.filter((m) => m.trigger === "mood_shift");
+    expect(moodMsgs).toHaveLength(1);
+  });
+
+  it("no mood shift message when moderately sulking", () => {
+    const ctx = makeContext({
+      hourOfDay: 14,
+      status: makeStatus({ mood: 70 }),
+      previousStatus: makeStatus({ mood: 50 }),
+      sulk: makeSulk("moderate"),
+      previousSulk: makeSulk("moderate"),
+    });
+    const { messages } = generateHeartbeatMessages(ctx, makeState(), AFTERNOON);
+    const moodMsgs = messages.filter((m) => m.trigger === "mood_shift");
+    expect(moodMsgs).toHaveLength(0);
+  });
+
+  it("no mood shift message when severely sulking", () => {
+    const ctx = makeContext({
+      hourOfDay: 14,
+      status: makeStatus({ mood: 70 }),
+      previousStatus: makeStatus({ mood: 50 }),
+      sulk: makeSulk("severe"),
+      previousSulk: makeSulk("severe"),
     });
     const { messages } = generateHeartbeatMessages(ctx, makeState(), AFTERNOON);
     const moodMsgs = messages.filter((m) => m.trigger === "mood_shift");
